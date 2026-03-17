@@ -2,6 +2,8 @@ import state from "../state";
 import getState from "../getState";
 import utils from "../utils";
 
+const STRUCTURAL_RESULT_TYPES = new Set(["node", "member", "support", "point_load", "distributed_load", "plate", "moment", "section", "material"]);
+
 function run(model) {
   if (model == undefined) {
     console.log("There are places not passing the model to the logic runner");
@@ -101,9 +103,27 @@ function calculateModel(model, is_from_main_model) {
 
   // Run all the combinations
   model_combinations.forEach((model_combination, combination_i) => {
+    let structure = getState("structure");
+    let structure_id_state = {};
+    Object.keys(structure).forEach((structure_key) => {
+      const used_ids = new Set(Object.keys(structure[structure_key]).map((id) => Number(id)));
+      let next_id = 1;
+      while (used_ids.has(next_id)) next_id += 1;
+      structure_id_state[structure_key] = { used_ids, next_id };
+    });
+
+    const getNextStructuralId = (structure_key) => {
+      const id_state = structure_id_state[structure_key];
+      const new_id = id_state.next_id;
+      id_state.used_ids.add(new_id);
+      id_state.next_id += 1;
+      while (id_state.used_ids.has(id_state.next_id)) id_state.next_id += 1;
+      return new_id;
+    };
+
     // Update the model with the given combination
     if (model_combination !== null) {
-      let structural_nodes = getState("structure")["nodes"];
+      let structural_nodes = structure["nodes"];
       state.setGlobalVariable(
         "structure_nodes_shift",
         utils.findHighestZCoordinate(structural_nodes) + spacing_between_combinations * (combination_i > 0 ? 1 : 0)
@@ -117,6 +137,7 @@ function calculateModel(model, is_from_main_model) {
     }
     // Run all the logic
     Object.entries(connected_nodes).forEach(([node_id, node]) => {
+      let structure_changed = false;
       // TODO - Make it an actual logic, gathering all the args first
       // Get the arguments
       Object.entries(node.sources).forEach(([arg_key, arg_data_array]) => {
@@ -136,22 +157,10 @@ function calculateModel(model, is_from_main_model) {
         let actual_res_val = JSON.parse(JSON.stringify(res_val));
         // Process the structure
         let res_type = utils.splitArgName(res_id, "source").name;
-        if (
-          res_type === "node" ||
-          res_type === "member" ||
-          res_type === "support" ||
-          res_type === "point_load" ||
-          res_type === "distributed_load" ||
-          res_type === "plate" ||
-          res_type === "moment" ||
-          res_type === "section" ||
-          res_type === "material"
-        ) {
+        if (STRUCTURAL_RESULT_TYPES.has(res_type)) {
           // For structural nodes
-          // Get the global structure
-          let structure = getState("structure");
           let structure_key = res_type + "s";
-          actual_res_val = utils.nextStructuralId(structure_key, structure);
+          actual_res_val = getNextStructuralId(structure_key);
           // Shift the nodes if needed and store the node ID for the lists
           if (res_type === "node") {
             res_val.z += state.getGlobalVariable("structure_nodes_shift");
@@ -161,13 +170,9 @@ function calculateModel(model, is_from_main_model) {
           if (res_type === "member") {
             state.setGlobalVariable("last_structural_member", actual_res_val);
           }
-          if (res_type === "node") {
-            state.setGlobalVariable("last_structural_node", actual_res_val);
-          }
           // Update the structure
           structure[structure_key][actual_res_val] = res_val;
-          // Store the global structure
-          state.setState(structure, "structure");
+          structure_changed = true;
           result_input = res_val;
         } else if (res_type === "result") {
           // For other nodes numerical nodes
@@ -197,6 +202,7 @@ function calculateModel(model, is_from_main_model) {
       });
       // Set the input
       nodes[nodes_i[node_id]]["data"]["input"] = result_input;
+      if (structure_changed) state.setState(structure, "structure");
     });
   });
 

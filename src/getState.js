@@ -1,14 +1,19 @@
 function getState(key) {
-  let state = JSON.parse(JSON.stringify(window.ParamEle.state));
-  if (key !== undefined && key !== "model") {
-    state = state[key];
-  } else if (key === "model") {
-    let model_path = state.model_path;
+  const clone = (value) => JSON.parse(JSON.stringify(value));
+  const raw_state = window.ParamEle.state;
+
+  if (typeof key === "undefined") return clone(raw_state);
+
+  if (key === "model") {
+    let model = raw_state;
+    let model_path = raw_state.model_path;
     for (let i = 0; i < model_path.length; i++) {
-      state = state[model_path[i]];
+      model = model[model_path[i]];
     }
+    return clone(model);
   }
-  return state;
+
+  return clone(raw_state[key]);
 }
 
 export default getState;
