@@ -312,6 +312,8 @@ function getLayout() {
         spikethickness: 0,
       },
     },
+    paper_bgcolor: "rgba(255,255,255,0.1)",
+    plot_bgcolor: "rgba(255,255,255,0.1)",
   };
 }
 
