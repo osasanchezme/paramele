@@ -338,6 +338,11 @@ function encodeStringForDBKey(input_string) {
   return input_string;
 }
 
+function print(string) {
+  if (!isNaN(string)) string = Number(string).toPrecision(3);
+  return string;
+}
+
 const utils = {
   getClosestMatches,
   nextNodeId,
@@ -366,7 +371,8 @@ const utils = {
   encodeNameToUniqueID,
   decodeUniqueIDToName,
   getNodeFullID,
-  nextNodeIndex
+  nextNodeIndex,
+  print
 };
 
 export default utils;

@@ -370,15 +370,15 @@ function GenericInOutNode({ data, id, node_label, target_ids = [], source_ids = 
           <Table size="sm">
             <Thead>
               <Tr>
-                <Th key={`head_1`}>{xaxis_title}</Th>
-                <Th key={`head_2`}>{yaxis_title}</Th>
+                <Th key={`head_1`} style={{textAlign: 'center'}}>{xaxis_title}</Th>
+                <Th key={`head_2`} style={{textAlign: 'center'}}>{yaxis_title}</Th>
               </Tr>
             </Thead>
             <Tbody>
               {x.map((x_value, x_index) => (
                 <Tr key={`row_${x_index}`}>
-                  <Td key={`cell_${x_index}_1`}>{x_value}</Td>
-                  <Td key={`cell_${x_index}_2`}>{y[x_index]}</Td>
+                  <Td key={`cell_${x_index}_1`} style={{textAlign: 'center'}}>{utils.print(x_value)}</Td>
+                  <Td key={`cell_${x_index}_2`} style={{textAlign: 'center'}}>{utils.print(y[x_index])}</Td>
                 </Tr>
               ))}
             </Tbody>
