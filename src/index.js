@@ -3,7 +3,6 @@ import ReactDOM from "react-dom/client";
 import "./index.css";
 import "./flowNodes.css";
 import { ChakraProvider } from "@chakra-ui/react";
-import GlobalControls from "./components/settings";
 import NavBar from "./components/navbar";
 import state, { setInitialState, updateStateFromFlow } from "./state";
 import CommandsBar from "./components/commands_bar";
@@ -30,6 +29,7 @@ import { getInitialState } from "./initial_state";
 import { AppModeContext, GlobalLoadingProvider, UserDataContext } from "./Context";
 import SharingManager from "./components/sharing_manager";
 import StatusBar from "./components/status_bar";
+import ViewSwitch from "./components/view_switch";
 import boxes from "./js/boxes";
 
 setInitialState();
@@ -44,6 +44,8 @@ class ParamEle extends React.Component {
     this.state = getInitialState();
     this.changeGeneralSettingValue = this.changeGeneralSettingValue.bind(this);
     window.ParamEle.changeGeneralSettingValue = this.changeGeneralSettingValue.bind(this);
+    this.setViewMode = this.setViewMode.bind(this);
+    this.togglePropertiesPanel = this.togglePropertiesPanel.bind(this);
     this.changeAppMode = this.changeAppMode.bind(this);
     this.handleMouseMove = this.handleMouseMove.bind(this);
     this.getStateUpdateFromClickEvent = this.getStateUpdateFromClickEvent.bind(this);
@@ -108,6 +110,21 @@ class ParamEle extends React.Component {
         this.updateComponentsWidth({ panel_width: curr_settings.general.show_properties_panel ? curr_settings.layout.panel_width : 0 });
       }
     });
+  }
+  /**
+   * Shows only the nodes editor, both editor and renderer side by side, or only the renderer
+   * @param {"nodes"|"split"|"renderer"} mode
+   */
+  setViewMode(mode) {
+    let curr_settings = this.state.settings;
+    curr_settings.general.side_by_side = mode === "split";
+    if (mode !== "split") curr_settings.general.show_nodes = mode === "nodes";
+    this.setState({ settings: curr_settings }, () => {
+      this.updateComponentsWidth({ panel_width: curr_settings.general.show_properties_panel ? curr_settings.layout.panel_width : 0 });
+    });
+  }
+  togglePropertiesPanel() {
+    this.changeGeneralSettingValue("show_properties_panel", !this.state.settings.general.show_properties_panel);
   }
   updateNodesFromLocalState() {
     let local_state = getState();
@@ -482,9 +499,11 @@ class ParamEle extends React.Component {
                   changeAppMode={this.changeAppMode}
                   openConfirmationDialog={this.openConfirmationDialog}
                   openSharingManager={this.openSharingManager}
+                  show_properties_panel={this.state.settings.general.show_properties_panel}
+                  togglePropertiesPanel={this.togglePropertiesPanel}
                 ></NavBar>
                 <StatusBar app_mode={this.state.mode} changeAppMode={this.changeAppMode}></StatusBar>
-                <GlobalControls onSettingChange={this.changeGeneralSettingValue} settings={this.state.settings.general}></GlobalControls>
+                <ViewSwitch settings={this.state.settings.general} setViewMode={this.setViewMode}></ViewSwitch>
                 {commands_bar}
                 <PropertiesPanel
                   visible={this.state.settings.general.show_properties_panel}
@@ -502,13 +521,14 @@ class ParamEle extends React.Component {
                   setNodes={this.setNodes}
                   edges={this.state.edges}
                   setEdges={this.setEdges}
-                  show_mini_map={this.state.settings.general.mini_map}
                   width={this.state.settings.layout.editor_width}
                   nodes_library={nodes_library}
                   is_model_locked={this.state.model_locked}
                   app_mode={this.state.mode}
                 ></VisualEditor>
-                <Navigator layout={this.state.settings.layout}></Navigator>
+                {(this.state.settings.general.side_by_side || this.state.settings.general.show_nodes) && (
+                  <Navigator layout={this.state.settings.layout}></Navigator>
+                )}
                 <ResizeBorder
                   id="renderer_editor"
                   visible={this.state.settings.general.side_by_side}

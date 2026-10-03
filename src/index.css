@@ -21,8 +21,10 @@ div.nav-bar .nav-bar-button {
   border-radius: 0;
 }
 
-div.nav-bar .nav-bar-button-group {
-  margin-left: 150px;
+div.nav-bar .nav-bar-left-corner {
+  display: flex;
+  align-items: center;
+  padding-left: 8px;
 }
 
 div.status-bar {
@@ -47,56 +49,19 @@ div.editor-container {
   top: 50px;
 }
 
-div.global-controls {
-  position: fixed;
-  top: 50%;
-  right: 0;
-  transform: translateY(-50%);
-  width: 240px;
-  z-index: 6;
-  pointer-events: none;
+/* Between the hidden (2) and visible (4) renderer so the view switch decides which one is on top */
+div.editor-container {
+  z-index: 3;
 }
 
-div.global-controls-container {
-  width: 220px;
-  border-radius: 10px 0 0 10px;
+div.view-switch {
   position: absolute;
-  top: 50%;
-  right: -188px;
-  transform: translateY(-50%);
-  z-index: 5;
-  background: whitesmoke;
-  pointer-events: auto;
-  transition: right 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
-}
-
-div.global-controls-container:hover {
-  right: 0;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-}
-
-div.global-controls-sidebar {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10px 0 0 10px;
-  background: var(--chakra-colors-gray-100);
-}
-
-div.global-controls-sidebar-icon {
-  font-size: 16px;
-  line-height: 1;
-}
-
-div.global-controls-content {
-  padding: 8px;
-  margin-left: 32px;
+  top: 58px;
+  right: 10px;
+  z-index: 7;
+  background: #fff;
+  border-radius: var(--chakra-radii-md);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
 }
 
 div.commands-bar {

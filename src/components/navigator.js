@@ -36,7 +36,8 @@ class Navigator extends React.Component {
   }
   render() {
     let { layout } = this.props;
-    let porcentual_width = layout.panel_width + layout.renderer_width + "%";
+    // The editor is anchored to the right edge, so its left edge is what remains of the width
+    let porcentual_width = 100 - layout.editor_width + "%";
     let model_path = this.state.path;
     return (
       <Breadcrumb position={"absolute"} top={55} zIndex={6} left={`calc(${porcentual_width} + 10px)`}>

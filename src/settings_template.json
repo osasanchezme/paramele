@@ -1,13 +1,5 @@
 {
     "general": {
-        "auto_update": {
-            "default": true,
-            "type": "check"
-        },
-        "mini_map": {
-            "default": true,
-            "type": "check"
-        },
         "show_nodes": {
             "default": true,
             "type": "check"
@@ -89,6 +81,11 @@
             "default": true,
             "type": "check",
             "tab": "structure_tab"
+        },
+        "mini_map": {
+            "default": true,
+            "type": "check",
+            "tab": "editor_tab"
         }
     }
 }

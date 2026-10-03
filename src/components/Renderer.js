@@ -44,7 +44,7 @@ class Renderer extends React.Component {
     }
   }
   render() {
-    let global_style = { zIndex: this.props.visible ? 4 : 3, width: String(this.props.width) + "%", right: this.props.layout.renderer_right + "%" };
+    let global_style = { zIndex: this.props.visible ? 4 : 2, width: String(this.props.width) + "%", right: this.props.layout.renderer_right + "%" };
 
     const miniPlotData = [
       {

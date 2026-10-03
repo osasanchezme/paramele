@@ -1,6 +1,7 @@
-import { Button, List, ListIcon, ListItem, Icon, Flex, Spacer } from "@chakra-ui/react";
+import { Button, List, ListIcon, ListItem, Icon, IconButton, Flex, Spacer, Tooltip, Box } from "@chakra-ui/react";
 import React, { useRef, useState } from "react";
 import * as MaterialDesign from "react-icons/md";
+import { TbLayoutSidebarLeftCollapse, TbLayoutSidebarLeftExpand } from "react-icons/tb";
 import boxes from "../js/boxes";
 import file from "../js/file";
 import structure from "../js/structure";
@@ -27,6 +28,8 @@ function NavBar({
   changeAppMode,
   openConfirmationDialog,
   openSharingManager,
+  show_properties_panel,
+  togglePropertiesPanel,
 }) {
   let [dropdownState, setDropdownState] = useState({ dropdown_visible: false, mouse_on_menu: false });
   let [currentMenu, setCurrentMenu] = useState("file");
@@ -243,6 +246,9 @@ function NavBar({
   return (
     <div className="nav-bar">
       <Flex direction="row" spacing={0} className="nav-bar-button-group">
+        <Box width="150px" className="nav-bar-left-corner">
+          <PanelToggle visible={show_properties_panel} onToggle={togglePropertiesPanel} />
+        </Box>
         {Object.entries(navbar_options.current).map(([nav_menu_key, nav_menu_options], index) => (
           <Button
             key={`${nav_menu_key}-nav-bar-btn`}
@@ -328,6 +334,21 @@ function NavBar({
         handleChange={handleChange}
       ></NavMenu>
     </div>
+  );
+}
+
+function PanelToggle({ visible, onToggle }) {
+  const label = localGetCopy(visible ? "hide_panel" : "show_panel");
+  return (
+    <Tooltip label={label} placement="bottom-start" openDelay={300}>
+      <IconButton
+        aria-label={label}
+        aria-pressed={visible}
+        icon={<Icon as={visible ? TbLayoutSidebarLeftCollapse : TbLayoutSidebarLeftExpand} boxSize={5} />}
+        variant="ghost"
+        onClick={onToggle}
+      />
+    </Tooltip>
   );
 }
 

@@ -103,11 +103,7 @@
         "dataDisplayTable": "Tabla"
     },
     "settings": {
-        "auto_update": "Actualizar automáticamente",
         "mini_map": "Mostrar mapa",
-        "show_nodes": "Mostrar nodos",
-        "side_by_side": "Dividir pantalla",
-        "show_properties_panel": "Mostrar panel",
         "modal_title": "Configuración",
         "save_changes": "Guardar",
         "close_modal": "Cerrar",
@@ -126,7 +122,11 @@
         "solver_engine": "Motor de cálculo",
         "pynite": "Pynite (local)",
         "pynite_wasm": "Pynite (en el navegador)",
-        "skyciv": "SkyCiv S3D (nube)"
+        "skyciv": "SkyCiv S3D (nube)",
+        "editor_tab": "Editor",
+        "view_nodes": "Solo nodos",
+        "view_split": "Dividir pantalla",
+        "view_renderer": "Solo vista 3D"
     },
     "solver_status": {
         "server_checking": "Verificando si el servidor local está activo...",
@@ -171,7 +171,9 @@
         "minutes": "minutos",
         "hours": "horas",
         "days": "días",
-        "last_saved": "Último guardado"
+        "last_saved": "Último guardado",
+        "show_panel": "Mostrar panel",
+        "hide_panel": "Ocultar panel"
     },
     "commands_bar": {
         "placeholder": "Nombre nodo..."
@@ -291,7 +293,7 @@
         "no_valid_email": "Este correo no parece ser válido",
         "auth/wrong-password": "Contraseña incorrecta",
         "auth/too-many-requests": "Demasiados intentos de autenticación fallidos. Intenta más tarde o restablece la contraseña.",
-        "auth/user-not-found": "Usuario no encontrado. Contacta a soporte si esto es un error" 
+        "auth/user-not-found": "Usuario no encontrado. Contacta a soporte si esto es un error"
     },
     "file_manager": {
         "title": "Mis Archivos",

@@ -1,13 +1,20 @@
 import ReactFlow, { MiniMap, Controls, addEdge, applyEdgeChanges, applyNodeChanges, updateEdge } from "reactflow";
 import logic_runner from "../js/globalLogicRunner";
-import { setGlobalVariable, storeRfInstance, updateStateFromFlow } from "../state";
-import { useEffect } from "react";
+import { onSettingsChange, setGlobalVariable, storeRfInstance, updateStateFromFlow } from "../state";
+import getState from "../getState";
+import { useEffect, useState } from "react";
 import utils from "../utils";
 import "reactflow/dist/style.css";
 
 let rf_instance;
 
-function VisualEditor({ width, show_mini_map, nodes_library, is_model_locked, nodes, edges, setNodes, setEdges, app_mode }) {
+function getShowMiniMap() {
+  return getState("settings")["global"].mini_map;
+}
+
+function VisualEditor({ width, nodes_library, is_model_locked, nodes, edges, setNodes, setEdges, app_mode }) {
+  const [show_mini_map, setShowMiniMap] = useState(getShowMiniMap);
+  useEffect(() => onSettingsChange(() => setShowMiniMap(getShowMiniMap())), []);
   // Whenever the model lock status changes the data on each node on that regard updates accordingly
   useEffect(() => {
     setNodes((nds) =>

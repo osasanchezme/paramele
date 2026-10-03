@@ -11,6 +11,15 @@ function repairModel(model) {
 }
 
 function repairSettings(settings) {
+  // Older files have auto_update (removed) and mini_map (now a global setting) under general
+  let { general } = settings;
+  if (general) {
+    delete general.auto_update;
+    if (general.hasOwnProperty("mini_map")) {
+      settings.global = { mini_map: general.mini_map, ...settings.global };
+      delete general.mini_map;
+    }
+  }
   Object.entries(settings_template).forEach(([global_key, global_setting]) => {
     let should_update_all = false;
     if (!settings.hasOwnProperty(global_key)) {

@@ -103,28 +103,25 @@ function updateSettingsFromLocalState(settings_obj) {
 
 // TODO - Do not use this anymore, always use the model {nodes, edges} in the App state
 function updateStateFromFlow(force_update = false) {
-  let settings = getState("settings")["general"];
   let model_path = getState("model_path");
-  if (settings.auto_update) {
-    // TODO -  Do not do it with timeout but using a callback in index.js
-    setTimeout(() => {
-      let rfInstance = getRfInstance();
-      if (rfInstance) {
-        let current_state = getState();
-        let old_state = JSON.stringify(current_state);
-        let model_location = current_state;
-        model_path.forEach((key) => {
-          model_location = model_location[key];
-        });
-        model_location.nodes = rfInstance.getNodes();
-        model_location.edges = rfInstance.getEdges();
-        if (JSON.stringify(current_state) !== old_state || force_update) {
-          setState(current_state);
-          logic_runner.run();
-        }
+  // TODO -  Do not do it with timeout but using a callback in index.js
+  setTimeout(() => {
+    let rfInstance = getRfInstance();
+    if (rfInstance) {
+      let current_state = getState();
+      let old_state = JSON.stringify(current_state);
+      let model_location = current_state;
+      model_path.forEach((key) => {
+        model_location = model_location[key];
+      });
+      model_location.nodes = rfInstance.getNodes();
+      model_location.edges = rfInstance.getEdges();
+      if (JSON.stringify(current_state) !== old_state || force_update) {
+        setState(current_state);
+        logic_runner.run();
       }
-    }, 100);
-  }
+    }
+  }, 100);
 }
 
 function removeNodesAndEdgesFromModel(current_model, node_ids, edge_ids) {
@@ -258,4 +255,4 @@ const state = {
 
 export default state;
 
-export { updateStateFromFlow, storeRfInstance, setInitialState, setState, setGlobalVariable };
+export { updateStateFromFlow, storeRfInstance, setInitialState, setState, setGlobalVariable, onSettingsChange };

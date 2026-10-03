@@ -103,11 +103,7 @@
         "dataDisplayTable": "Table"
     },
     "settings":{
-        "auto_update": "Auto update",
         "mini_map": "Show map",
-        "show_nodes": "Show nodes",
-        "side_by_side": "Split screen",
-        "show_properties_panel": "Show panel",
         "modal_title": "Settings",
         "save_changes": "Save",
         "close_modal": "Close",
@@ -126,7 +122,11 @@
         "solver_engine": "Solve engine",
         "pynite": "Pynite (local)",
         "pynite_wasm": "Pynite (in the browser)",
-        "skyciv": "SkyCiv S3D (cloud)"
+        "skyciv": "SkyCiv S3D (cloud)",
+        "editor_tab": "Editor",
+        "view_nodes": "Nodes only",
+        "view_split": "Split screen",
+        "view_renderer": "3D view only"
     },
     "solver_status": {
         "server_checking": "Checking whether the local server is running...",
@@ -171,7 +171,9 @@
         "minutes": "minutes",
         "hours": "hours",
         "days": "days",
-        "last_saved": "Last saved"
+        "last_saved": "Last saved",
+        "show_panel": "Show panel",
+        "hide_panel": "Hide panel"
     },
     "commands_bar":{
         "placeholder": "Node name..."
@@ -206,7 +208,7 @@
         "select_input_handles_desc": "Click on the desired input handles, once done hit Enter",
         "select_output_handles_title": "Select output handles",
         "select_output_handles_desc": "Click on the desired output handles, once done hit Enter",
-        "more_than_one_node_selected_title": "More than one box selected", 
+        "more_than_one_node_selected_title": "More than one box selected",
         "more_than_one_node_selected_desc": "Please select only one box",
         "no_wrapper_node_title": "The selected box is not a wrapper",
         "no_wrapper_node_desc": "Please select a wrapper box",
@@ -289,7 +291,7 @@
         "no_valid_email": "This email does not seem valid",
         "auth/wrong-password": "Wrong password",
         "auth/too-many-requests": "Too many failed authentication attempts. Please try later or reset your password.",
-        "auth/user-not-found": "User not found. Please contact support if this is a mistake." 
+        "auth/user-not-found": "User not found. Please contact support if this is a mistake."
     },
     "file_manager":{
         "title": "My Files",
