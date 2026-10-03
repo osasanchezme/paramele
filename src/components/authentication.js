@@ -15,12 +15,14 @@ import {
   TabPanel,
   SimpleGrid,
   Link,
+  useMediaQuery,
 } from "@chakra-ui/react";
 import utils from "../utils";
 import Firebase from "../js/firebase";
 import { auth_form_fields, log_in_form_fields } from "../js/form_fileds";
 import ParamEleForm from "./form";
 import { notify } from "./notification";
+import { COMPACT_LAYOUT_QUERY } from "../js/breakpoints";
 const { FormComponent, getDefaultState, validateInputData } = ParamEleForm;
 
 function localGetDisplayCopy(copy_key) {
@@ -30,6 +32,8 @@ function localGetDisplayCopy(copy_key) {
 function Authentication({ user, is_auth_form_open, closeAuthenticationForm, active_tab_auth_form, setActiveTabAuthenticationForm }) {
   let [authFormState, setAuthFormState] = useState(getDefaultState(auth_form_fields));
   let [logInFormState, setLogInFormState] = useState(getDefaultState(log_in_form_fields));
+  // Small screens get a full screen form with a single column of fields
+  const [is_compact] = useMediaQuery(COMPACT_LAYOUT_QUERY);
   useEffect(() => {
     setAuthFormState(getDefaultState(auth_form_fields));
     setLogInFormState(getDefaultState(log_in_form_fields));
@@ -96,13 +100,13 @@ function Authentication({ user, is_auth_form_open, closeAuthenticationForm, acti
   }
   if (user == null) {
     return (
-      <Modal isOpen={is_auth_form_open} onClose={closeAuthenticationForm} size="5xl">
+      <Modal isOpen={is_auth_form_open} onClose={closeAuthenticationForm} size={is_compact ? "full" : "5xl"} scrollBehavior="inside">
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>{localGetDisplayCopy("title")}</ModalHeader>
           <ModalCloseButton />
-          <ModalBody>
-            <Tabs onChange={handleTabsChange} defaultIndex={tab_keys.indexOf(active_tab_auth_form)}>
+          <ModalBody paddingX={is_compact ? 2 : undefined}>
+            <Tabs onChange={handleTabsChange} defaultIndex={tab_keys.indexOf(active_tab_auth_form)} isFitted={is_compact}>
               <TabList>
                 {tab_keys.map((tab_name) => (
                   <Tab key={tab_name}>{localGetDisplayCopy(tab_name)}</Tab>
@@ -110,7 +114,7 @@ function Authentication({ user, is_auth_form_open, closeAuthenticationForm, acti
               </TabList>
               <TabPanels>
                 <TabPanel key={"sign_up"}>
-                  <SimpleGrid columns={2} spacing={4}>
+                  <SimpleGrid columns={is_compact ? 1 : 2} spacing={4}>
                     <FormComponent
                       fields={auth_form_fields}
                       formState={authFormState}
@@ -128,12 +132,19 @@ function Authentication({ user, is_auth_form_open, closeAuthenticationForm, acti
                       copies_key="auth"
                     ></FormComponent>
                   </SimpleGrid>
-                  <Link onClick={resetPassword}>{localGetDisplayCopy("reset_password")}</Link>
+                  <Link
+                    onClick={resetPassword}
+                    marginTop={is_compact ? 4 : undefined}
+                    display={is_compact ? "inline-block" : undefined}
+                    color={is_compact ? "blue.500" : undefined}
+                  >
+                    {localGetDisplayCopy("reset_password")}
+                  </Link>
                 </TabPanel>
               </TabPanels>
             </Tabs>
           </ModalBody>
-          <ModalFooter>
+          <ModalFooter borderTopWidth={is_compact ? "1px" : undefined}>
             <Button variant="ghost" mr={3} onClick={closeAuthenticationForm}>
               {localGetDisplayCopy("close_modal")}
             </Button>

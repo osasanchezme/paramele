@@ -25,8 +25,9 @@ function getGlobalSettings() {
 
 /**
  * Shows the selected solver and whether it is ready to solve. Hover it to see the details.
+ * On compact screens only the status dot is shown.
  */
-function SolverStatusIndicator() {
+function SolverStatusIndicator({ is_compact }) {
   const [global_settings, setGlobalSettings] = useState(getGlobalSettings);
   const [server_running, setServerRunning] = useState(null);
   const [wasm_state, setWasmState] = useState(pyniteWasm.getLoadState);
@@ -86,9 +87,23 @@ function SolverStatusIndicator() {
   return (
     <Popover trigger="hover" placement="bottom" isLazy onOpen={solver_engine === "pynite" ? checkServer : undefined}>
       <PopoverTrigger>
-        <Tag height="30px" marginTop="10px" marginRight="10px" cursor="pointer" onClick={utils.openGlobalSettings}>
-          <Box width="8px" height="8px" borderRadius="50%" marginRight="6px" flexShrink={0} backgroundColor={STATUS_COLORS[status]} />
-          {solver_name}
+        <Tag
+          height="30px"
+          marginTop="10px"
+          marginRight={is_compact ? "6px" : "10px"}
+          cursor="pointer"
+          aria-label={solver_name}
+          onClick={utils.openGlobalSettings}
+        >
+          <Box
+            width="8px"
+            height="8px"
+            borderRadius="50%"
+            marginRight={is_compact ? 0 : "6px"}
+            flexShrink={0}
+            backgroundColor={STATUS_COLORS[status]}
+          />
+          {!is_compact && solver_name}
         </Tag>
       </PopoverTrigger>
       <PopoverContent>

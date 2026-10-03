@@ -71,6 +71,8 @@ function VisualEditor({ width, nodes_library, is_model_locked, nodes, edges, set
         onConnect={onConnect}
         nodeTypes={nodes_library}
         fitView
+        // Lower than React Flow's default (0.5), so the whole graph can fit on small screens
+        minZoom={0.1}
         onInit={saveRfInstance}
         selectionKeyCode={null}
         deleteKeyCode={null}

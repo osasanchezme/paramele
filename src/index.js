@@ -17,7 +17,7 @@ import Authentication from "./components/authentication";
 import FileManager from "./components/file_manager";
 import { LoadingDimmer } from "./components/loading_dimmer";
 import utils from "./utils";
-import VisualEditor, { deselectAllNodesAndHandles, screenCoordsToReactFlow } from "./components/VisualEditor";
+import VisualEditor, { deselectAllNodesAndHandles, fitView, screenCoordsToReactFlow } from "./components/VisualEditor";
 import createNodesLibrary from "./flow-nodes/handler";
 import Renderer from "./components/Renderer";
 import VersionManager from "./components/version_manager";
@@ -31,6 +31,7 @@ import SharingManager from "./components/sharing_manager";
 import StatusBar from "./components/status_bar";
 import ViewSwitch from "./components/view_switch";
 import boxes from "./js/boxes";
+import { onCompactLayoutChange } from "./js/breakpoints";
 
 setInitialState();
 const library = createNodesLibrary();
@@ -99,6 +100,13 @@ class ParamEle extends React.Component {
   }
   componentDidMount() {
     utils.showLoadingDimmer();
+    // The editor changes its width, so fit the graph to it again once React Flow has measured it (on the next frame)
+    this.removeCompactLayoutListener = onCompactLayoutChange((is_compact) =>
+      this.setState({ is_compact, compact_panel_open: false }, () => requestAnimationFrame(() => requestAnimationFrame(fitView)))
+    );
+  }
+  componentWillUnmount() {
+    this.removeCompactLayoutListener();
   }
   changeGeneralSettingValue(key, value) {
     let curr_settings = this.state.settings;
@@ -117,6 +125,12 @@ class ParamEle extends React.Component {
    */
   setViewMode(mode) {
     let curr_settings = this.state.settings;
+    // The compact layout never splits, so only switch the visible view and keep the split preference for wider screens
+    if (this.state.is_compact) {
+      curr_settings.general.show_nodes = mode === "nodes";
+      this.setState({ settings: curr_settings });
+      return;
+    }
     curr_settings.general.side_by_side = mode === "split";
     if (mode !== "split") curr_settings.general.show_nodes = mode === "nodes";
     this.setState({ settings: curr_settings }, () => {
@@ -124,6 +138,11 @@ class ParamEle extends React.Component {
     });
   }
   togglePropertiesPanel() {
+    // On compact screens the panel floats over the views, so it does not change the stored layout
+    if (this.state.is_compact) {
+      this.setState({ compact_panel_open: !this.state.compact_panel_open });
+      return;
+    }
     this.changeGeneralSettingValue("show_properties_panel", !this.state.settings.general.show_properties_panel);
   }
   updateNodesFromLocalState() {
@@ -407,6 +426,12 @@ class ParamEle extends React.Component {
     }
   }
   handleMouseClick(event) {
+    // Clicking anywhere outside the commands bar dismisses it, as Escape does
+    let is_commands_bar_open = this.state.mode === "add_node" || this.state.mode === "change_node_type";
+    if (is_commands_bar_open && !event.target.closest(".commands-bar")) {
+      this.changeAppMode("wait_action");
+      return;
+    }
     if (event.target.className === "react-flow__pane") {
       if (!event.ctrlKey) {
         switch (this.state.mode) {
@@ -464,8 +489,17 @@ class ParamEle extends React.Component {
         ></CommandsBar>
       );
     }
-    let panel_plus_renderer = Number(this.state.settings.layout.renderer_width);
-    if (this.state.settings.general.show_properties_panel) panel_plus_renderer += Number(this.state.settings.layout.panel_width);
+    let { general, layout } = this.state.settings;
+    let is_compact = this.state.is_compact;
+    let show_properties_panel = general.show_properties_panel;
+    if (is_compact) {
+      // Only one full width view at a time, the properties panel floats over it
+      general = { ...general, side_by_side: false };
+      layout = { panel_width: 0, editor_width: 100, renderer_width: 100, renderer_right: 0 };
+      show_properties_panel = this.state.compact_panel_open;
+    }
+    let panel_plus_renderer = Number(layout.renderer_width);
+    if (show_properties_panel) panel_plus_renderer += Number(layout.panel_width);
     return (
       <UserDataContext.Provider value={{ role: this.getUserRole() }}>
         <AppModeContext.Provider value={this.state.mode}>
@@ -499,21 +533,23 @@ class ParamEle extends React.Component {
                   changeAppMode={this.changeAppMode}
                   openConfirmationDialog={this.openConfirmationDialog}
                   openSharingManager={this.openSharingManager}
-                  show_properties_panel={this.state.settings.general.show_properties_panel}
+                  show_properties_panel={show_properties_panel}
                   togglePropertiesPanel={this.togglePropertiesPanel}
                 ></NavBar>
                 <StatusBar app_mode={this.state.mode} changeAppMode={this.changeAppMode}></StatusBar>
-                <ViewSwitch settings={this.state.settings.general} setViewMode={this.setViewMode}></ViewSwitch>
+                <ViewSwitch settings={general} setViewMode={this.setViewMode} is_compact={is_compact}></ViewSwitch>
                 {commands_bar}
+                {is_compact && show_properties_panel && <div className="panel-backdrop" onClick={this.togglePropertiesPanel}></div>}
                 <PropertiesPanel
-                  visible={this.state.settings.general.show_properties_panel}
-                  width={this.state.settings.layout.panel_width}
+                  visible={show_properties_panel}
+                  width={layout.panel_width}
+                  is_floating={is_compact}
                   data={this.state.model}
                 ></PropertiesPanel>
                 <ResizeBorder
                   id="properties_panel"
-                  visible={this.state.settings.general.show_properties_panel}
-                  position={this.state.settings.layout.panel_width}
+                  visible={show_properties_panel && !is_compact}
+                  position={layout.panel_width}
                   changeAppMode={this.changeAppMode}
                 ></ResizeBorder>
                 <VisualEditor
@@ -521,26 +557,19 @@ class ParamEle extends React.Component {
                   setNodes={this.setNodes}
                   edges={this.state.edges}
                   setEdges={this.setEdges}
-                  width={this.state.settings.layout.editor_width}
+                  width={layout.editor_width}
                   nodes_library={nodes_library}
                   is_model_locked={this.state.model_locked}
                   app_mode={this.state.mode}
                 ></VisualEditor>
-                {(this.state.settings.general.side_by_side || this.state.settings.general.show_nodes) && (
-                  <Navigator layout={this.state.settings.layout}></Navigator>
-                )}
+                {(general.side_by_side || general.show_nodes) && <Navigator layout={layout}></Navigator>}
                 <ResizeBorder
                   id="renderer_editor"
-                  visible={this.state.settings.general.side_by_side}
+                  visible={general.side_by_side}
                   position={panel_plus_renderer}
                   changeAppMode={this.changeAppMode}
                 ></ResizeBorder>
-                <Renderer
-                  visible={!this.state.settings.general.show_nodes}
-                  width={this.state.settings.layout.renderer_width}
-                  settings={this.state.settings.general}
-                  layout={this.state.settings.layout}
-                ></Renderer>
+                <Renderer visible={!general.show_nodes} width={layout.renderer_width} settings={general} layout={layout}></Renderer>
                 <SelectionBox
                   visible={this.state.mode === "selecting_nodes"}
                   x={this.state.selection_left}

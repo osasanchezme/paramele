@@ -1,4 +1,4 @@
-import { Icon, Tag } from "@chakra-ui/react";
+import { Icon, Tag, TagLabel } from "@chakra-ui/react";
 import utils from "../utils";
 import PopoverForm from "./popover_form";
 import { useRef } from "react";
@@ -11,12 +11,12 @@ function localGetCopy(copy_key) {
   return utils.getDisplayCopy("nav_bar", copy_key);
 }
 /**
- * 
- * @param {Object} param0 
- * @param {import("../js/types").ParamEleFileData} param0.file_data 
- * @returns 
+ *
+ * @param {Object} param0
+ * @param {import("../js/types").ParamEleFileData} param0.file_data
+ * @returns
  */
-function FileStatusIndicator({ file_data, setFileData, model_locked, setModelLock, openFileManager, openAuthenticationForm, user }) {
+function FileStatusIndicator({ file_data, setFileData, model_locked, setModelLock, openFileManager, openAuthenticationForm, user, is_compact }) {
   function localOpenFileManager() {
     if (file_name === null) {
       openFileManager("save");
@@ -33,7 +33,7 @@ function FileStatusIndicator({ file_data, setFileData, model_locked, setModelLoc
       let commit_msg = form_state.commit_msg.value;
       let model_blob = file.getModelBlob();
       let version_id = Date.now();
-      let local_updated_file_data = {...file_data, current_version: version_id, last_saved: version_id, is_saved: true};
+      let local_updated_file_data = { ...file_data, current_version: version_id, last_saved: version_id, is_saved: true };
       Firebase.saveFileToCloud(
         model_blob,
         local_updated_file_data,
@@ -77,13 +77,24 @@ function FileStatusIndicator({ file_data, setFileData, model_locked, setModelLoc
   let { file_name, is_saved, last_saved, file_shared_with_me } = file_data;
   let tag_ref = useRef(null);
   let tag_element = (
-    <Tag height="30px" marginTop="10px" marginRight="10px" cursor="pointer" ref={tag_ref} onMouseOver={simulateClick} onClick={localOpenFileManager}>
-      {file_name !== null ? (file_shared_with_me ? utils.decodeUniqueIDToName(file_name) : file_name) : localGetCopy("file_not_saved")}
-      {is_saved ? "" : " *"}
+    <Tag
+      height="30px"
+      marginTop="10px"
+      marginRight={is_compact ? "6px" : "10px"}
+      maxWidth={is_compact ? "110px" : "250px"}
+      cursor="pointer"
+      ref={tag_ref}
+      onMouseOver={simulateClick}
+      onClick={localOpenFileManager}
+    >
+      <TagLabel>
+        {file_name !== null ? (file_shared_with_me ? utils.decodeUniqueIDToName(file_name) : file_name) : localGetCopy("file_not_saved")}
+      </TagLabel>
+      {is_saved ? "" : "\u00a0*"}
     </Tag>
   );
   let tag_lock_element = (
-    <Tag height="30px" marginTop="10px" marginRight="10px" cursor="pointer" onClick={toggleModelLock}>
+    <Tag height="30px" marginTop="10px" marginRight={is_compact ? "6px" : "10px"} cursor="pointer" onClick={toggleModelLock}>
       {model_locked ? <Icon as={MdLock} /> : <Icon as={MdLockOpen} />}
     </Tag>
   );

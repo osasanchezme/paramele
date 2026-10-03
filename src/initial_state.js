@@ -1,6 +1,7 @@
 import data from "./data/template-results-gather.json";
 import utils from "./utils";
 import repair from "./js/repair";
+import { isCompactLayout } from "./js/breakpoints";
 
 function getInitialState() {
     // Get language from URL
@@ -52,6 +53,8 @@ function getInitialState() {
     file_shared_with_me: null,
     file_shared_data: null,
     model_locked: false,
+    is_compact: isCompactLayout(),
+    compact_panel_open: false,
     current_version: null,
     is_version_manager_open: false,
     is_confirmation_open: false,

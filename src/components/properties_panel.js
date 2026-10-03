@@ -19,7 +19,7 @@ import state from "../state";
 import { useState } from "react";
 import ObjectInspector from "./object_inspector";
 
-function PropertiesPanel({ visible, width, data }) {
+function PropertiesPanel({ visible, width, is_floating, data }) {
   const [expanded_index, setExpandedIndex] = useState([]);
   if (!visible) return "";
   let top_keys = [];
@@ -99,7 +99,7 @@ function PropertiesPanel({ visible, width, data }) {
     );
   });
   return (
-    <div className="properties-panel" style={{ width: width + "%" }}>
+    <div className={`properties-panel${is_floating ? " floating" : ""}`} style={is_floating ? undefined : { width: width + "%" }}>
       <div className="panel-top-bar">
         <Grid templateColumns="repeat(15, 1fr)" gap={2}>
           <GridItem colSpan={9}>{utils.getDisplayCopy("properties_panel", "title")}</GridItem>

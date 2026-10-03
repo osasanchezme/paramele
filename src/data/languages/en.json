@@ -173,7 +173,8 @@
         "days": "days",
         "last_saved": "Last saved",
         "show_panel": "Show panel",
-        "hide_panel": "Hide panel"
+        "hide_panel": "Hide panel",
+        "menu": "Menu"
     },
     "commands_bar":{
         "placeholder": "Node name..."

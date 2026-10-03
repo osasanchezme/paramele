@@ -1,4 +1,22 @@
-import { Button, List, ListIcon, ListItem, Icon, IconButton, Flex, Spacer, Tooltip, Box } from "@chakra-ui/react";
+import {
+  Button,
+  List,
+  ListIcon,
+  ListItem,
+  Icon,
+  IconButton,
+  Flex,
+  Spacer,
+  Tooltip,
+  Box,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuGroup,
+  MenuItem,
+  MenuDivider,
+  useMediaQuery,
+} from "@chakra-ui/react";
 import React, { useRef, useState } from "react";
 import * as MaterialDesign from "react-icons/md";
 import { TbLayoutSidebarLeftCollapse, TbLayoutSidebarLeftExpand } from "react-icons/tb";
@@ -11,6 +29,7 @@ import SolverStatusIndicator from "./solver_status_indicator";
 import Firebase from "../js/firebase";
 import { useGlobalLoading } from "../Context";
 import { notify } from "./notification";
+import { COMPACT_LAYOUT_QUERY, COMPACT_NAV_BAR_QUERY } from "../js/breakpoints";
 
 function localGetCopy(node_name) {
   return utils.getDisplayCopy("nav_bar", node_name);
@@ -36,6 +55,7 @@ function NavBar({
   let [currentMenuIndex, setCurrentMenuIndex] = useState(0);
   let [activeGroup, setActiveGroup] = useState("left");
   const { showGlobalLoading, hideGlobalLoading } = useGlobalLoading();
+  const [is_compact_nav_bar, is_compact_layout] = useMediaQuery([COMPACT_NAV_BAR_QUERY, COMPACT_LAYOUT_QUERY]);
 
   const navbar_options = useRef(null);
   if (navbar_options.current == null) {
@@ -228,6 +248,38 @@ function NavBar({
       },
     };
   }
+  const status_indicators = (
+    <>
+      <SolverStatusIndicator is_compact={is_compact_layout} />
+      <FileStatusIndicator
+        file_data={file_data}
+        setFileData={setFileData}
+        model_locked={model_locked}
+        setModelLock={setModelLock}
+        openFileManager={openFileManager}
+        openAuthenticationForm={openAuthenticationForm}
+        user={user}
+        is_compact={is_compact_layout}
+      />
+    </>
+  );
+  if (is_compact_nav_bar) {
+    return (
+      <div className="nav-bar">
+        <Flex direction="row" className="nav-bar-button-group">
+          <Box className="nav-bar-left-corner">
+            <PanelToggle visible={show_properties_panel} onToggle={togglePropertiesPanel} />
+            <CompactMenu options={navbar_options.current} />
+          </Box>
+          <Spacer></Spacer>
+          {status_indicators}
+          <Box className="nav-bar-right-corner">
+            <AccountMenu user={user} openAuthenticationForm={openAuthenticationForm} />
+          </Box>
+        </Flex>
+      </div>
+    );
+  }
   const handleChange = (dropdown_visible, mouse_on_menu) => {
     setDropdownState({ dropdown_visible, mouse_on_menu });
   };
@@ -279,16 +331,7 @@ function NavBar({
           </Button>
         ))}
         <Spacer></Spacer>
-        <SolverStatusIndicator />
-        <FileStatusIndicator
-          file_data={file_data}
-          setFileData={setFileData}
-          model_locked={model_locked}
-          setModelLock={setModelLock}
-          openFileManager={openFileManager}
-          openAuthenticationForm={openAuthenticationForm}
-          user={user}
-        />
+        {status_indicators}
         {Object.entries(right_navbar_options.current).map(([nav_menu_key, nav_menu_options], index) => {
           let display_copy = localGetCopy(nav_menu_key);
           if (nav_menu_key === "user" && user) display_copy = user.displayName || display_copy;
@@ -349,6 +392,62 @@ function PanelToggle({ visible, onToggle }) {
         onClick={onToggle}
       />
     </Tooltip>
+  );
+}
+
+/**
+ * All the top bar menus in a single one, for screens where they do not fit side by side
+ */
+function CompactMenu({ options }) {
+  const label = localGetCopy("menu");
+  return (
+    <Menu placement="bottom-start" isLazy>
+      <MenuButton as={IconButton} aria-label={label} icon={<Icon as={MaterialDesign.MdMenu} boxSize={6} />} variant="ghost" />
+      <MenuList className="nav-bar-compact-menu" zIndex={12}>
+        {Object.entries(options).map(([nav_menu_key, nav_menu_options], index) => (
+          <React.Fragment key={nav_menu_key}>
+            {index > 0 && <MenuDivider />}
+            {nav_menu_options.options ? (
+              <MenuGroup title={localGetCopy(nav_menu_key)}>
+                {nav_menu_options.options.map((option) => (
+                  <MenuItem key={option.name} icon={<Icon as={MaterialDesign[option.icon]} boxSize={4} />} onClick={() => option.callback()}>
+                    {option.name}
+                  </MenuItem>
+                ))}
+              </MenuGroup>
+            ) : (
+              <MenuItem icon={<Icon as={MaterialDesign[nav_menu_options.icon]} boxSize={4} />} onClick={() => nav_menu_options.callback()}>
+                {localGetCopy(nav_menu_key)}
+              </MenuItem>
+            )}
+          </React.Fragment>
+        ))}
+      </MenuList>
+    </Menu>
+  );
+}
+
+/**
+ * Account button for compact screens, it opens the authentication form or the user menu when logged in
+ */
+function AccountMenu({ user, openAuthenticationForm }) {
+  const account_icon = <Icon as={MaterialDesign.MdAccountCircle} boxSize={6} />;
+  if (user === null) {
+    const label = localGetCopy("account");
+    return <IconButton aria-label={label} icon={account_icon} variant="ghost" onClick={() => openAuthenticationForm()} />;
+  }
+  const user_name = user.displayName || localGetCopy("user");
+  return (
+    <Menu placement="bottom-end" isLazy>
+      <MenuButton as={IconButton} aria-label={user_name} icon={account_icon} variant="ghost" />
+      <MenuList zIndex={12}>
+        <MenuGroup title={user_name}>
+          <MenuItem icon={<Icon as={MaterialDesign.MdExitToApp} boxSize={4} />} onClick={Firebase.signOutUser}>
+            {localGetCopy("log_out")}
+          </MenuItem>
+        </MenuGroup>
+      </MenuList>
+    </Menu>
   );
 }
 
