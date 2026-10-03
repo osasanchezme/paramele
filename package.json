@@ -22,7 +22,7 @@
     "reactflow": "^11.10.3",
     "web-vitals": "^2.1.4"
   },
-  "homepage": "https://osasanchezme.github.io/ParamEle",
+  "homepage": "https://osasanchezme.github.io/paramele",
   "scripts": {
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build",
