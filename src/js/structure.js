@@ -15,6 +15,17 @@ import { csi2s3d } from "../submodules/paramele-parsers/structural/csi/csi2s3d";
 import repair from "./repair";
 import pyniteWasm from "./pyniteWasm";
 
+const PYNITE_SERVER_URL = "http://127.0.0.1:5013";
+
+/**
+ * Whether the local PyNite server is running. It only exposes POST /solve, so any HTTP response means it is up.
+ * @returns {Promise<boolean>}
+ */
+const isPyniteServerRunning = () =>
+  fetch(PYNITE_SERVER_URL, { signal: AbortSignal.timeout(3000) })
+    .then(() => true)
+    .catch(() => false);
+
 const solveStructure = () => {
   let global_settings = getState("settings")["global"];
   const { solver_engine } = global_settings;
@@ -128,7 +139,7 @@ const solveStructure = () => {
         console.error("Error:", error);
       });
   } else if (solver_engine === "pynite") {
-    fetch("http://127.0.0.1:5013/solve", {
+    fetch(`${PYNITE_SERVER_URL}/solve`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ solver: solver_engine, model: structure }),
@@ -241,5 +252,5 @@ const importStructureModel = (callback) => {
   a.click();
 };
 
-const structure = { solveStructure, downloadInputTextFile, importStructureModel };
+const structure = { solveStructure, downloadInputTextFile, importStructureModel, isPyniteServerRunning };
 export default structure;

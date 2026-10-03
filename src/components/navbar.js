@@ -6,6 +6,7 @@ import file from "../js/file";
 import structure from "../js/structure";
 import utils from "../utils";
 import FileStatusIndicator from "./file_status_indicator";
+import SolverStatusIndicator from "./solver_status_indicator";
 import Firebase from "../js/firebase";
 import { useGlobalLoading } from "../Context";
 import { notify } from "./notification";
@@ -272,6 +273,7 @@ function NavBar({
           </Button>
         ))}
         <Spacer></Spacer>
+        <SolverStatusIndicator />
         <FileStatusIndicator
           file_data={file_data}
           setFileData={setFileData}

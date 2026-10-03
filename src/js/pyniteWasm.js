@@ -4,8 +4,23 @@
 
 let worker = null;
 let next_id = 0;
-let initialized = false;
+let init_promise = null;
 const pending = new Map();
+
+/** @type {{status: "idle"|"loading"|"ready"|"error", error: string|null}} */
+let load_state = { status: "idle", error: null };
+const listeners = new Set();
+
+function setLoadState(new_state) {
+  load_state = new_state;
+  listeners.forEach((listener) => listener(load_state));
+}
+
+function resetWorker() {
+  if (worker) worker.terminate();
+  worker = null;
+  init_promise = null;
+}
 
 function getWorker() {
   if (!worker) {
@@ -21,8 +36,9 @@ function getWorker() {
     worker.onerror = (event) => {
       pending.forEach((request) => request.reject(new Error(event.message || "PyNite worker failed")));
       pending.clear();
-      worker = null;
-      initialized = false;
+      resetWorker();
+      // A failure while loading is reported by preload; after loading, the runtime is gone and must be loaded again
+      if (load_state.status === "ready") setLoadState({ status: "idle", error: null });
     };
   }
   return worker;
@@ -36,23 +52,48 @@ function request(message) {
   });
 }
 
-/** Starts downloading Pyodide and PyNite in the background, so the first solve is faster. */
-const preload = () => request({ type: "init" }).then((data) => {
-  initialized = true;
-  return data;
-});
+/**
+ * Downloads Pyodide and PyNite in the background, so the first solve is faster.
+ * Calling it again while loading or once loaded reuses the same request; after a failure it starts a new worker.
+ */
+const preload = () => {
+  if (!init_promise) {
+    setLoadState({ status: "loading", error: null });
+    init_promise = request({ type: "init" }).then(
+      (data) => {
+        setLoadState({ status: "ready", error: null });
+        return data;
+      },
+      (error) => {
+        // The worker caches the failed initialization, so start from a fresh one on the next attempt
+        resetWorker();
+        setLoadState({ status: "error", error: error.message });
+        throw error;
+      }
+    );
+  }
+  return init_promise;
+};
 
 /** Whether the Python runtime is already loaded (a solve won't need to download it). */
-const isReady = () => initialized;
+const isReady = () => load_state.status === "ready";
+
+const getLoadState = () => load_state;
+
+/**
+ * @param {Function} listener called with the new load state whenever it changes
+ * @returns {Function} unsubscribe
+ */
+const subscribe = (listener) => {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+};
 
 /**
  * @param {Object} model structural model, already repaired for "pynite"
  * @returns {Promise<{results: Object, timings: {init_ms: number, solve_ms: number, sparse: boolean}}>}
  */
-const solve = (model) => request({ type: "solve", model }).then((data) => {
-  initialized = true;
-  return data;
-});
+const solve = (model) => preload().then(() => request({ type: "solve", model }));
 
-const pyniteWasm = { preload, isReady, solve };
+const pyniteWasm = { preload, isReady, getLoadState, subscribe, solve };
 export default pyniteWasm;

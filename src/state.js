@@ -56,6 +56,18 @@ function storeRfInstance(rfInstance) {
   window.ParamEle.rfInstance = rfInstance;
 }
 
+const settings_listeners = new Set();
+
+/**
+ * Subscribes to changes of the settings stored in the global state
+ * @param {Function} listener called with no arguments after the settings change
+ * @returns {Function} unsubscribe
+ */
+function onSettingsChange(listener) {
+  settings_listeners.add(listener);
+  return () => settings_listeners.delete(listener);
+}
+
 function setState(state, key) {
   if (key !== undefined) {
     window.ParamEle.state[key] = JSON.parse(JSON.stringify(state));
@@ -64,6 +76,7 @@ function setState(state, key) {
       window.ParamEle.state[state_key] = JSON.parse(JSON.stringify(state_val));
     });
   }
+  if (key === "settings" || (key === undefined && state.hasOwnProperty("settings"))) settings_listeners.forEach((listener) => listener());
 }
 
 function setGlobalVariable(key, value) {
@@ -225,6 +238,7 @@ function setModelToEditor(model) {
 const state = {
   setInitialState,
   setState,
+  onSettingsChange,
   storeRfInstance,
   updateStateFromFlow,
   getRfInstance,

@@ -128,6 +128,20 @@
         "pynite_wasm": "Pynite (en el navegador)",
         "skyciv": "SkyCiv S3D (nube)"
     },
+    "solver_status": {
+        "server_checking": "Verificando si el servidor local está activo...",
+        "server_ready": "El servidor local está activo y listo para calcular.",
+        "server_not_ready": "No está listo: el servidor local en http://127.0.0.1:5013 no responde. Inícielo desde paramele-solvers.",
+        "wasm_idle": "Los archivos del solucionador aún no se han descargado. Se descargarán al calcular.",
+        "wasm_loading": "Descargando los archivos del solucionador...",
+        "wasm_ready": "Los archivos del solucionador están descargados y listos para calcular.",
+        "wasm_error": "La descarga de los archivos del solucionador falló.",
+        "credentials_ready": "Las credenciales de la API están configuradas.",
+        "credentials_not_ready": "No está listo: configure el usuario y la clave de la API en la configuración.",
+        "unknown_solver": "Solucionador desconocido",
+        "retry": "Reintentar",
+        "open_settings": "Abrir configuración"
+    },
     "nav_bar": {
         "file": "Archivo",
         "new": "Nuevo",
