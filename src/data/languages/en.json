@@ -125,6 +125,7 @@
         "duplicate_connected_edges": "When duplicating include associated links",
         "solver_engine": "Solve engine",
         "pynite": "Pynite (local)",
+        "pynite_wasm": "Pynite (in the browser)",
         "skyciv": "SkyCiv S3D (cloud)"
     },
     "nav_bar":{
@@ -199,6 +200,10 @@
         "no_same_type_desc": "To change the boxes type all the selected boxes should be of the same type",
         "no_supported_type_title": "Box type not supported",
         "no_supported_type_desc": "One or more of the selected boxes is not of a supported type for the operation",
+        "loading_solver_wasm_title": "Loading solver",
+        "loading_solver_wasm_desc": "Downloading the in-browser PyNite solver (only the first time)...",
+        "requested_solve_wasm_title": "Solving",
+        "requested_solve_wasm_desc": "Solving the model in the browser...",
         "requested_solve_title": "Request sent",
         "requested_solve_desc": "The request was sent to the server. Waiting for a response...",
         "saved_model": "Model saved to the cloud",

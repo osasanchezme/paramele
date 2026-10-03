@@ -73,7 +73,7 @@ function repairStructuralModel(structure, solver_engine) {
     );
   }
 
-  if (solver_engine === "pynite") {
+  if (solver_engine === "pynite" || solver_engine === "pynite_wasm") {
     structure = convertModel(structure, { section_length: "m" });
   }
   // TODO - Move the CSI model conversion to here

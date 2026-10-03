@@ -37,10 +37,11 @@
     },
     "global": {
         "solver_engine": {
-            "default": "pynite",
+            "default": "pynite_wasm",
             "type": "dropdown",
             "data": [
                 "pynite",
+                "pynite_wasm",
                 "skyciv"
             ],
             "tab": "solver_tab"

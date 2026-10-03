@@ -125,6 +125,7 @@
         "duplicate_connected_edges": "Al duplicar incluir conectores asociados",
         "solver_engine": "Motor de cálculo",
         "pynite": "Pynite (local)",
+        "pynite_wasm": "Pynite (en el navegador)",
         "skyciv": "SkyCiv S3D (nube)"
     },
     "nav_bar": {
@@ -199,6 +200,10 @@
         "no_same_type_desc": "Para cambiar el tipo, las cajas seleccionadas deben ser del mismo tipo",
         "no_supported_type_title": "Tipo de caja no soportado",
         "no_supported_type_desc": "Alguna de las cajas seleccionadas no es de un tipo soportado para la operación",
+        "loading_solver_wasm_title": "Cargando solucionador",
+        "loading_solver_wasm_desc": "Descargando el solucionador PyNite del navegador (solo la primera vez)...",
+        "requested_solve_wasm_title": "Resolviendo",
+        "requested_solve_wasm_desc": "Resolviendo el modelo en el navegador...",
         "requested_solve_title": "Petición enviada",
         "requested_solve_desc": "La petición fue enviada al servidor. Esperando respuesta...",
         "saved_model": "Modelo guardado en la nube",

@@ -13,12 +13,13 @@ import { getProcessResponseObject } from "./processResponse";
 import { dxf2s3d } from "../submodules/paramele-parsers/structural/dxf/generateS3DModel";
 import { csi2s3d } from "../submodules/paramele-parsers/structural/csi/csi2s3d";
 import repair from "./repair";
+import pyniteWasm from "./pyniteWasm";
 
 const solveStructure = () => {
   let global_settings = getState("settings")["global"];
   const { solver_engine } = global_settings;
   let structure = repair.repairStructuralModel(getState("structure"), solver_engine);
-  notification.notify("info", "requested_solve", "", true, 90000);
+  if (solver_engine !== "pynite_wasm") notification.notify("info", "requested_solve", "", true, 90000);
   function setResults(results) {
     state.setState(results, "results");
     notification.notify("info", "results_saved", null, true);
@@ -141,6 +142,24 @@ const solveStructure = () => {
       })
       .catch((error) => {
         console.error("Error:", error);
+      });
+  } else if (solver_engine === "pynite_wasm") {
+    notification.notify("info", pyniteWasm.isReady() ? "requested_solve_wasm" : "loading_solver_wasm", "", true, 90000);
+    pyniteWasm
+      .solve(structure)
+      .then(({ results, timings }) => {
+        console.log("PyNite (WASM) timings", timings);
+        notification.closeAllNotifications();
+        setResults(results);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        notification.closeAllNotifications();
+        notification.notify(
+          "error",
+          utils.getDisplayCopy("notifications", "solve_failed_title"),
+          `${utils.getDisplayCopy("notifications", "solve_failed_desc")} ${error.message.split("\n").filter(Boolean).pop()}`
+        );
       });
   }
   //   let file_name = Date.now();
