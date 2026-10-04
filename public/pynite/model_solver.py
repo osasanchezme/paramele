@@ -1,13 +1,13 @@
 """Pure PyNite solving logic, shared by the CLI (solver.py) and the browser (Pyodide).
 
 This module must only depend on numpy and Pynite (which needs numpy and scipy), so that it
-can run inside Pyodide. No file IO and no sectionproperties here.
+can run inside Pyodide. No file IO here; section properties come from section_properties.py.
 """
 
-import math
 import re
 import numpy as np
 from Pynite import FEModel3D
+from section_properties import rectangleProperties
 
 
 def getIndex(pynite_id):
@@ -74,24 +74,9 @@ def processDisplacements(member, eval_points, load_combo):
     }
 
 
-def rectangleProperties(b, h):
-    """Closed-form properties of a solid rectangle (d=h along local y, b along local x).
-
-    Returns the same keys/axes as sectionproperties' rectangular_section(d=h, b=b):
-    ixx = b*h^3/12, iyy = h*b^3/12 and the Saint-Venant torsion constant J (series solution).
-    """
-    long_side, short_side = max(b, h), min(b, h)
-    series = sum(
-        math.tanh(n * math.pi * long_side / (2 * short_side)) / n**5 for n in range(1, 40, 2)
-    )
-    J = long_side * short_side**3 / 3 * (1 - 192 / math.pi**5 * (short_side / long_side) * series)
-    return {"A": b * h, "ixx": b * h**3 / 12, "iyy": h * b**3 / 12, "J": J}
-
-
-def solve(model_data, rectangle_properties=rectangleProperties, sparse=True):
+def solve(model_data, sparse=True):
     """Build, analyze and post-process a PyNite model from the UI's JSON model.
 
-    `rectangle_properties(b, h)` must return a dict with A, ixx, iyy and J.
     `sparse=False` uses numpy's dense solver, so scipy is not needed (lighter browser build).
     Returns the results dict keyed by load combo index.
     """
@@ -112,7 +97,7 @@ def solve(model_data, rectangle_properties=rectangleProperties, sparse=True):
         if shape == "rectangle":
             h = section_data["info"]["dimensions"]["h"]
             b = section_data["info"]["dimensions"]["b"]
-            props = rectangle_properties(b, h)
+            props = rectangleProperties(b, h)
             # Iy/Iz are swapped on purpose, see "Axis convention gotchas" in CLAUDE.md
             model.add_section(
                 f"Sec{section_id}",

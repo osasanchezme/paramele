@@ -1,7 +1,7 @@
 /* PyNite solver running in the browser through Pyodide (CPython compiled to WebAssembly).
  *
  * Module Web Worker (Pyodide >= 314 no longer supports classic workers), served as a static file next to:
- *   model_solver.py   (copied from src/pynite/model_solver.py)
+ *   model_solver.py, section_properties.py   (copied from src/pynite/)
  *   wheels/*.whl      (PyNiteFEA and prettytable, pure-Python wheels)
  * Use scripts/build_browser_bundle.sh to produce that folder.
  *
@@ -12,6 +12,7 @@
 
 const PYODIDE_VERSION = "314.0.7";
 const PYODIDE_URL = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/`;
+const PY_MODULES = ["section_properties.py", "model_solver.py"];
 const WHEELS = ["pynitefea-3.2.0-py3-none-any.whl", "prettytable-3.18.0-py3-none-any.whl"];
 // The dense numpy solver needs (6 * nodes)^2 doubles; above this size, load scipy (~13 MB) and solve sparse.
 const DENSE_MAX_NODES = 400;
@@ -58,8 +59,10 @@ async function initPyodide() {
     WHEELS.map((whl) => `${BASE_URL}wheels/${whl}`),
     { deps: false }
   );
-  const solver_src = await (await fetch(`${BASE_URL}model_solver.py`)).text();
-  pyodide.FS.writeFile("/home/pyodide/model_solver.py", solver_src);
+  for (const file of PY_MODULES) {
+    const src = await (await fetch(`${BASE_URL}${file}`)).text();
+    pyodide.FS.writeFile(`/home/pyodide/${file}`, src);
+  }
   pyodide.runPython("import json, model_solver");
   return { pyodide, init_ms: performance.now() - t0 };
 }
