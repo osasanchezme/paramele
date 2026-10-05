@@ -16,8 +16,11 @@ import {
 import { MdCopyAll, MdUnfoldLess } from "react-icons/md";
 import utils from "../utils";
 import state from "../state";
-import { useState } from "react";
+import { memo, useState } from "react";
 import ObjectInspector from "./object_inspector";
+
+// Collapsed panels are kept mounted by default, which renders every node of the model even when nothing is expanded
+const UNMOUNT_ON_EXIT = { unmountOnExit: true };
 
 function PropertiesPanel({ visible, width, is_floating, data }) {
   const [expanded_index, setExpandedIndex] = useState([]);
@@ -54,7 +57,7 @@ function PropertiesPanel({ visible, width, is_floating, data }) {
           </Box>
           <AccordionIcon />
         </AccordionButton>
-        <AccordionPanel>
+        <AccordionPanel motionProps={UNMOUNT_ON_EXIT}>
           <Accordion variant={"child"} allowMultiple>
             {val.map((node) => (
               <AccordionItem key={node.id}>
@@ -64,7 +67,7 @@ function PropertiesPanel({ visible, width, is_floating, data }) {
                   </Box>
                   <AccordionIcon />
                 </AccordionButton>
-                <AccordionPanel pb={1}>
+                <AccordionPanel pb={1} motionProps={UNMOUNT_ON_EXIT}>
                   {node.data.input
                     ? Object.entries(node.data.input).map(([data_key, data_value]) => {
                         let display_copy = utils.getDisplayCopy("tags", utils.splitArgName(data_key, "target").name);
@@ -148,4 +151,5 @@ function PropertiesPanel({ visible, width, is_floating, data }) {
   );
 }
 
-export default PropertiesPanel;
+// Skip re-rendering when the parent updates for unrelated reasons (e.g. dragging nodes in the editor)
+export default memo(PropertiesPanel);
