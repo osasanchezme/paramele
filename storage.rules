@@ -1,0 +1,36 @@
+rules_version = '2';
+
+// Model files live in projects/{modelId}/{version}/{model|results}.json and their access follows the
+// projects/{modelId} document in Firestore (see firestore.rules)
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /projects/{modelId}/{version}/{fileName} {
+      function project() {
+        return firestore.get(/databases/(default)/documents/projects/$(modelId)).data;
+      }
+
+      function projectExists() {
+        return firestore.exists(/databases/(default)/documents/projects/$(modelId));
+      }
+
+      function isOwner() {
+        return project().owner == request.auth.uid;
+      }
+
+      function sharedRole() {
+        return request.auth.uid in project().shared_with ? project().shared[request.auth.uid].role : "";
+      }
+
+      allow read: if request.auth != null && projectExists() && (isOwner() || sharedRole() != "");
+
+      // The first version is uploaded before its project document is created (see saveFileToCloud)
+      allow create, update: if request.auth != null
+        && fileName in ["model.json", "results.json"]
+        && request.resource.size < 20 * 1024 * 1024
+        && (!projectExists() || isOwner() || sharedRole() in ["admin", "editor"]);
+
+      // Deleting versions needs the manage_versions permission (src/js/userRoles.js)
+      allow delete: if request.auth != null && projectExists() && (isOwner() || sharedRole() == "admin");
+    }
+  }
+}

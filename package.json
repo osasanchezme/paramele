@@ -22,10 +22,10 @@
     "reactflow": "^11.10.3",
     "web-vitals": "^2.1.4"
   },
-  "homepage": "https://osasanchezme.github.io/paramele",
   "scripts": {
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d build",
+    "deploy": "npm run build && firebase deploy --only hosting --project paramele-prod",
+    "deploy:rules": "firebase deploy --only firestore,storage --project paramele-prod",
+    "deploy:cors": "gcloud storage buckets update gs://paramele-prod.firebasestorage.app --cors-file=cors.json --project=paramele-prod",
     "start": "cross-env BROWSER=none react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
@@ -51,7 +51,6 @@
     ]
   },
   "devDependencies": {
-    "@chakra-ui/cli": "^2.3.0",
-    "gh-pages": "^5.0.0"
+    "@chakra-ui/cli": "^2.3.0"
   }
 }

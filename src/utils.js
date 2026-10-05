@@ -264,24 +264,18 @@ function generateUniqueID(mode) {
   return uid;
 }
 
-function encodeNameToUniqueID(name) {
-  return `${name}__${getRandomSuffix(10)}`;
-}
-
 /**
  *
  * @param {string} unique_id
  * @returns {string}
  */
 function decodeUniqueIDToName(unique_id) {
-  let name;
-  let regex_match = unique_id.match(/(.*)__[a-zA-Z]+$/);
-  name = regex_match[1];
-  if (name == null) {
+  let regex_match = unique_id.match(/(.*)__[a-zA-Z0-9]+$/);
+  if (regex_match == null) {
     console.log(`Couldn't decode unique id: ${unique_id}!`);
-    name = unique_id;
+    return unique_id;
   }
-  return name;
+  return regex_match[1];
 }
 
 function getRandomSuffix(suffix_length) {
@@ -318,26 +312,6 @@ function getDefaultAuxData() {
   };
 }
 
-const encoding_map = {
-  ".": "_DOT_",
-  "#": "_HASHTAG_",
-  $: "_DOLLAR_",
-  "/": "_SLASH_",
-  "[": "_OPEN_BRACKET_",
-  "]": "_CLOSE_BRACKET_",
-};
-
-/**
- * Encode any string to make it a valid DB key
- * @param {string} input_string
- */
-function encodeStringForDBKey(input_string) {
-  Object.entries(encoding_map).forEach(([search_str, replace_str]) => {
-    input_string = input_string.replaceAll(search_str, replace_str);
-  });
-  return input_string;
-}
-
 function print(string) {
   if (!isNaN(string)) string = Number(string).toPrecision(3);
   return string;
@@ -367,8 +341,6 @@ const utils = {
   hideLoadingDimmer,
   getFormattedDate,
   getDefaultAuxData,
-  encodeStringForDBKey,
-  encodeNameToUniqueID,
   decodeUniqueIDToName,
   getNodeFullID,
   nextNodeIndex,

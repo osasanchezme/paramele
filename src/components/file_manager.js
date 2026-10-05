@@ -330,7 +330,7 @@ function PathNavigator({ fileManagerPath, setFileManagerPath }) {
 
 function Folder({ folders, files, name, lastModified, onClick }) {
   let [selectedFolder, setSelectedFolder] = useState(false);
-  let formatted_date = utils.getFormattedDate(lastModified);
+  let formatted_date = lastModified ? utils.getFormattedDate(lastModified) : "";
   return (
     <Box
       maxW="sm"

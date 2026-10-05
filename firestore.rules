@@ -1,0 +1,120 @@
+rules_version = '2';
+
+// Data model (see src/js/firebase.js):
+// - users/{uid}                    Private profile
+// - users/{uid}/folders/{folderId} File manager folders
+// - profiles/{uid}                 Public contact data (username, email) shown in sharing and version history
+// - email_index/{email}            Email (lowercase) -> uid, used to share files by email
+// - projects/{modelId}             One per model: owner, location, versions history and sharing
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isUser(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function isShortString(value, max) {
+      return value is string && value.size() > 0 && value.size() <= max;
+    }
+
+    function isValidPath(path) {
+      return path is list && path.size() > 0 && path.size() <= 50 && path[0] == "home";
+    }
+
+    match /users/{uid} {
+      allow read, delete: if isUser(uid);
+      allow create, update: if isUser(uid)
+        && request.resource.data.keys().hasOnly(["name", "username", "email", "company", "industry"])
+        && request.resource.data.email == request.auth.token.email;
+
+      match /folders/{folderId} {
+        allow read, delete: if isUser(uid);
+        allow create, update: if isUser(uid)
+          && request.resource.data.keys().hasOnly(["id", "name", "path", "created", "last_modified"])
+          && request.resource.data.id == folderId
+          && isShortString(request.resource.data.name, 200)
+          && isValidPath(request.resource.data.path);
+      }
+    }
+
+    match /profiles/{uid} {
+      allow read: if signedIn();
+      allow delete: if isUser(uid);
+      allow create, update: if isUser(uid)
+        && request.resource.data.keys().hasOnly(["username", "email"])
+        && request.resource.data.email == request.auth.token.email
+        && isShortString(request.resource.data.username, 100);
+    }
+
+    match /email_index/{email} {
+      // Single lookups only, so the list of users cannot be downloaded
+      allow get: if signedIn();
+      allow create, update: if signedIn()
+        && email == request.auth.token.email.lower()
+        && request.resource.data.keys().hasOnly(["uid"])
+        && request.resource.data.uid == request.auth.uid;
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    match /projects/{modelId} {
+      function isOwner() {
+        return signedIn() && resource.data.owner == request.auth.uid;
+      }
+
+      function sharedRole() {
+        return resource.data.shared[request.auth.uid].role;
+      }
+
+      function isSharedWith() {
+        return signedIn() && request.auth.uid in resource.data.shared_with;
+      }
+
+      // Roles in src/js/userRoles.js allowed to save new versions
+      function canSaveVersions() {
+        return isSharedWith() && sharedRole() in ["admin", "editor"];
+      }
+
+      function changedKeys() {
+        return request.resource.data.diff(resource.data).affectedKeys();
+      }
+
+      // shared and shared_with must list the same users, never the owner, with a public role
+      function isValidSharing(data) {
+        return data.shared is map
+          && data.shared_with is list
+          && data.shared_with.size() <= 100
+          && data.shared.keys().toSet() == data.shared_with.toSet()
+          && data.shared_with.size() == data.shared.size()
+          && !(data.owner in data.shared_with);
+      }
+
+      allow read: if isOwner() || isSharedWith();
+
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(["id", "owner", "name", "path", "created", "current_version", "last_modified", "history", "shared", "shared_with"])
+        && request.resource.data.id == modelId
+        && request.resource.data.owner == request.auth.uid
+        && isShortString(request.resource.data.name, 200)
+        && isValidPath(request.resource.data.path)
+        && request.resource.data.history is map
+        && request.resource.data.shared.size() == 0
+        && request.resource.data.shared_with.size() == 0;
+
+      allow update: if (
+          isOwner()
+          && !changedKeys().hasAny(["id", "owner", "created"])
+          && isShortString(request.resource.data.name, 200)
+          && isValidPath(request.resource.data.path)
+          && isValidSharing(request.resource.data)
+        ) || (
+          canSaveVersions()
+          && changedKeys().hasOnly(["current_version", "last_modified", "history"])
+        );
+
+      allow delete: if isOwner();
+    }
+  }
+}

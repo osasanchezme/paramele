@@ -48,7 +48,7 @@
  * @property {string} file_owner_path
  * @property {boolean} file_shared_with_me
  * @property {ParamEleFileHistory} file_history
- * @property {Object.<string, {date: number, path: string, role: ParamEleUserRole}>} file_shared_data
+ * @property {ParamEleFileSharedData} file_shared_data
  */
 
 /**
@@ -72,10 +72,18 @@
  */
 
 /**
- * @typedef {Object} ParamEleFireBaseSharedProjectData
+ * @description Document in the projects collection of Firestore (one per model, its ID is the model ID)
+ * @typedef {Object} ParamEleFireBaseProjectDoc
  * @property {string} id Model ID
  * @property {string} owner User ID of the file owner
- * @property {string} path Full path in the database to the actual project data
+ * @property {string} name File name in the owner file manager
+ * @property {string[]} path Folder of the file in the owner file manager, including "home" in the first position
+ * @property {number} created
+ * @property {number} current_version
+ * @property {number} last_modified
+ * @property {ParamEleFileHistory} history
+ * @property {ParamEleFileSharedData} shared
+ * @property {string[]} shared_with User IDs in shared, kept in sync to query the files shared with a user
  */
 
 /**
@@ -87,7 +95,7 @@
  * @property {ParamEleUserRole} role
  * @property {ParamEleFileSharedData} shared
  * @property {string} owner User ID of the file owner
- * @property {string} path Full path in the database to the actual project data
+ * @property {string} path Model ID of the shared project (stored as file_owner_path)
  * @property {boolean} is_shared_with_me Whether or not this file is shared with me
  */
 
@@ -111,7 +119,7 @@
 
 /**
  * @description Object with the sharing data for one contact
- * @typedef {{date: number, path: string, role: ParamEleUserRole}} ParamEleFileSharedSubData
+ * @typedef {{date: number, role: ParamEleUserRole}} ParamEleFileSharedSubData
  */
 
 /**

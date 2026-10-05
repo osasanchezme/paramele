@@ -4,14 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-ParamEle is an open-source node-based visual programming editor (Create React App, React 18, Chakra UI, ReactFlow, Plotly.js, Firebase) focused on parametric structural models. The user wires nodes in a ReactFlow graph, the graph is evaluated into a structural model (SkyCiv S3D JSON format), rendered in 3D with Plotly, and can be solved remotely.
+ParamEle is an open-source node-based visual programming editor (Create React App, React 18, Chakra UI, ReactFlow, Plotly.js, Firebase project `paramele-prod`: Auth, Firestore, Storage, Hosting) focused on parametric structural models. The user wires nodes in a ReactFlow graph, the graph is evaluated into a structural model (SkyCiv S3D JSON format), rendered in 3D with Plotly, and can be solved remotely.
 
 ## Commands
 
 - `npm start`: dev server at http://localhost:3000 (browser does not auto-open)
 - `npm run build`: production build into `build/`
 - `npm test`: Jest via react-scripts (watch mode). Single test: `npm test -- path/to/file.test.js` (add `--watchAll=false` for a single run). The only existing tests are in the submodule (`src/submodules/paramele-parsers/utils/units_converter.test.js`).
-- `npm run deploy`: builds and publishes to GitHub Pages (`gh-pages`)
+- `npm run deploy`: builds and publishes to Firebase Hosting (needs the `firebase` CLI, logged in). `npm run deploy:rules` deploys `firestore.rules` and `storage.rules`. `npm run deploy:cors` applies `cors.json` to the Storage bucket (needs `gcloud`, logged in); model files are read with `getBlob`, which fails without it.
 - `npm run theme`: regenerates Chakra theme typings from `src/theme.js`
 - Formatting: Prettier (`.prettierrc`: 2 spaces, printWidth 150). No separate lint script; ESLint runs through react-scripts (`react-app` config).
 - Submodule: `src/submodules/paramele-parsers` is a git submodule (SSH URL). Run `git submodule update --init` after cloning.
@@ -42,7 +42,7 @@ Many functions are also attached to `window.ParamEle` (e.g. `updateNodesFromLoca
 ### Other key modules
 - `src/js/structure.js`: solving. `skyciv` posts to `https://api.skyciv.com/v3`; `pynite` posts to a local server at `http://127.0.0.1:5013/solve`. Also exports input files (e.g. SAP2000) through the parsers.
 - `src/js/repair.js`: normalizes loaded models, settings (against `src/settings_template.json`), and structural models before solving/exporting.
-- `src/js/firebase.js` + `src/js/file.js`: auth, file save/open, versions, sharing. Files can be opened from URL params `path` and `name`. Permissions per role are in `src/js/userRoles.js`. Async helpers return `getProcessResponseObject` (`src/js/processResponse.js`): `{ status, msg, data, success }`.
+- `src/js/firebase.js` + `src/js/file.js`: auth, file save/open, versions, sharing. Firestore data model: `users/{uid}` (private profile) with `folders/{folder_id}`, `profiles/{uid}` (public username/email), `email_index/{email}` (uid lookup to share by email), and `projects/{model_id}` (owner, name, folder `path`, `history`, `shared` + `shared_with` kept in sync). Model/results JSON files are in Storage at `projects/{model_id}/{version}/{model|results}.json`, guarded by `storage.rules` through the project document. `getUserProjects` rebuilds the nested folder tree the file manager expects, including the virtual `_default_shared_with_me_` folder (keys `<name>__<model_id>`). Change `firestore.rules` together with any change to these documents. Files can be opened from URL params `path` and `name`. Permissions per role are in `src/js/userRoles.js`. Async helpers return `getProcessResponseObject` (`src/js/processResponse.js`): `{ status, msg, data, success }`.
 - `src/state.js` imports a template JSON from `src/data/` as the initial model; swap the commented import to change the startup template.
 - Types are JSDoc typedefs in `src/js/types.js` and `src/js/state_types.js` (no TypeScript). Add typedefs for new object types.
 

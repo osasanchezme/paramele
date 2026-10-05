@@ -10,28 +10,48 @@ import {
   updateProfile,
   sendPasswordResetEmail,
 } from "firebase/auth";
-import { getDatabase, ref as databaseRef, set, get, child, update } from "firebase/database";
+import {
+  getFirestore,
+  doc,
+  collection,
+  getDoc,
+  getDocs,
+  setDoc,
+  updateDoc,
+  writeBatch,
+  query,
+  where,
+  limit,
+  arrayUnion,
+  arrayRemove,
+  deleteField,
+  FieldPath,
+} from "firebase/firestore";
 import { getStorage, ref as storageRef, uploadBytes, getBlob, deleteObject } from "firebase/storage";
 import utils from "../utils";
 import { notify } from "../components/notification";
 import file from "./file";
 import { getProcessResponseObject } from "./processResponse";
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// Web app configuration of the paramele-prod project (Project settings > General > Your apps). These values are not secret
 const firebaseConfig = {
-  apiKey: "AIzaSyChvL08gY4kQ3Egyf-MhYQCZJsGu87GQDA",
-  authDomain: "paramele-db.firebaseapp.com",
-  projectId: "paramele-db",
-  storageBucket: "paramele-db.appspot.com",
-  messagingSenderId: "30374524404",
-  appId: "1:30374524404:web:f926af7fd309b4d7c3f5a1",
-  measurementId: "G-EV52NKKTD1",
+  apiKey: "AIzaSyAans5oDsiAqcKtEqrn8f2_c3fyoJIQuHM",
+  authDomain: "paramele-prod.firebaseapp.com",
+  projectId: "paramele-prod",
+  storageBucket: "paramele-prod.firebasestorage.app",
+  messagingSenderId: "909019029498",
+  appId: "1:909019029498:web:7ebf72d586e94dffc34e43",
+  measurementId: "G-E68WHXM11K",
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+// Analytics only runs when Google Analytics is enabled for the project
+if (firebaseConfig.measurementId) getAnalytics(app);
+const db = getFirestore(app);
+
+// Folder that lists the files other users shared with the current user. It is built from a query, not stored
+const SHARED_WITH_ME_FOLDER = "_default_shared_with_me_";
 
 // Authentication
 const auth = getAuth();
@@ -111,87 +131,163 @@ function sendEmailToResetPassword(validated_user_data, callback) {
 }
 
 /**
+ * Logs a database error and passes it to the callback (if any) as an error process response
+ * @param {*} error
+ * @param {import("./types").ParamEleProcessResponseHandlerCallback} [callback]
+ */
+function handleDatabaseError(error, callback) {
+  console.log(`There was a problem: ${error.message} (${error.code})`);
+  if (callback) callback(getProcessResponseObject("error", error.code));
+}
+
+/**
+ * Key used to look a user up by email when sharing files
+ * @param {string} email
+ * @returns {string}
+ */
+function getEmailIndexKey(email) {
+  return email.trim().toLowerCase();
+}
+
+/**
  *
  * @param {{name:{value:string, valid: boolean, error_msg:string}, industry:{value:string, valid: boolean, error_msg:string}, company:{value:string, valid: boolean, error_msg:string}, email:{value:string, valid: boolean, error_msg:string}, password:{value:string, valid: boolean, error_msg:string}}} validated_user_data
  */
 function updateUserProfile(validated_user_data) {
   let user = auth.currentUser;
   let username = validated_user_data.name.value.split(" ")[0];
-  let email_escaped = utils.encodeStringForDBKey(validated_user_data.email.value);
   updateProfile(user, {
     displayName: username,
   })
     .then(() => {
-      let updates = {
-        [`users/${user.uid}`]: {
-          name: validated_user_data.name.value,
-          username,
-          email: validated_user_data.email.value,
-          company: validated_user_data.company.value,
-          industry: validated_user_data.industry.value,
-        },
-        [`users_map/${email_escaped}`]: user.uid,
-      };
-      update(databaseRef(getDatabase()), updates)
-        .then(() => {
-          console.log("User profile updated successfully");
-          createNewFolderForUser("_default_shared_with_me_", ["home"]);
-        })
-        .catch((error) => {
-          const errorCode = error.code;
-          const errorMessage = error.message;
-          console.log(`There was a problem: ${errorMessage} (${errorCode})`);
-        });
+      const batch = writeBatch(db);
+      batch.set(doc(db, "users", user.uid), {
+        name: validated_user_data.name.value,
+        username,
+        email: user.email,
+        company: validated_user_data.company.value,
+        industry: validated_user_data.industry.value,
+      });
+      batch.set(doc(db, "profiles", user.uid), { username, email: user.email });
+      batch.set(doc(db, "email_index", getEmailIndexKey(user.email)), { uid: user.uid });
+      return batch.commit();
     })
-    .catch((error) => {
-      const errorCode = error.code;
-      const errorMessage = error.message;
-      console.log(`There was a problem: ${errorMessage} (${errorCode})`);
-    });
+    .then(() => {
+      console.log("User profile updated successfully");
+    })
+    .catch((error) => handleDatabaseError(error));
 }
 
+/**
+ * Builds the empty folder entry that the file manager expects
+ * @param {string} id
+ * @param {number} created
+ * @param {number} last_modified
+ */
+function getFolderEntry(id, created, last_modified) {
+  return { id, created, last_modified, role: "owner", shared: false };
+}
+
+/**
+ * Converts a project document into the file entry the file manager expects
+ * @param {import("./types").ParamEleFireBaseProjectDoc} project_doc
+ * @returns {import("./types").ParamEleFireBaseProjectData}
+ */
+function getOwnedProjectData(project_doc) {
+  let { id, created, current_version, history, shared } = project_doc;
+  return { id, created, current_version, history, shared, role: "owner" };
+}
+
+/**
+ * Converts a project document shared with the current user into the file entry the file manager expects
+ * @param {import("./types").ParamEleFireBaseProjectDoc} project_doc
+ * @returns {import("./types").ParamEleFireBaseCompleteSharedProjectData}
+ */
+function getSharedProjectData(project_doc) {
+  let { id, created, current_version, history, shared, owner } = project_doc;
+  return {
+    id,
+    created,
+    current_version,
+    history,
+    shared,
+    owner,
+    // The project ID identifies the file when it is shared (stored as the file_owner_path in the app state)
+    path: id,
+    role: shared[auth.currentUser.uid].role,
+    is_shared_with_me: true,
+  };
+}
+
+/**
+ * Name of a shared file inside the shared with me folder. It must be unique and decodable with utils.decodeUniqueIDToName
+ * @param {import("./types").ParamEleFireBaseProjectDoc} project_doc
+ */
+function getSharedFileKey(project_doc) {
+  return `${project_doc.name}__${project_doc.id}`;
+}
+
+/**
+ * Gets the content object of a folder in the file tree, or null if any folder in the path is missing
+ * @param {object} tree
+ * @param {string[]} path Path including "home" in the first position
+ */
+function getFolderContentInTree(tree, path) {
+  let content = tree;
+  for (let i = 1; i < path.length; i++) {
+    let folder = content[path[i]];
+    if (!folder) return null;
+    if (!folder.content) folder.content = {};
+    content = folder.content;
+  }
+  return content;
+}
+
+/**
+ * Gets all the folders and files of the current user (owned and shared with them) as a nested tree
+ * @param {function(object)} callback
+ */
 function getUserProjects(callback) {
   let user = auth.currentUser;
-  const dbRef = databaseRef(getDatabase());
-  let user_id = user ? user.uid : "_public";
-  get(child(dbRef, `users/${user_id}/projects`))
-    .then((snapshot) => {
-      if (snapshot.exists()) {
-        let user_projects = snapshot.val();
-        if (user_projects["_default_shared_with_me_"].content) {
-          let all_shared_keys = Object.keys(user_projects["_default_shared_with_me_"].content);
-          function getOneProjectData(shared_project_index) {
-            let { path } = user_projects["_default_shared_with_me_"].content[all_shared_keys[shared_project_index]];
-            get(child(dbRef, path))
-              .then((owner_snapshot) => {
-                if (owner_snapshot.exists()) {
-                  let owner_project_data = owner_snapshot.val();
-                  let project_data = user_projects["_default_shared_with_me_"].content[all_shared_keys[shared_project_index]];
-                  completeSharedProjectData(project_data, owner_project_data);
-                  if (shared_project_index < all_shared_keys.length - 1) {
-                    getOneProjectData(shared_project_index + 1);
-                  } else {
-                    callback(user_projects);
-                  }
-                } else {
-                }
-              })
-              .catch();
-          }
-          getOneProjectData(0);
-        } else {
-          callback(user_projects);
-        }
-      } else {
-        console.log("No data available for this user under projects");
-        // Return an empty object
-        callback({});
-      }
+  if (!user) {
+    callback({});
+    return;
+  }
+  const projects_ref = collection(db, "projects");
+  Promise.all([
+    getDocs(collection(db, "users", user.uid, "folders")),
+    getDocs(query(projects_ref, where("owner", "==", user.uid))),
+    getDocs(query(projects_ref, where("shared_with", "array-contains", user.uid))),
+  ])
+    .then(([folders_snapshot, owned_snapshot, shared_snapshot]) => {
+      let tree = { [SHARED_WITH_ME_FOLDER]: getFolderEntry(`fo${SHARED_WITH_ME_FOLDER}`, 0, 0) };
+      // Parents first so every folder finds its parent in the tree
+      let folders = folders_snapshot.docs.map((folder_doc) => folder_doc.data()).sort((a, b) => a.path.length - b.path.length);
+      folders.forEach(({ id, name, path, created, last_modified }) => {
+        let parent_content = getFolderContentInTree(tree, path);
+        if (parent_content) parent_content[name] = getFolderEntry(id, created, last_modified);
+      });
+      owned_snapshot.docs.forEach((project_snapshot) => {
+        let project_doc = project_snapshot.data();
+        let parent_content = getFolderContentInTree(tree, project_doc.path);
+        if (parent_content) parent_content[project_doc.name] = getOwnedProjectData(project_doc);
+      });
+      let shared_folder = tree[SHARED_WITH_ME_FOLDER];
+      let shared_content = getFolderContentInTree(tree, ["home", SHARED_WITH_ME_FOLDER]);
+      shared_snapshot.docs.forEach((project_snapshot) => {
+        let project_doc = project_snapshot.data();
+        shared_content[getSharedFileKey(project_doc)] = getSharedProjectData(project_doc);
+        // The folder shows the date of its most recently modified file
+        shared_folder.last_modified = Math.max(shared_folder.last_modified, project_doc.last_modified);
+      });
+      callback(tree);
     })
     .catch((error) => {
       console.error(error);
+      callback({});
     });
 }
+
 /**
  * Retrieves a specific project data from the database
  * @param {string[]} file_path
@@ -199,124 +295,69 @@ function getUserProjects(callback) {
  * @param {import("./types").ParamEleFireBaseProjectDataCallback} callback
  */
 function getProjectData(file_path, file_name, callback) {
-  const dbRef = databaseRef(getDatabase());
-  let db_path = getPathInDatabaseFromLocal({ file_path, file_name });
-  get(child(dbRef, db_path))
-    .then((snapshot) => {
-      if (snapshot.exists()) {
-        let project_data = snapshot.val();
-        if (project_data.owner && project_data.path) {
-          // Shared file, need to complete data from the owner path
-          get(child(dbRef, project_data.path))
-            .then((owner_snapshot) => {
-              if (owner_snapshot.exists()) {
-                let owner_project_data = owner_snapshot.val();
-                callback(completeSharedProjectData(project_data, owner_project_data));
-              } else {
-                console.log("Couldn't get data for the shared project");
-                // Return an empty object
-                callback({});
-              }
-            })
-            .catch();
-        } else {
-          callback(project_data);
-        }
-      } else {
+  let user = auth.currentUser;
+  if (!user) {
+    callback({});
+    return;
+  }
+  let is_shared_with_me = file_path.length === 2 && file_path[1] === SHARED_WITH_ME_FOLDER;
+  let project_doc_promise;
+  if (is_shared_with_me) {
+    let model_id = file_name.substring(file_name.lastIndexOf("__") + 2);
+    project_doc_promise = getDoc(doc(db, "projects", model_id)).then((snapshot) => (snapshot.exists() ? snapshot.data() : null));
+  } else {
+    let owned_project_query = query(
+      collection(db, "projects"),
+      where("owner", "==", user.uid),
+      where("path", "==", file_path),
+      where("name", "==", file_name),
+      limit(1)
+    );
+    project_doc_promise = getDocs(owned_project_query).then((snapshot) => (snapshot.empty ? null : snapshot.docs[0].data()));
+  }
+  project_doc_promise
+    .then((project_doc) => {
+      if (!project_doc) {
         console.log("That project does not exist for this user");
-        // Return an empty object
         callback({});
+      } else if (is_shared_with_me) {
+        callback(project_doc.shared[user.uid] ? getSharedProjectData(project_doc) : {});
+      } else {
+        callback(getOwnedProjectData(project_doc));
       }
     })
     .catch((error) => {
+      // Permission denied also lands here, e.g. when the access to a shared file was removed
       console.error(error);
+      callback({});
     });
 }
 
 /**
- * Completes the project data for the current user
- * @param {import("./types").ParamEleFireBaseSharedProjectData} project_data
- * @param {import("./types").ParamEleFireBaseProjectData} owner_project_data
- * @returns {import("./types").ParamEleFireBaseCompleteSharedProjectData}
+ * Reference to the project document of a file
+ * @param {import("./types").ParamEleFileData} local_file_data
  */
-function completeSharedProjectData(project_data, owner_project_data) {
-  if (owner_project_data.shared[auth.currentUser.uid]) {
-    project_data.role = owner_project_data.shared[auth.currentUser.uid].role;
-    project_data.is_shared_with_me = true;
-    // Synchronize the needed data from the owner project data
-    let keys_to_copy = ["created", "current_version", "history", "shared", "id"];
-    keys_to_copy.forEach((key_to_copy) => {
-      project_data[key_to_copy] = owner_project_data[key_to_copy];
-    });
-  } else {
-    console.log("User does not have access anymore");
-    project_data = {};
-  }
-  return project_data;
-}
-
-/**
- * Gets the full path to a folder or model in the file structure of the current user unless overwritten. If the file is shared, returns the file_owner_path
- * @param {import("./types").ParamEleFileData} local_file_data Ideally, should be the one from the state or a local version. As a minimum, should have the file_path and the file_name
- * @param {string} user_id_override
- * @returns
- */
-function getPathInDatabaseFromLocal(local_file_data, user_id_override) {
-  let user = auth.currentUser;
-  let user_id = user ? user.uid : "_public";
-  if (user_id_override != undefined) user_id = user_id_override;
-  let db_path = `users/${user_id}/projects`;
-  // Get the file name and file_path
-  let { file_name, file_path, file_shared_with_me, file_owner_path } = local_file_data;
-  if (!file_shared_with_me) {
-    // Get the path up to the grandparent of the new folder
-    for (let i = 1; i < file_path.length - 1; i++) {
-      db_path += `/${file_path[i]}/content`;
-    }
-    // Add the parent folder (if it is not home)
-    if (file_path.length > 1) {
-      db_path += `/${file_path[file_path.length - 1]}/content`;
-    }
-    // Append the file name
-    db_path += `/${file_name}`;
-  } else {
-    db_path = file_owner_path;
-  }
-  return db_path;
+function getProjectRef(local_file_data) {
+  return doc(db, "projects", local_file_data.model_id);
 }
 
 function createNewFolderForUser(folder_name, location, callback) {
-  let db_path = getPathInDatabaseFromLocal({ file_name: folder_name, file_path: location });
   const current_time = Date.now();
-  let new_folder = {
-    id: utils.generateUniqueID("folder"),
-    last_modified: current_time,
+  const folder_id = utils.generateUniqueID("folder");
+  let folder_doc = {
+    id: folder_id,
+    name: folder_name,
+    path: location,
     created: current_time,
-    role: "owner",
-    shared: false,
+    last_modified: current_time,
   };
-  let updates = {};
-  updates[db_path] = new_folder;
-  function returnDataToTheCallback(new_folder, callback) {
-    if (typeof callback == "undefined") return;
-    let return_data = {};
-    if (new_folder.hasOwnProperty("content")) new_folder = new_folder.content;
-    return_data[folder_name] = new_folder;
-    callback(return_data, true);
-  }
-  update(databaseRef(getDatabase()), updates)
+  setDoc(doc(db, "users", auth.currentUser.uid, "folders", folder_id), folder_doc)
     .then(() => {
       // Do not read again from the data base but only get the new data to the file manager
-      returnDataToTheCallback(new_folder, callback);
+      if (typeof callback == "undefined") return;
+      callback({ [folder_name]: getFolderEntry(folder_id, current_time, current_time) }, true);
     })
-    .catch((error) => {
-      const errorCode = error.code;
-      const errorMessage = error.message;
-      if (errorMessage.includes("Cannot set properties of undefined"))
-        // Do not read again from the data base but only get the new data to the file manager
-        returnDataToTheCallback(new_folder, callback);
-      console.log(`There was a problem: ${errorMessage} (${errorCode})`);
-    });
+    .catch((error) => handleDatabaseError(error));
 }
 
 /**
@@ -349,19 +390,11 @@ function saveFileToCloud(model_blob, local_file_data, callback, is_new_version, 
  */
 function updateRefToResultsFileForUser(local_file_data, callback) {
   let { current_version } = local_file_data;
-  let db_path = getPathInDatabaseFromLocal(local_file_data);
-  // Create the updates object
-  let updates = {};
-  updates[`${db_path}/history/${current_version}/results_available`] = true;
-  update(databaseRef(getDatabase()), updates)
+  updateDoc(getProjectRef(local_file_data), new FieldPath("history", String(current_version), "results_available"), true)
     .then(() => {
       callback(true);
     })
-    .catch((error) => {
-      const errorCode = error.code;
-      const errorMessage = error.message;
-      console.log(`There was a problem: ${errorMessage} (${errorCode})`);
-    });
+    .catch((error) => handleDatabaseError(error));
 }
 
 /**
@@ -372,18 +405,11 @@ function updateRefToResultsFileForUser(local_file_data, callback) {
  * @param {*} callback
  */
 function updateCommitMsgForUser(local_file_data, version_key_to_update, commit_msg, callback) {
-  let db_path = getPathInDatabaseFromLocal(local_file_data);
-  // Create the updates object
-  let updates = { [`${db_path}/history/${version_key_to_update}/commit_msg`]: commit_msg };
-  update(databaseRef(getDatabase()), updates)
+  updateDoc(getProjectRef(local_file_data), new FieldPath("history", String(version_key_to_update), "commit_msg"), commit_msg)
     .then(() => {
       callback(true);
     })
-    .catch((error) => {
-      const errorCode = error.code;
-      const errorMessage = error.message;
-      console.log(`There was a problem: ${errorMessage} (${errorCode})`);
-    });
+    .catch((error) => handleDatabaseError(error));
 }
 
 /**
@@ -394,47 +420,47 @@ function updateCommitMsgForUser(local_file_data, version_key_to_update, commit_m
  * @param {*} commit_msg
  */
 function createRefToModelFileForUser(local_file_data, callback, is_new_version, commit_msg) {
-  let { model_id, current_version, file_name } = local_file_data;
-  let db_path = getPathInDatabaseFromLocal(local_file_data);
+  let { model_id, current_version, file_name, file_path } = local_file_data;
   let author = auth.currentUser.uid;
-  // Create the updates object
-  let updates = {};
-  // Create the new_file object
-  let new_file = {
-    id: model_id,
-    current_version,
-    created: current_version,
-    role: "owner",
-    shared: false,
-    history: {},
-  };
+  let write_promise;
+  /** @type {import("./types").ParamEleFireBaseProjectData} */
+  let new_file = null;
   if (!is_new_version) {
-    new_file.history[current_version] = {
-      num_nodes: 12,
-      results_available: false,
-      author,
+    /** @type {import("./types").ParamEleFireBaseProjectDoc} */
+    let project_doc = {
+      id: model_id,
+      owner: author,
+      name: file_name,
+      path: file_path,
+      current_version,
+      created: current_version,
+      last_modified: current_version,
+      history: {
+        [current_version]: { num_nodes: 12, results_available: false, author },
+      },
+      shared: {},
+      shared_with: [],
     };
-    updates[db_path] = new_file;
+    new_file = getOwnedProjectData(project_doc);
+    write_promise = setDoc(getProjectRef(local_file_data), project_doc);
   } else {
-    // Set the new file equal to null not to return useless data
-    new_file = null;
-    // Update the current_version
-    updates[`${db_path}/current_version`] = current_version;
-    // Update the history
-    updates[`${db_path}/history/${current_version}`] = { num_nodes: 13, commit_msg, results_available: false, author };
+    // Keep new_file equal to null not to return useless data
+    write_promise = updateDoc(
+      getProjectRef(local_file_data),
+      "current_version",
+      current_version,
+      "last_modified",
+      current_version,
+      new FieldPath("history", String(current_version)),
+      { num_nodes: 13, commit_msg, results_available: false, author }
+    );
   }
-  update(databaseRef(getDatabase()), updates)
+  write_promise
     .then(() => {
       // Do not read again from the data base but only get the new data to the file manager
-      let return_data = {};
-      return_data[file_name] = new_file;
-      callback(return_data);
+      callback({ [file_name]: new_file });
     })
-    .catch((error) => {
-      const errorCode = error.code;
-      const errorMessage = error.message;
-      console.log(`There was a problem: ${errorMessage} (${errorCode})`);
-    });
+    .catch((error) => handleDatabaseError(error));
 }
 /**
  *
@@ -481,7 +507,6 @@ function deleteFileVersionFromCloud(local_file_data, results_available, version_
     callback();
     return;
   }
-  // Something is not working when deleting the reference in the realtime database
   deleteFile("model", function () {
     if (results_available) {
       deleteFile("results", () => {
@@ -493,12 +518,7 @@ function deleteFileVersionFromCloud(local_file_data, results_available, version_
   });
 
   function deleteVersionReference(callback) {
-    let db_path = getPathInDatabaseFromLocal(local_file_data);
-    // Append the file name and version_to_delete to the path
-    db_path += `/history/${version_to_delete}`;
-    let updates_remove = {};
-    updates_remove[db_path] = null;
-    update(databaseRef(getDatabase()), updates_remove)
+    updateDoc(getProjectRef(local_file_data), new FieldPath("history", String(version_to_delete)), deleteField())
       .then(() => {
         console.log("Deleted the reference");
         callback();
@@ -532,86 +552,52 @@ function deleteFileVersionFromCloud(local_file_data, results_available, version_
  */
 function shareFileWithUser(validated_user_data, file_data, callback) {
   let user_email = validated_user_data.user_email.value;
-  let user_role = validated_user_data?.user_role?.value;
-  let encodedEmail = utils.encodeStringForDBKey(user_email);
-  get(child(databaseRef(getDatabase()), `users_map/${encodedEmail}`))
+  let role = validated_user_data?.user_role?.value;
+  getDoc(doc(db, "email_index", getEmailIndexKey(user_email)))
     .then((snapshot) => {
-      if (snapshot.exists()) {
-        let shared_user_id = snapshot.val();
-        if (getAuth().currentUser.uid == shared_user_id) {
-          callback(getProcessResponseObject("error", "cannot_share_with_yourself"));
-        } else {
-          let owner_id = getAuth().currentUser.uid; // TODO - Handle the case when the admin shares
-          let role = user_role;
-          let db_path_in_owner = getPathInDatabaseFromLocal(file_data);
-          let db_path_in_shared = getPathInDatabaseFromLocal(
-            { file_path: ["home", "_default_shared_with_me_"], file_name: utils.encodeNameToUniqueID(file_data.file_name) },
-            shared_user_id
-          );
-          let updated_file_shared_data = {
-            role,
-            date: Date.now(),
-            path: db_path_in_shared,
-          };
-          let updates = {
-            [`${db_path_in_shared}`]: {
-              owner: owner_id,
-              path: db_path_in_owner,
-            },
-            [`${db_path_in_owner}/shared/${shared_user_id}`]: updated_file_shared_data,
-          };
-          update(databaseRef(getDatabase()), updates)
-            .then(() => {
-              callback(getProcessResponseObject("success", null, { [shared_user_id]: updated_file_shared_data }));
-            })
-            .catch((error) => {
-              const errorCode = error.code;
-              const errorMessage = error.message;
-              console.log(`There was a problem: ${errorMessage} (${errorCode})`);
-              callback(getProcessResponseObject("error", errorCode));
-            });
-        }
-      } else {
+      if (!snapshot.exists()) {
         callback(getProcessResponseObject("error", "user_does_not_exist"));
+        return;
       }
+      let shared_user_id = snapshot.data().uid;
+      if (auth.currentUser.uid == shared_user_id) {
+        callback(getProcessResponseObject("error", "cannot_share_with_yourself"));
+        return;
+      }
+      // TODO - Handle the case when the admin shares
+      /** @type {import("./types").ParamEleFileSharedSubData} */
+      let updated_file_shared_data = { role, date: Date.now() };
+      return updateDoc(
+        getProjectRef(file_data),
+        new FieldPath("shared", shared_user_id),
+        updated_file_shared_data,
+        "shared_with",
+        arrayUnion(shared_user_id)
+      ).then(() => {
+        callback(getProcessResponseObject("success", null, { [shared_user_id]: updated_file_shared_data }));
+      });
     })
-    .catch((error) => {
-      callback(getProcessResponseObject("error", error.code));
-    });
+    .catch((error) => handleDatabaseError(error, callback));
 }
 
 /**
- * 
+ *
  * @param {string} shared_user_id
- * @param {import("./types").ParamEleFileSharedSubData} new_file_shared_data 
- * @param {boolean} is_remove_access 
+ * @param {import("./types").ParamEleFileSharedSubData} new_file_shared_data
+ * @param {boolean} is_remove_access
  * @param {import("./types").ParamEleFileData} file_data
  * @param {import("./types").ParamEleProcessResponseHandlerCallback} callback
  */
 function updateSharedFileData(shared_user_id, new_file_shared_data, is_remove_access, file_data, callback) {
-  let db_path_in_owner = getPathInDatabaseFromLocal(file_data);
-  let db_path_in_shared = new_file_shared_data.path;
-  let updates;
-  if (!is_remove_access) {
-    updates = {
-      [`${db_path_in_owner}/shared/${shared_user_id}`]: new_file_shared_data,
-    };
-  } else {
-    updates = {
-      [`${db_path_in_owner}/shared/${shared_user_id}`]: null,
-      [db_path_in_shared]: null,
-    };
-  }
-  update(databaseRef(getDatabase()), updates)
+  let shared_field = new FieldPath("shared", shared_user_id);
+  let update_promise = is_remove_access
+    ? updateDoc(getProjectRef(file_data), shared_field, deleteField(), "shared_with", arrayRemove(shared_user_id))
+    : updateDoc(getProjectRef(file_data), shared_field, new_file_shared_data);
+  update_promise
     .then(() => {
       callback(getProcessResponseObject("success", null));
     })
-    .catch((error) => {
-      const errorCode = error.code;
-      const errorMessage = error.message;
-      console.log(`There was a problem: ${errorMessage} (${errorCode})`);
-      callback(getProcessResponseObject("error", errorCode));
-    });
+    .catch((error) => handleDatabaseError(error, callback));
 }
 
 function attachToAuthChangeFirebaseEvent(function_to_attach) {
@@ -620,29 +606,24 @@ function attachToAuthChangeFirebaseEvent(function_to_attach) {
 
 /**
  * Retrieves contact information from the database
- * @param {string} query
+ * @param {string} contact_query
  * @param {"uid"|"email"} mode
  * @param {import("./types").ParamEleProcessResponseHandlerCallback} callback
  */
-function getContactInformationFromDataBase(query, mode, callback) {
-  /** @type {import("./types").ParamEleContact} */
-  let contact_data = {};
+function getContactInformationFromDataBase(contact_query, mode, callback) {
   if (mode == "uid") {
-    get(child(databaseRef(getDatabase()), `users/${query}/email`)).then((snapshot) => {
-      if (snapshot.exists()) {
-        contact_data.email = snapshot.val();
-        get(child(databaseRef(getDatabase()), `users/${query}/username`)).then((snapshot) => {
-          if (snapshot.exists()) {
-            contact_data.username = snapshot.val();
-            callback(getProcessResponseObject("success", "", contact_data));
-          } else {
-            callback(getProcessResponseObject("error", "username_not_found"));
-          }
-        });
-      } else {
-        callback(getProcessResponseObject("error", "user_by_uid_does_not_exist"));
-      }
-    });
+    getDoc(doc(db, "profiles", contact_query))
+      .then((snapshot) => {
+        if (!snapshot.exists()) {
+          callback(getProcessResponseObject("error", "user_by_uid_does_not_exist"));
+          return;
+        }
+        let { email, username } = snapshot.data();
+        /** @type {import("./types").ParamEleContact} */
+        let contact_data = { email, username };
+        callback(getProcessResponseObject("success", "", contact_data));
+      })
+      .catch((error) => handleDatabaseError(error, callback));
   }
 }
 
