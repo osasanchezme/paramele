@@ -1,6 +1,6 @@
 [
   {
-    "origin": ["https://app.paramele.com", "https://paramele-prod.web.app", "https://paramele-prod.firebaseapp.com", "http://localhost:3000"],
+    "origin": ["https://app.paramele.com", "https://paramele-app.web.app", "https://paramele-app.firebaseapp.com", "https://paramele-prod.web.app", "https://paramele-prod.firebaseapp.com", "http://localhost:3000"],
     "method": ["GET"],
     "maxAgeSeconds": 3600
   }

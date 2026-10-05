@@ -11,7 +11,7 @@ ParamEle is an open-source node-based visual programming editor (Create React Ap
 - `npm start`: dev server at http://localhost:3000 (browser does not auto-open)
 - `npm run build`: production build into `build/`
 - `npm test`: Jest via react-scripts (watch mode). Single test: `npm test -- path/to/file.test.js` (add `--watchAll=false` for a single run). The only existing tests are in the submodule (`src/submodules/paramele-parsers/utils/units_converter.test.js`).
-- `npm run deploy`: builds and publishes to Firebase Hosting (needs the `firebase` CLI, logged in). `npm run deploy:rules` deploys `firestore.rules` and `storage.rules`. `npm run deploy:cors` applies `cors.json` to the Storage bucket (needs `gcloud`, logged in); model files are read with `getBlob`, which fails without it.
+- `npm run deploy`: builds and publishes to Firebase Hosting site `paramele-app` (https://paramele-app.web.app, custom domain https://app.paramele.com) (needs the `firebase` CLI, logged in). `npm run deploy:rules` deploys `firestore.rules` and `storage.rules`. `npm run deploy:cors` applies `cors.json` to the Storage bucket (needs `gcloud`, logged in); model files are read with `getBlob`, which fails without it.
 - `npm run theme`: regenerates Chakra theme typings from `src/theme.js`
 - Formatting: Prettier (`.prettierrc`: 2 spaces, printWidth 150). No separate lint script; ESLint runs through react-scripts (`react-app` config).
 - Submodule: `src/submodules/paramele-parsers` is a git submodule (SSH URL). Run `git submodule update --init` after cloning.
