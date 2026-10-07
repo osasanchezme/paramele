@@ -143,6 +143,8 @@
         "open_settings": "Open settings"
     },
     "nav_bar":{
+        "show_parameters_panel": "Show favorite parameters",
+        "hide_parameters_panel": "Hide favorite parameters",
         "file": "File",
         "new": "New",
         "open": "Open",
@@ -185,11 +187,29 @@
         "plate": "Plate"
     },
     "tooltips": {
+        "add_favorite": "Add to favorite parameters",
+        "remove_favorite": "Remove from favorite parameters",
         "edit": "Edit",
         "save": "Save",
         "discard": "Discard",
         "iterating_box": "This box is generating all the possibilities",
         "no_permissions": "You don't have permissions to perform this action. Ask the admins to grant permissions."
+    },
+    "parameters_panel": {
+        "minimize": "Minimize",
+        "pill_label": "Favorite parameters",
+        "title": "FAVORITE PARAMETERS",
+        "expand": "Expand",
+        "empty": "Add parameters with the star on a box or in the explorer, or search them above.",
+        "search_placeholder": "Search parameters to add",
+        "no_candidates": "Every parameter is already a favorite",
+        "no_matches": "No parameters match",
+        "go_to_node": "Go to the box",
+        "iterating": "Takes every value of its range (sliders mode)",
+        "slider_limits": "Slider limits",
+        "min": "Min.",
+        "max": "Max.",
+        "step": "Step"
     },
     "properties_panel": {
         "title": "EXPLORER",

@@ -9,6 +9,8 @@ import CommandsBar from "./components/commands_bar";
 import getState from "./getState";
 import ResizeBorder from "./components/resize_border";
 import PropertiesPanel from "./components/properties_panel";
+import ParametersPanel from "./components/parameters_panel";
+import favorites from "./js/favorites";
 import theme from "./theme";
 import SelectionBox from "./components/selection_box";
 import Navigator from "./components/navigator";
@@ -26,7 +28,7 @@ import { ConfirmationDialog } from "./components/confirmation_dialog";
 import file from "./js/file";
 import { notify } from "./components/notification";
 import { getInitialState } from "./initial_state";
-import { AppModeContext, GlobalLoadingProvider, UserDataContext } from "./Context";
+import { AppModeContext, FavoritesContext, GlobalLoadingProvider, UserDataContext } from "./Context";
 import SharingManager from "./components/sharing_manager";
 import StatusBar from "./components/status_bar";
 import ViewSwitch from "./components/view_switch";
@@ -47,6 +49,8 @@ class ParamEle extends React.Component {
     window.ParamEle.changeGeneralSettingValue = this.changeGeneralSettingValue.bind(this);
     this.setViewMode = this.setViewMode.bind(this);
     this.togglePropertiesPanel = this.togglePropertiesPanel.bind(this);
+    this.toggleParametersPanel = this.toggleParametersPanel.bind(this);
+    this.toggleFavorite = this.toggleFavorite.bind(this);
     this.changeAppMode = this.changeAppMode.bind(this);
     this.handleMouseMove = this.handleMouseMove.bind(this);
     this.getStateUpdateFromClickEvent = this.getStateUpdateFromClickEvent.bind(this);
@@ -145,9 +149,37 @@ class ParamEle extends React.Component {
     }
     this.changeGeneralSettingValue("show_properties_panel", !this.state.settings.general.show_properties_panel);
   }
+  toggleParametersPanel() {
+    this.changeGeneralSettingValue("show_parameters_panel", !this.state.settings.general.show_parameters_panel);
+  }
+  /**
+   * Adds or removes the parameter of a node from the favorites, and opens the parameters panel when one is added
+   * @param {string} node_id
+   */
+  toggleFavorite(node_id) {
+    let node = this.state.nodes.find(({ id }) => id === node_id);
+    if (!node) return;
+    let is_favorite = favorites.toggleFavorite(node);
+    if (is_favorite && !this.state.settings.general.show_parameters_panel) this.changeGeneralSettingValue("show_parameters_panel", true);
+  }
+  /**
+   * The context value only changes when the favorites do, so nodes do not re-render on every update of the root
+   */
+  getFavoritesContextValue() {
+    let favorite_node_ids = (this.state.favorites || []).map(({ node_id }) => node_id);
+    let cache_key = favorite_node_ids.join("|");
+    if (!this.favorites_context_value || this.favorites_context_value.cache_key !== cache_key) {
+      this.favorites_context_value = { cache_key, favorite_node_ids: new Set(favorite_node_ids), toggleFavorite: this.toggleFavorite };
+    }
+    return this.favorites_context_value;
+  }
   updateNodesFromLocalState() {
     let local_state = getState();
-    this.setState({ model: local_state.model });
+    let current_model = local_state;
+    local_state.model_path.forEach((key) => {
+      current_model = current_model[key];
+    });
+    this.setState({ model: local_state.model, favorites: current_model.favorites || [] });
   }
   /**
    *
@@ -503,117 +535,130 @@ class ParamEle extends React.Component {
     return (
       <UserDataContext.Provider value={{ role: this.getUserRole() }}>
         <AppModeContext.Provider value={this.state.mode}>
-          <GlobalLoadingProvider>
-            <ChakraProvider theme={theme}>
-              <div
-                className="app-cont"
-                tabIndex={0}
-                onKeyDown={this.handleKeyPress}
-                onMouseMove={this.handleMouseMove}
-                onClick={this.handleMouseClick}
-                onMouseDown={this.handleMouseDown}
-                onMouseUp={this.handleMouseUp}
-              >
-                <LoadingDimmer />
-                <ConfirmationDialog
-                  isDialogOpen={this.state.is_confirmation_open}
-                  closeDialog={this.closeConfirmationDialog}
-                  callbacks={this.state.confirmation_callbacks}
-                  message_copy={this.state.confirmation_msg}
-                ></ConfirmationDialog>
-                <NavBar
-                  user={this.state.user}
-                  file_data={this.getFileData()}
-                  setFileData={this.setFileData}
-                  model_locked={this.state.model_locked}
-                  setModelLock={this.setModelLock}
-                  openVersionManager={this.openVersionManager}
-                  openAuthenticationForm={this.openAuthenticationForm}
-                  openFileManager={this.openFileManager}
-                  changeAppMode={this.changeAppMode}
-                  openConfirmationDialog={this.openConfirmationDialog}
-                  openSharingManager={this.openSharingManager}
-                  show_properties_panel={show_properties_panel}
-                  togglePropertiesPanel={this.togglePropertiesPanel}
-                ></NavBar>
-                <StatusBar app_mode={this.state.mode} changeAppMode={this.changeAppMode}></StatusBar>
-                <ViewSwitch settings={general} setViewMode={this.setViewMode} is_compact={is_compact}></ViewSwitch>
-                {commands_bar}
-                {is_compact && show_properties_panel && <div className="panel-backdrop" onClick={this.togglePropertiesPanel}></div>}
-                <PropertiesPanel
-                  visible={show_properties_panel}
-                  width={layout.panel_width}
-                  is_floating={is_compact}
-                  data={this.state.model}
-                ></PropertiesPanel>
-                <ResizeBorder
-                  id="properties_panel"
-                  visible={show_properties_panel && !is_compact}
-                  position={layout.panel_width}
-                  changeAppMode={this.changeAppMode}
-                ></ResizeBorder>
-                <VisualEditor
-                  nodes={this.state.nodes}
-                  setNodes={this.setNodes}
-                  edges={this.state.edges}
-                  setEdges={this.setEdges}
-                  width={layout.editor_width}
-                  nodes_library={nodes_library}
-                  is_model_locked={this.state.model_locked}
-                  app_mode={this.state.mode}
-                ></VisualEditor>
-                {(general.side_by_side || general.show_nodes) && <Navigator layout={layout}></Navigator>}
-                <ResizeBorder
-                  id="renderer_editor"
-                  visible={general.side_by_side}
-                  position={panel_plus_renderer}
-                  changeAppMode={this.changeAppMode}
-                ></ResizeBorder>
-                <Renderer visible={!general.show_nodes} width={layout.renderer_width} settings={general} layout={layout}></Renderer>
-                <SelectionBox
-                  visible={this.state.mode === "selecting_nodes"}
-                  x={this.state.selection_left}
-                  y={this.state.selection_top}
-                  mouse_x={this.state.mouse_x}
-                  mouse_y={this.state.mouse_y}
-                ></SelectionBox>
-                <GlobalSettings></GlobalSettings>
-                <Authentication
-                  user={this.state.user}
-                  is_auth_form_open={this.state.is_auth_form_open}
-                  closeAuthenticationForm={this.closeAuthenticationForm}
-                  active_tab_auth_form={this.state.active_tab_auth_form}
-                  setActiveTabAuthenticationForm={this.setActiveTabAuthenticationForm}
-                ></Authentication>
-                <FileManager
-                  user={this.state.user}
-                  is_file_manager_open={this.state.is_file_manager_open}
-                  closeFileManager={this.closeFileManager}
-                  file_manager_mode={this.state.file_manager_mode}
-                  setFileData={this.setFileData}
-                  setModelLock={this.setModelLock}
-                ></FileManager>
-                <SharingManager
-                  is_sharing_manager_open={this.state.is_sharing_manager_open}
-                  closeSharingManager={this.closeSharingManager}
-                  getContactInformation={this.getContactInformation}
-                  file_data={this.getFileData()}
-                  setFileData={this.setFileData}
-                ></SharingManager>
-                <VersionManager
-                  isOpen={this.state.is_version_manager_open}
-                  onClose={this.closeVersionManager}
-                  file_history={this.state.file_history}
-                  setFileData={this.setFileData}
-                  getFileData={this.getFileData}
-                  setModelLock={this.setModelLock}
-                  openConfirmationDialog={this.openConfirmationDialog}
-                  getContactInformation={this.getContactInformation}
-                  user={this.state.user}
-                ></VersionManager>
-              </div>
-            </ChakraProvider>
-          </GlobalLoadingProvider>
+          <FavoritesContext.Provider value={this.getFavoritesContextValue()}>
+            <GlobalLoadingProvider>
+              <ChakraProvider theme={theme}>
+                <div
+                  className="app-cont"
+                  tabIndex={0}
+                  onKeyDown={this.handleKeyPress}
+                  onMouseMove={this.handleMouseMove}
+                  onClick={this.handleMouseClick}
+                  onMouseDown={this.handleMouseDown}
+                  onMouseUp={this.handleMouseUp}
+                >
+                  <LoadingDimmer />
+                  <ConfirmationDialog
+                    isDialogOpen={this.state.is_confirmation_open}
+                    closeDialog={this.closeConfirmationDialog}
+                    callbacks={this.state.confirmation_callbacks}
+                    message_copy={this.state.confirmation_msg}
+                  ></ConfirmationDialog>
+                  <NavBar
+                    user={this.state.user}
+                    file_data={this.getFileData()}
+                    setFileData={this.setFileData}
+                    model_locked={this.state.model_locked}
+                    setModelLock={this.setModelLock}
+                    openVersionManager={this.openVersionManager}
+                    openAuthenticationForm={this.openAuthenticationForm}
+                    openFileManager={this.openFileManager}
+                    changeAppMode={this.changeAppMode}
+                    openConfirmationDialog={this.openConfirmationDialog}
+                    openSharingManager={this.openSharingManager}
+                    show_properties_panel={show_properties_panel}
+                    togglePropertiesPanel={this.togglePropertiesPanel}
+                    show_parameters_panel={general.show_parameters_panel}
+                    toggleParametersPanel={this.toggleParametersPanel}
+                    favorites_count={favorites.getFavoritesWithNodes(this.state.favorites, this.state.nodes).length}
+                  ></NavBar>
+                  <StatusBar app_mode={this.state.mode} changeAppMode={this.changeAppMode}></StatusBar>
+                  <ViewSwitch settings={general} setViewMode={this.setViewMode} is_compact={is_compact}></ViewSwitch>
+                  <ParametersPanel
+                    visible={general.show_parameters_panel}
+                    favorite_list={this.state.favorites}
+                    nodes={this.state.nodes}
+                    model_locked={this.state.model_locked}
+                    is_compact={is_compact}
+                    default_left={show_properties_panel && !is_compact ? `calc(${layout.panel_width}% + 12px)` : "12px"}
+                  ></ParametersPanel>
+                  {commands_bar}
+                  {is_compact && show_properties_panel && <div className="panel-backdrop" onClick={this.togglePropertiesPanel}></div>}
+                  <PropertiesPanel
+                    visible={show_properties_panel}
+                    width={layout.panel_width}
+                    is_floating={is_compact}
+                    data={this.state.model}
+                  ></PropertiesPanel>
+                  <ResizeBorder
+                    id="properties_panel"
+                    visible={show_properties_panel && !is_compact}
+                    position={layout.panel_width}
+                    changeAppMode={this.changeAppMode}
+                  ></ResizeBorder>
+                  <VisualEditor
+                    nodes={this.state.nodes}
+                    setNodes={this.setNodes}
+                    edges={this.state.edges}
+                    setEdges={this.setEdges}
+                    width={layout.editor_width}
+                    nodes_library={nodes_library}
+                    is_model_locked={this.state.model_locked}
+                    app_mode={this.state.mode}
+                  ></VisualEditor>
+                  {(general.side_by_side || general.show_nodes) && <Navigator layout={layout}></Navigator>}
+                  <ResizeBorder
+                    id="renderer_editor"
+                    visible={general.side_by_side}
+                    position={panel_plus_renderer}
+                    changeAppMode={this.changeAppMode}
+                  ></ResizeBorder>
+                  <Renderer visible={!general.show_nodes} width={layout.renderer_width} settings={general} layout={layout}></Renderer>
+                  <SelectionBox
+                    visible={this.state.mode === "selecting_nodes"}
+                    x={this.state.selection_left}
+                    y={this.state.selection_top}
+                    mouse_x={this.state.mouse_x}
+                    mouse_y={this.state.mouse_y}
+                  ></SelectionBox>
+                  <GlobalSettings></GlobalSettings>
+                  <Authentication
+                    user={this.state.user}
+                    is_auth_form_open={this.state.is_auth_form_open}
+                    closeAuthenticationForm={this.closeAuthenticationForm}
+                    active_tab_auth_form={this.state.active_tab_auth_form}
+                    setActiveTabAuthenticationForm={this.setActiveTabAuthenticationForm}
+                  ></Authentication>
+                  <FileManager
+                    user={this.state.user}
+                    is_file_manager_open={this.state.is_file_manager_open}
+                    closeFileManager={this.closeFileManager}
+                    file_manager_mode={this.state.file_manager_mode}
+                    setFileData={this.setFileData}
+                    setModelLock={this.setModelLock}
+                  ></FileManager>
+                  <SharingManager
+                    is_sharing_manager_open={this.state.is_sharing_manager_open}
+                    closeSharingManager={this.closeSharingManager}
+                    getContactInformation={this.getContactInformation}
+                    file_data={this.getFileData()}
+                    setFileData={this.setFileData}
+                  ></SharingManager>
+                  <VersionManager
+                    isOpen={this.state.is_version_manager_open}
+                    onClose={this.closeVersionManager}
+                    file_history={this.state.file_history}
+                    setFileData={this.setFileData}
+                    getFileData={this.getFileData}
+                    setModelLock={this.setModelLock}
+                    openConfirmationDialog={this.openConfirmationDialog}
+                    getContactInformation={this.getContactInformation}
+                    user={this.state.user}
+                  ></VersionManager>
+                </div>
+              </ChakraProvider>
+            </GlobalLoadingProvider>
+          </FavoritesContext.Provider>
         </AppModeContext.Provider>
       </UserDataContext.Provider>
     );

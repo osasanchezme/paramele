@@ -39,9 +39,10 @@ import { AppModeContext } from "../../Context";
  * @param {string[]} props.source_ids IDs of the source (output) handles for the node
  * @param {Object} props.plot_settings Settings for the plot inside the node
  * @param {Boolean} props.include_table Whether or not to include a table in the box body
+ * @param {String} [props.node_type] Type of the node, used to offer adding its parameter to the favorites
  * @returns {React.DOMElement} div element representing the ReactFlow node
  */
-function GenericInOutNode({ data, id, node_label, target_ids = [], source_ids = [], editable_ids = [], plot_settings, include_table }) {
+function GenericInOutNode({ data, id, node_label, target_ids = [], source_ids = [], editable_ids = [], plot_settings, include_table, node_type }) {
   const first_text_input = useRef(null);
   const app_mode = useContext(AppModeContext);
   useEffect(() => {
@@ -201,7 +202,8 @@ function GenericInOutNode({ data, id, node_label, target_ids = [], source_ids = 
               placeholder=""
               size="xs"
               onChange={(event) => onChange(event, data_key)}
-              defaultValue={data[data_key] === undefined ? "" : data[data_key]}
+              // Controlled, so changes made from the parameters panel show up here too
+              value={data[data_key] === undefined ? "" : data[data_key]}
               autoComplete="off"
               isDisabled={data.model_locked}
             />
@@ -217,11 +219,11 @@ function GenericInOutNode({ data, id, node_label, target_ids = [], source_ids = 
         let min = Number(data["start-value"]) || 0;
         let max = Number(data["end-value"]) || 1;
         let step = Number(data["step-value"]) || 0.1;
-        let default_value = Math.floor((min + max) / 2 / step) * step;
+        let slider_value = data[data_key] === undefined ? Math.floor((min + max) / 2 / step) * step : Number(data[data_key]);
         top_pos_editable_inputs += 1;
         input_component = (
           <Slider
-            defaultValue={default_value}
+            value={slider_value}
             min={min}
             max={max}
             step={step}
@@ -404,7 +406,7 @@ function GenericInOutNode({ data, id, node_label, target_ids = [], source_ids = 
   if (data.aux.selected) class_name += " selected";
   return (
     <div className={class_name} style={{ height: node_height, width: node_width }}>
-      <EditableNodeHeader id={id} node_label={node_label} identifier_icon={data.iterating ? MdLoop : null}></EditableNodeHeader>
+      <EditableNodeHeader id={id} node_label={node_label} identifier_icon={data.iterating ? MdLoop : null} node_type={node_type}></EditableNodeHeader>
       <div className="node-body">
         {target_handles}
         <div>

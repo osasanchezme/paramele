@@ -108,7 +108,8 @@ function updateNodeDataKey(node_id, data_key, data_value, is_aux) {
             node.data.aux[data_key] = data_value;
           }
         } else {
-          node.data[data_key] = data_value;
+          // A new data object, so React Flow re-renders the node when the value comes from outside it (e.g. the parameters panel)
+          node.data = { ...node.data, [data_key]: data_value };
         }
       }
       return node;

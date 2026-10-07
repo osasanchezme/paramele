@@ -152,4 +152,17 @@
  * @typedef {Object.<string, ParamEleDefaultFormField>} ParamEleFormDefaultStateObject
  */
 
+/**
+ * @typedef {object} ParamEleFavoriteParameter A parameter pinned to the parameters panel, stored in model.favorites
+ * @property {string} node_id Node that holds the parameter
+ * @property {string} data_key Key under node.data with the value (e.g. "value-value")
+ * @property {number} [min] Lower limit of the slider (only for inputNumber nodes)
+ * @property {number} [max] Upper limit of the slider (only for inputNumber nodes)
+ * @property {number} [step] Step of the slider (only for inputNumber nodes)
+ */
+
+/**
+ * @typedef {"number"|"string"|"range"} ParamEleFavoriteKind How a favorite parameter is edited: free number, text, or a variableRange slider
+ */
+
 exports.unused = {};

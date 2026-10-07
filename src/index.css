@@ -128,6 +128,211 @@ div.properties-panel.floating {
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
 }
 
+/* Floating panel with the favorite parameters, dragged by its header */
+div.parameters-panel {
+  position: fixed;
+  width: 300px;
+  max-height: min(60vh, calc(var(--app-height) - 50px - 25px - 24px));
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid var(--chakra-colors-gray-300);
+  border-radius: var(--chakra-radii-md);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  /* Above the renderer (10); same level as the commands bar, which comes later in the document so it stays on top */
+  z-index: 11;
+  font-size: var(--chakra-fontSizes-xs);
+}
+
+/* On compact screens it is docked at the bottom */
+div.parameters-panel.compact {
+  left: 8px;
+  right: 8px;
+  bottom: 33px;
+  width: auto;
+  max-height: 45vh;
+}
+
+.parameters-panel-header {
+  background-color: var(--chakra-colors-gray-300);
+  border-radius: var(--chakra-radii-md) var(--chakra-radii-md) 0 0;
+  padding: 2px 4px 2px 6px;
+  font-weight: 600;
+  user-select: none;
+  touch-action: none;
+}
+
+.parameters-panel-header.draggable {
+  cursor: grab;
+}
+
+.parameters-panel-header.draggable:active {
+  cursor: grabbing;
+}
+
+.parameters-panel-drag-icon {
+  color: var(--chakra-colors-gray-600);
+  flex-shrink: 0;
+}
+
+.parameters-panel-count {
+  color: var(--chakra-colors-gray-600);
+  font-weight: 400;
+}
+
+.parameters-panel-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 6px 8px 8px;
+}
+
+.parameters-panel-list {
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.parameters-panel-row {
+  padding: 4px 0 6px;
+  border-bottom: 1px solid var(--chakra-colors-gray-100);
+}
+
+.parameters-panel-row:last-child {
+  border-bottom: none;
+}
+
+.parameters-panel-label {
+  flex: 1;
+  font-family: var(--chakra-fonts-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.parameters-panel-label:hover {
+  text-decoration: underline;
+}
+
+.parameters-panel-number {
+  width: 72px !important;
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.parameters-panel-note,
+.parameters-panel-empty,
+.parameters-search-empty {
+  color: var(--chakra-colors-gray-500);
+  font-size: var(--chakra-fontSizes-xs);
+}
+
+.parameters-panel-empty {
+  padding: 8px 2px 2px;
+}
+
+.parameters-search {
+  position: relative;
+  margin-bottom: 4px;
+}
+
+.parameters-search-results {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  right: 0;
+  max-height: 180px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid var(--chakra-colors-gray-200);
+  border-radius: var(--chakra-radii-base);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 1;
+}
+
+.parameters-search-empty {
+  padding: 4px 6px;
+}
+
+.parameters-search-result {
+  display: flex;
+  gap: 8px;
+  padding: 4px 6px;
+  cursor: pointer;
+}
+
+.parameters-search-result:hover {
+  background: var(--chakra-colors-gray-100);
+}
+
+.parameters-search-value {
+  color: var(--chakra-colors-gray-500);
+  max-width: 40%;
+}
+
+/* Minimized, the panel is a small pill that stays where the panel was */
+div.parameters-panel.minimized {
+  width: auto;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+div.parameters-panel.minimized.compact {
+  right: auto;
+}
+
+.parameters-panel-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  background: #fff;
+  border: 1px solid var(--chakra-colors-gray-300);
+  border-radius: var(--chakra-radii-full);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  font-weight: 600;
+  white-space: nowrap;
+  user-select: none;
+  touch-action: none;
+  cursor: pointer;
+}
+
+.parameters-panel-pill:hover {
+  background: var(--chakra-colors-gray-50);
+}
+
+.parameters-panel-pill:focus-visible {
+  outline: 2px solid var(--chakra-colors-blue-500);
+  outline-offset: 2px;
+}
+
+.parameters-panel-pill-star {
+  color: var(--chakra-colors-yellow-500);
+}
+
+.nav-bar-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: var(--chakra-radii-full);
+  background: var(--chakra-colors-yellow-500);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+  pointer-events: none;
+}
+
+.favorite-toggle.active,
+.node-favorite-button.active {
+  color: var(--chakra-colors-yellow-500) !important;
+}
+
 div.panel-backdrop {
   position: absolute;
   top: 50px;

@@ -7,6 +7,9 @@ function repairModel(model) {
     if (!node.data) node.data = {};
     node.data.aux = utils.getDefaultAuxData();
   });
+  // Favorite parameters of nodes that are not in the model anymore are dropped
+  let node_ids = new Set(model.nodes.map(({ id }) => id));
+  model.favorites = (model.favorites || []).filter(({ node_id }) => node_ids.has(node_id));
   return model;
 }
 

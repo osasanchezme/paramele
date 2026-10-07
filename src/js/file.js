@@ -49,7 +49,7 @@ const getResultsBlob = () => {
 const newFile = () => {
   clearURLParams();
   blank_model.settings = repair.repairSettings(blank_model.settings);
-  state.setState(repair.repairModel(blank_model.model));
+  state.setState(repair.repairModel(blank_model.model), "model");
   let rf_instance = state.getRfInstance();
   rf_instance.setNodes(blank_model.model.nodes);
   rf_instance.setEdges(blank_model.model.edges);

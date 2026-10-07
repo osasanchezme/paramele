@@ -159,6 +159,18 @@ function updateNodeData(node_id, data_update) {
   updateStateFromFlow();
 }
 
+/**
+ * Applies an update in place to the model being edited (the one model_path points to)
+ * @param {function(object): void} update_function Receives the model object to modify
+ */
+function updateCurrentModel(update_function) {
+  let model_location = window.ParamEle.state;
+  window.ParamEle.state.model_path.forEach((key) => {
+    model_location = model_location[key];
+  });
+  update_function(model_location);
+}
+
 function zoomToCoordinate(x, y) {
   let rf_instance = getRfInstance();
   let width = 100;
@@ -245,6 +257,7 @@ const state = {
   getSectionColor,
   updateWordsMapFromLanguage,
   updateNodeData,
+  updateCurrentModel,
   zoomToCoordinate,
   copyStructureToClipboard,
   highlightSelectedNodes,

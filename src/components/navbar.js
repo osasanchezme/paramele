@@ -49,6 +49,9 @@ function NavBar({
   openSharingManager,
   show_properties_panel,
   togglePropertiesPanel,
+  show_parameters_panel,
+  toggleParametersPanel,
+  favorites_count,
 }) {
   let [dropdownState, setDropdownState] = useState({ dropdown_visible: false, mouse_on_menu: false });
   let [currentMenu, setCurrentMenu] = useState("file");
@@ -269,6 +272,7 @@ function NavBar({
         <Flex direction="row" className="nav-bar-button-group">
           <Box className="nav-bar-left-corner">
             <PanelToggle visible={show_properties_panel} onToggle={togglePropertiesPanel} />
+            <ParametersPanelToggle visible={show_parameters_panel} onToggle={toggleParametersPanel} count={favorites_count} />
             <CompactMenu options={navbar_options.current} />
           </Box>
           <Spacer></Spacer>
@@ -300,6 +304,7 @@ function NavBar({
       <Flex direction="row" spacing={0} className="nav-bar-button-group">
         <Box width="150px" className="nav-bar-left-corner">
           <PanelToggle visible={show_properties_panel} onToggle={togglePropertiesPanel} />
+          <ParametersPanelToggle visible={show_parameters_panel} onToggle={toggleParametersPanel} count={favorites_count} />
         </Box>
         {Object.entries(navbar_options.current).map(([nav_menu_key, nav_menu_options], index) => (
           <Button
@@ -377,6 +382,28 @@ function NavBar({
         handleChange={handleChange}
       ></NavMenu>
     </div>
+  );
+}
+
+function ParametersPanelToggle({ visible, onToggle, count }) {
+  const label = localGetCopy(visible ? "hide_parameters_panel" : "show_parameters_panel");
+  return (
+    <Tooltip label={label} placement="bottom-start" openDelay={300}>
+      <Box position="relative" display="inline-flex">
+        <IconButton
+          aria-label={count > 0 ? `${label} (${count})` : label}
+          aria-pressed={visible}
+          icon={<Icon as={visible ? MaterialDesign.MdStar : MaterialDesign.MdStarBorder} boxSize={5} />}
+          variant={visible ? "solid" : "ghost"}
+          onClick={onToggle}
+        />
+        {count > 0 && (
+          <span className="nav-bar-badge" aria-hidden="true">
+            {count}
+          </span>
+        )}
+      </Box>
+    </Tooltip>
   );
 }
 

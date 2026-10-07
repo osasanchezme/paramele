@@ -15,6 +15,8 @@ function getInitialState() {
     model,
     nodes,
     edges,
+    // Favorite parameters of the model being edited (the one model_path points to)
+    favorites: model.favorites,
     settings: repair.repairSettings(data.settings),
     structure: utils.getEmptyStructuralModel(),
     results: {},

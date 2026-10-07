@@ -11,6 +11,10 @@
         "show_properties_panel": {
             "default": true,
             "type": "check"
+        },
+        "show_parameters_panel": {
+            "default": false,
+            "type": "check"
         }
     },
     "layout": {

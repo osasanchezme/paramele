@@ -174,7 +174,9 @@
         "last_saved": "Último guardado",
         "show_panel": "Mostrar panel",
         "hide_panel": "Ocultar panel",
-        "menu": "Menú"
+        "menu": "Menú",
+        "show_parameters_panel": "Mostrar parámetros favoritos",
+        "hide_parameters_panel": "Ocultar parámetros favoritos"
     },
     "commands_bar": {
         "placeholder": "Nombre nodo..."
@@ -189,7 +191,9 @@
         "save": "Guardar",
         "discard": "Cancelar",
         "iterating_box": "Esta caja está generando las diferentes posibilidades",
-        "no_permissions": "No tienes permisos para realizar esta acción. Pide los permisos necesarios a los administradores."
+        "no_permissions": "No tienes permisos para realizar esta acción. Pide los permisos necesarios a los administradores.",
+        "add_favorite": "Agregar a parámetros favoritos",
+        "remove_favorite": "Quitar de parámetros favoritos"
     },
     "properties_panel": {
         "title": "EXPLORADOR",
@@ -375,5 +379,21 @@
         "add_node": "Selecciona el tipo de caja para agregar al modelo",
         "duplicate_point_1": "Selecciona el punto de referencia para duplicar la selección",
         "duplicate_point_2": "Selecciona el punto de destino para pegar"
+    },
+    "parameters_panel": {
+        "minimize": "Minimizar",
+        "pill_label": "Parámetros favoritos",
+        "title": "PARÁMETROS FAVORITOS",
+        "expand": "Expandir",
+        "empty": "Agrega parámetros con la estrella de una caja o del explorador, o búscalos arriba.",
+        "search_placeholder": "Buscar parámetros para agregar",
+        "no_candidates": "Todos los parámetros ya son favoritos",
+        "no_matches": "Ningún parámetro coincide",
+        "go_to_node": "Ir a la caja",
+        "iterating": "Toma todos los valores de su rango (modo de sliders)",
+        "slider_limits": "Límites del slider",
+        "min": "Mín.",
+        "max": "Máx.",
+        "step": "Paso"
     }
 }

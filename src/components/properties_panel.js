@@ -13,17 +13,20 @@ import {
   Grid,
   GridItem,
 } from "@chakra-ui/react";
-import { MdCopyAll, MdUnfoldLess } from "react-icons/md";
+import { MdCopyAll, MdStar, MdStarBorder, MdUnfoldLess } from "react-icons/md";
 import utils from "../utils";
 import state from "../state";
-import { memo, useState } from "react";
+import { memo, useContext, useState } from "react";
 import ObjectInspector from "./object_inspector";
+import favorites from "../js/favorites";
+import { FavoritesContext } from "../Context";
 
 // Collapsed panels are kept mounted by default, which renders every node of the model even when nothing is expanded
 const UNMOUNT_ON_EXIT = { unmountOnExit: true };
 
 function PropertiesPanel({ visible, width, is_floating, data }) {
   const [expanded_index, setExpandedIndex] = useState([]);
+  const { favorite_node_ids, toggleFavorite } = useContext(FavoritesContext);
   if (!visible) return "";
   let top_keys = [];
   let grouped_nodes = {};
@@ -61,12 +64,17 @@ function PropertiesPanel({ visible, width, is_floating, data }) {
           <Accordion variant={"child"} allowMultiple>
             {val.map((node) => (
               <AccordionItem key={node.id}>
-                <AccordionButton>
-                  <Box as="span" flex="1" textAlign="left" style={{ textTransform: "uppercase" }}>
-                    {node.data.custom_label ? node.data.custom_label : node.id}
-                  </Box>
-                  <AccordionIcon />
-                </AccordionButton>
+                <HStack spacing={0}>
+                  <AccordionButton>
+                    <Box as="span" flex="1" textAlign="left" style={{ textTransform: "uppercase" }}>
+                      {node.data.custom_label ? node.data.custom_label : node.id}
+                    </Box>
+                    <AccordionIcon />
+                  </AccordionButton>
+                  {favorites.getFavoritableParameter(node.type) ? (
+                    <FavoriteToggle is_favorite={favorite_node_ids.has(node.id)} onToggle={() => toggleFavorite(node.id)} />
+                  ) : null}
+                </HStack>
                 <AccordionPanel pb={1} motionProps={UNMOUNT_ON_EXIT}>
                   {node.data.input
                     ? Object.entries(node.data.input).map(([data_key, data_value]) => {
@@ -148,6 +156,22 @@ function PropertiesPanel({ visible, width, is_floating, data }) {
         {top_keys}
       </Accordion>
     </div>
+  );
+}
+
+function FavoriteToggle({ is_favorite, onToggle }) {
+  const label = utils.getDisplayCopy("tooltips", is_favorite ? "remove_favorite" : "add_favorite");
+  return (
+    <Tooltip className="clear-tooltip" label={label}>
+      <IconButton
+        className={`small-ghost-button favorite-toggle${is_favorite ? " active" : ""}`}
+        onClick={onToggle}
+        variant="ghost"
+        aria-label={label}
+        aria-pressed={is_favorite}
+        icon={is_favorite ? <MdStar /> : <MdStarBorder />}
+      />
+    </Tooltip>
   );
 }
 

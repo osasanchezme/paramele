@@ -1,10 +1,13 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useContext } from "react";
 import { HStack, Text, IconButton, Input, Tooltip, Kbd, Box, Icon } from "@chakra-ui/react";
-import { MdCheck, MdClose, MdEdit } from "react-icons/md";
+import { MdCheck, MdClose, MdEdit, MdStar, MdStarBorder } from "react-icons/md";
 import state from "../state";
 import utils from "../utils";
+import favorites from "../js/favorites";
+import { FavoritesContext } from "../Context";
 
-function EditableNodeHeader({ node_label, id, identifier_icon }) {
+function EditableNodeHeader({ node_label, id, identifier_icon, node_type }) {
+  const { favorite_node_ids, toggleFavorite } = useContext(FavoritesContext);
   const [edit_visible, setEditVisible] = useState(false);
   const [is_editing, setIsEditing] = useState(false);
   const label_input_ref = useRef(null);
@@ -40,6 +43,23 @@ function EditableNodeHeader({ node_label, id, identifier_icon }) {
     edit_visible && !is_editing ? (
       <Tooltip className="clear-tooltip" label={utils.getDisplayCopy("tooltips", "edit")}>
         <IconButton className="node-label-edit-button" onClick={handleClickOnEdit} variant="ghost" aria-label="Edit Node Label" icon={<MdEdit />} />
+      </Tooltip>
+    ) : (
+      ""
+    );
+  // The star shows on hover, and stays visible once the parameter is a favorite
+  let is_favorite = favorite_node_ids.has(id);
+  let favorite_button =
+    favorites.getFavoritableParameter(node_type) && !is_editing && (edit_visible || is_favorite) ? (
+      <Tooltip className="clear-tooltip" label={utils.getDisplayCopy("tooltips", is_favorite ? "remove_favorite" : "add_favorite")}>
+        <IconButton
+          className={`node-label-edit-button node-favorite-button${is_favorite ? " active" : ""}`}
+          onClick={() => toggleFavorite(id)}
+          variant="ghost"
+          aria-label={utils.getDisplayCopy("tooltips", is_favorite ? "remove_favorite" : "add_favorite")}
+          aria-pressed={is_favorite}
+          icon={is_favorite ? <MdStar /> : <MdStarBorder />}
+        />
       </Tooltip>
     ) : (
       ""
@@ -101,6 +121,7 @@ function EditableNodeHeader({ node_label, id, identifier_icon }) {
         {edit_button}
         {save_button}
         {cancel_button}
+        {favorite_button}
       </HStack>
       {identifier_icon ? (
         <Tooltip label={utils.getDisplayCopy("tooltips", "iterating_box")}>
