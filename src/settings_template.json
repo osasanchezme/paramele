@@ -48,13 +48,15 @@
             "data": "https://platform.skyciv.com/account/api"
         },
         "solver_username": {
-            "default": "oscar.sanchez@skyciv.com",
+            "default": "",
             "type": "text",
+            "scope": "user",
             "tab": "solver_tab"
         },
         "solver_key": {
-            "default": "zp4wluzmQqoIehJTmMeIqM0xtBwgcKxhYUvtYKNMZCNwzAwFpPv3c4bQDHovQ6eD",
-            "type": "text",
+            "default": "",
+            "type": "password",
+            "scope": "user",
             "tab": "solver_tab"
         },
         "sliders_mode": {

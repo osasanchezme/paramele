@@ -438,9 +438,6 @@
             "panel_width": 0,
             "renderer_right": 80
         },
-        "global": {
-            "solver_username": "oscar.sanchez@skyciv.com",
-            "solver_key": "1zQdtsDoca671lIvToi5laZjMWnc33UrBQZL5YYeagvn8fPRRMQwmEVubyIguj88"
-        }
+        "global": {}
     }
 }

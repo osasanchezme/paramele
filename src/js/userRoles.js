@@ -11,7 +11,7 @@ const roles_map = {
     public: true,
   },
   editor: {
-    permissions: ["view", "make_copy", "edit", "delete", "save"],
+    permissions: ["view", "make_copy", "edit", "save"],
     public: true,
   },
   guest: {

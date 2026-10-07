@@ -5,6 +5,7 @@ import getState from "../getState";
 import state from "../state";
 import structure from "../js/structure";
 import pyniteWasm from "../js/pyniteWasm";
+import solverCredentials from "../js/solverCredentials";
 
 function localGetCopy(copy_key) {
   return utils.getDisplayCopy("solver_status", copy_key);
@@ -31,9 +32,12 @@ function SolverStatusIndicator({ is_compact }) {
   const [global_settings, setGlobalSettings] = useState(getGlobalSettings);
   const [server_running, setServerRunning] = useState(null);
   const [wasm_state, setWasmState] = useState(pyniteWasm.getLoadState);
-  const { solver_engine, solver_username, solver_key } = global_settings;
+  const [credentials, setCredentials] = useState(solverCredentials.getCredentials);
+  const { solver_engine } = global_settings;
+  const { solver_username, solver_key } = credentials;
 
   useEffect(() => state.onSettingsChange(() => setGlobalSettings(getGlobalSettings())), []);
+  useEffect(() => solverCredentials.subscribe(setCredentials), []);
   useEffect(() => pyniteWasm.subscribe(setWasmState), []);
 
   const checkServer = useCallback(() => {

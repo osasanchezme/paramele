@@ -34,33 +34,11 @@ function FileStatusIndicator({ file_data, setFileData, model_locked, setModelLoc
       let model_blob = file.getModelBlob();
       let version_id = Date.now();
       let local_updated_file_data = { ...file_data, current_version: version_id, last_saved: version_id, is_saved: true };
-      Firebase.saveFileToCloud(
-        model_blob,
-        local_updated_file_data,
-        (new_file) => {
-          // Update the file data in the app state
-          setFileData(local_updated_file_data);
-          // Save the results to the cloud
-          let results_blob = file.getResultsBlob();
-          if (results_blob !== false) {
-            utils.setLoadingDimmerMsg("saving_results");
-            Firebase.saveFileToCloud(
-              results_blob,
-              local_updated_file_data,
-              (new_file) => {
-                utils.hideLoadingDimmer();
-              },
-              true,
-              commit_msg,
-              "results"
-            );
-          } else {
-            utils.hideLoadingDimmer();
-          }
-        },
-        true,
-        commit_msg
-      );
+      Firebase.saveFileToCloud(model_blob, file.getResultsBlob(), local_updated_file_data, true, commit_msg, (new_file) => {
+        utils.hideLoadingDimmer();
+        // Update the file data in the app state
+        if (new_file !== false) setFileData(local_updated_file_data);
+      });
     } else {
       // Show notification and open the auth form to log in
       notify("warning", "log_in_to_save", undefined, true);

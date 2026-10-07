@@ -14,6 +14,7 @@ import { dxf2s3d } from "../submodules/paramele-parsers/structural/dxf/generateS
 import { csi2s3d } from "../submodules/paramele-parsers/structural/csi/csi2s3d";
 import repair from "./repair";
 import pyniteWasm from "./pyniteWasm";
+import solverCredentials from "./solverCredentials";
 
 const PYNITE_SERVER_URL = "http://127.0.0.1:5013";
 
@@ -38,13 +39,12 @@ const solveStructure = () => {
     logic_runner.run();
   }
   if (solver_engine === "skyciv") {
+    const { solver_username, solver_key } = solverCredentials.getCredentials();
     let file_name = "my_model_" + Date.now();
     let api_object = {
       auth: {
-        // username: "oscar.sanchez@skyciv.com",
-        // key: "1zQdtsDoca671lIvToi5laZjMWnc33UrBQZL5YYeagvn8fPRRMQwmEVubyIguj88",
-        username: global_settings.solver_username,
-        key: global_settings.solver_key,
+        username: solver_username,
+        key: solver_key,
       },
       functions: [
         {

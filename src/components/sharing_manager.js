@@ -29,6 +29,8 @@ import {
   Grid,
   GridItem,
   Tooltip,
+  Alert,
+  AlertIcon,
 } from "@chakra-ui/react";
 import utils from "../utils";
 import { FormComponent, getDefaultState, validateInputData } from "./form";
@@ -38,6 +40,7 @@ import { notify } from "./notification";
 import { MdArrowDropDown, MdCheck, MdOutlinePersonAddAlt } from "react-icons/md";
 import { getPublicRolesKeys, useUserAllowed } from "../js/userRoles";
 import { cloneDeep } from "lodash";
+import file from "../js/file";
 function localGetDisplayCopy(copy_key) {
   return utils.getDisplayCopy("share_manager", copy_key);
 }
@@ -48,9 +51,10 @@ function localGetDisplayCopy(copy_key) {
  * @param {function()} param0.closeSharingManager
  * @param {import("../js/types").ParamEleFileData} param0.file_data
  * @param {import("../js/types").ParamEleSetFileDataCallback} param0.setFileData
+ * @param {import("firebase/auth").User|null} param0.user
  * @returns
  */
-function SharingManager({ is_sharing_manager_open, closeSharingManager, getContactInformation, file_data, setFileData }) {
+function SharingManager({ is_sharing_manager_open, closeSharingManager, getContactInformation, file_data, setFileData, user }) {
   /**
    * @type {import("../js/types").ParamEleFormDefaultStateObject}
    */
@@ -74,8 +78,29 @@ function SharingManager({ is_sharing_manager_open, closeSharingManager, getConta
   };
   let [shareFileFormState, setShareFileFormState] = useState(getDefaultState(share_file_form_fields));
   let [shareButtonLoading, setShareButtonLoading] = useState(false);
-  let userAllowedShare = useUserAllowed("share");
-  let { file_name, file_shared_data } = file_data;
+  let [verificationEmailSent, setVerificationEmailSent] = useState(false);
+  let [leaveButtonLoading, setLeaveButtonLoading] = useState(false);
+  // Sharing needs a verified email (see ensureEmailIndex in firebase.js and firestore.rules)
+  let is_email_verified = Boolean(user?.emailVerified);
+  let userAllowedShare = useUserAllowed("share") && is_email_verified;
+  let { file_name, file_shared_data, file_shared_with_me } = file_data;
+  const resendVerificationEmail = () => {
+    Firebase.resendVerificationEmail((process_response) => {
+      if (process_response.success) setVerificationEmailSent(true);
+      else notify("warning", "generic_unhandled_issue_try_again", undefined, true);
+    });
+  };
+  const leaveFile = () => {
+    setLeaveButtonLoading(true);
+    Firebase.leaveSharedFile(file_data, (process_response) => {
+      if (process_response.success) {
+        file.reloadToBlank();
+      } else {
+        setLeaveButtonLoading(false);
+        notify("warning", "generic_unhandled_issue_try_again", undefined, true);
+      }
+    });
+  };
   const shareFileWithUser = () => {
     setShareButtonLoading(true);
     let { valid_data, new_state } = validateInputData(shareFileFormState, share_file_form_fields);
@@ -103,6 +128,17 @@ function SharingManager({ is_sharing_manager_open, closeSharingManager, getConta
         <ModalHeader>{localGetDisplayCopy("title")}</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
+          {user && !is_email_verified && (
+            <Alert status="warning" mb={4} borderRadius="md">
+              <AlertIcon />
+              <Box flex="1">
+                <Text fontSize="sm">{localGetDisplayCopy("verify_email_notice")}</Text>
+              </Box>
+              <Button size="sm" ml={3} onClick={resendVerificationEmail} isDisabled={verificationEmailSent}>
+                {localGetDisplayCopy(verificationEmailSent ? "verification_email_sent" : "resend_verification_email")}
+              </Button>
+            </Alert>
+          )}
           <FormLabel>{localGetDisplayCopy("file_name")}</FormLabel>
           <Input mb={3} variant="filled" value={file_name} readOnly />
           <FormComponent
@@ -145,6 +181,11 @@ function SharingManager({ is_sharing_manager_open, closeSharingManager, getConta
           )}
         </ModalBody>
         <ModalFooter>
+          {file_shared_with_me && (
+            <Button colorScheme="red" variant="outline" mr={3} onClick={leaveFile} isLoading={leaveButtonLoading}>
+              {localGetDisplayCopy("leave_file")}
+            </Button>
+          )}
           <Button variant="ghost" onClick={closeSharingManager}>
             {localGetDisplayCopy("close")}
           </Button>

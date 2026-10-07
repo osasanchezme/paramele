@@ -32,7 +32,7 @@
 
 /**
  * @typedef {Object} ParamEleFormValidationObject
- * @property {"equal_key"|"no"|"contains"|"custom_function"} type
+ * @property {"equal_key"|"no"|"contains"|"min_length"|"custom_function"} type
  * @property {string} criteria String against which to apply the validation type
  * @property {string} msg Key of the message in the copies to display
  */
@@ -123,6 +123,11 @@
  */
 
 /**
+ * @description SkyCiv credentials of the signed-in user, stored in users/{uid}.solver (see solverCredentials.js)
+ * @typedef {{solver_username: string, solver_key: string}} ParamEleSolverCredentials
+ */
+
+/**
  * @callback ParamEleContactHandlerCallback
  * @param {ParamEleContact} contact
  */
@@ -137,7 +142,7 @@
  */
 
 /**
- * @typedef {'view'|'make_copy'|'edit'|'delete'|'save'|'share'|'transfer'} ParamElePermissions
+ * @typedef {'view'|'make_copy'|'edit'|'delete'|'save'|'share'|'transfer'|'manage_versions'} ParamElePermissions
  */
 
 /**

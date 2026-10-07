@@ -721,8 +721,6 @@
             "renderer_right": 70
         },
         "global": {
-            "solver_username": "oscar.sanchez@skyciv.com",
-            "solver_key": "zp4wluzmQqoIehJTmMeIqM0xtBwgcKxhYUvtYKNMZCNwzAwFpPv3c4bQDHovQ6eD",
             "sliders_mode": "sliders_all",
             "spacing_between_combinations": 1
         }

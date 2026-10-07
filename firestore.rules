@@ -1,7 +1,7 @@
 rules_version = '2';
 
 // Data model (see src/js/firebase.js):
-// - users/{uid}                    Private profile
+// - users/{uid}                    Private profile, including the SkyCiv credentials (solver)
 // - users/{uid}/folders/{folderId} File manager folders
 // - profiles/{uid}                 Public contact data (username, email) shown in sharing and version history
 // - email_index/{email}            Email (lowercase) -> uid, used to share files by email
@@ -20,6 +20,10 @@ service cloud.firestore {
       return value is string && value.size() > 0 && value.size() <= max;
     }
 
+    function emailVerified() {
+      return request.auth.token.email_verified == true;
+    }
+
     function isValidPath(path) {
       return path is list && path.size() > 0 && path.size() <= 50 && path[0] == "home";
     }
@@ -27,8 +31,16 @@ service cloud.firestore {
     match /users/{uid} {
       allow read, delete: if isUser(uid);
       allow create, update: if isUser(uid)
-        && request.resource.data.keys().hasOnly(["name", "username", "email", "company", "industry"])
-        && request.resource.data.email == request.auth.token.email;
+        && request.resource.data.keys().hasOnly(["name", "username", "email", "company", "industry", "solver"])
+        && request.resource.data.email == request.auth.token.email
+        && (!("solver" in request.resource.data) || isValidSolver(request.resource.data.solver));
+
+      function isValidSolver(solver) {
+        return solver is map
+          && solver.keys().hasOnly(["solver_username", "solver_key"])
+          && solver.get("solver_username", "") is string && solver.get("solver_username", "").size() <= 500
+          && solver.get("solver_key", "") is string && solver.get("solver_key", "").size() <= 500;
+      }
 
       match /folders/{folderId} {
         allow read, delete: if isUser(uid);
@@ -41,7 +53,8 @@ service cloud.firestore {
     }
 
     match /profiles/{uid} {
-      allow read: if signedIn();
+      // Single lookups only (by uid), so the list of users and their emails cannot be downloaded
+      allow get: if signedIn();
       allow delete: if isUser(uid);
       allow create, update: if isUser(uid)
         && request.resource.data.keys().hasOnly(["username", "email"])
@@ -52,7 +65,9 @@ service cloud.firestore {
     match /email_index/{email} {
       // Single lookups only, so the list of users cannot be downloaded
       allow get: if signedIn();
+      // Only verified emails, so nobody can claim someone else's address and receive the files shared with it
       allow create, update: if signedIn()
+        && emailVerified()
         && email == request.auth.token.email.lower()
         && request.resource.data.keys().hasOnly(["uid"])
         && request.resource.data.uid == request.auth.uid;
@@ -91,6 +106,76 @@ service cloud.firestore {
           && !(data.owner in data.shared_with);
       }
 
+      // Owner: adds, changes or removes one shared user per write (as the client does), with a public role of src/js/userRoles.js.
+      // Adding or changing a user needs a verified email. Sets have no toList(), so the new entry is found among the map values
+      function isValidSharedChange() {
+        let changed = request.resource.data.shared.diff(resource.data.shared);
+        let touched = changed.addedKeys().union(changed.changedKeys());
+        let new_entries = request.resource.data.shared.values().removeAll(resource.data.shared.values());
+        return touched.size() == 0
+          || (touched.size() == 1
+            && emailVerified()
+            // Empty when the new entry is equal to another user's entry, which was already checked
+            && (new_entries.size() == 0 || (new_entries.size() == 1 && isValidSharedEntry(new_entries[0]))));
+      }
+
+      function isValidSharedEntry(entry) {
+        return entry is map && entry.keys().hasOnly(["role", "date"]) && entry.role in ["admin", "editor", "guest"];
+      }
+
+      function isValidHistoryEntry(entry) {
+        return entry is map
+          && entry.keys().hasOnly(["num_nodes", "commit_msg", "results_available", "author"])
+          && entry.author == request.auth.uid
+          && entry.results_available is bool
+          && entry.get("commit_msg", "") is string
+          && entry.get("commit_msg", "").size() <= 2000;
+      }
+
+      // Editors and admins: add one new version, authored by them and set as the current one. Existing entries are left untouched
+      function addsOneVersionByCaller() {
+        let history = request.resource.data.history.diff(resource.data.history);
+        let new_version = request.resource.data.current_version;
+        return changedKeys().hasOnly(["current_version", "last_modified", "history"])
+          && new_version is int
+          && request.resource.data.last_modified == new_version
+          && history.removedKeys().size() == 0
+          && history.changedKeys().size() == 0
+          && history.addedKeys() == [string(new_version)].toSet()
+          && isValidHistoryEntry(request.resource.data.history[string(new_version)]);
+      }
+
+      // Admins (manage_versions in src/js/userRoles.js): delete one version other than the current one, or edit one commit message
+      function managesOneVersion() {
+        let history = request.resource.data.history.diff(resource.data.history);
+        let new_entries = request.resource.data.history.values().removeAll(resource.data.history.values());
+        let old_entries = resource.data.history.values().removeAll(request.resource.data.history.values());
+        return changedKeys().hasOnly(["history"])
+          && history.addedKeys().size() == 0
+          && (
+            (history.changedKeys().size() == 0
+              && history.removedKeys().size() == 1
+              && !(string(resource.data.current_version) in history.removedKeys()))
+            || (history.removedKeys().size() == 0
+              && history.changedKeys().size() == 1
+              && new_entries.size() == 1
+              && old_entries.size() == 1
+              && new_entries[0].diff(old_entries[0]).affectedKeys().hasOnly(["commit_msg"])
+              && new_entries[0].get("commit_msg", "") is string
+              && new_entries[0].get("commit_msg", "").size() <= 2000)
+          );
+      }
+
+      // Anyone a file is shared with can remove themselves from it
+      function leavesFile() {
+        let uid = request.auth.uid;
+        return changedKeys().hasOnly(["shared", "shared_with"])
+          && request.resource.data.shared.diff(resource.data.shared).affectedKeys() == [uid].toSet()
+          && !(uid in request.resource.data.shared)
+          && request.resource.data.shared_with.toSet() == resource.data.shared_with.toSet().difference([uid].toSet())
+          && request.resource.data.shared_with.size() == resource.data.shared_with.size() - 1;
+      }
+
       allow read: if isOwner() || isSharedWith();
 
       allow create: if signedIn()
@@ -109,9 +194,13 @@ service cloud.firestore {
           && isShortString(request.resource.data.name, 200)
           && isValidPath(request.resource.data.path)
           && isValidSharing(request.resource.data)
+          && isValidSharedChange()
         ) || (
-          canSaveVersions()
-          && changedKeys().hasOnly(["current_version", "last_modified", "history"])
+          canSaveVersions() && addsOneVersionByCaller()
+        ) || (
+          isSharedWith() && sharedRole() == "admin" && managesOneVersion()
+        ) || (
+          isSharedWith() && leavesFile()
         );
 
       allow delete: if isOwner();

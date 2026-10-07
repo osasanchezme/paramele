@@ -7,6 +7,7 @@ import utils from "../utils";
 import Firebase from "./firebase";
 import { notify } from "../components/notification";
 import { getInitialState } from "../initial_state";
+import solverCredentials from "./solverCredentials";
 
 const downloadJSONFile = () => {
   downloadAnyFile("modelo.json", "text/json", getModelBlob());
@@ -28,6 +29,7 @@ const getModelBlob = () => {
     return node;
   });
   current_state = { model: current_state.model, settings: current_state.settings };
+  solverCredentials.removeFromSettings(current_state.settings.global);
 
   if (typeof current_state === "object") {
     current_state = JSON.stringify(current_state, undefined, 4);
