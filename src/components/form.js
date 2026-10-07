@@ -160,6 +160,13 @@ function validateInputData(current_state, fields, ignore_fields = []) {
             valid_data = false;
           }
           break;
+        case "min_length":
+          if (user_input.length < validation.criteria) {
+            new_state[key].valid = false;
+            new_state[key].error_msg = validation.msg;
+            valid_data = false;
+          }
+          break;
         case "equal_key":
           if (user_input !== new_state[validation.criteria].value) {
             new_state[key].valid = false;

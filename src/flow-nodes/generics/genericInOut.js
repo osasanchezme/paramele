@@ -26,7 +26,7 @@ import state from "../../state";
 import { useEffect, useRef } from "react";
 import { MdCode, MdLoop } from "react-icons/md";
 import SearchableDropdown from "../../components/searchable_dropdown";
-import Plot from "react-plotly.js";
+import Plot from "../../components/Plot";
 import { updateNodeDataKey } from "../../components/VisualEditor";
 import { AppModeContext } from "../../Context";
 /**

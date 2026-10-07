@@ -19,7 +19,7 @@ function setInitialState() {
   // Get language from URL
   let url_params = new URLSearchParams(window.location.search);
   let language = url_params.get("lang");
-  if (language === null) language = "es";
+  if (!["es", "en"].includes(language)) language = "es";
   // Set the initial state
   window.ParamEle = {};
   window.ParamEle.rfInstance = undefined;

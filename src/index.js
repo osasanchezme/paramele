@@ -577,7 +577,7 @@ class ParamEle extends React.Component {
                   mouse_x={this.state.mouse_x}
                   mouse_y={this.state.mouse_y}
                 ></SelectionBox>
-                <GlobalSettings></GlobalSettings>
+                <GlobalSettings user={this.state.user}></GlobalSettings>
                 <Authentication
                   user={this.state.user}
                   is_auth_form_open={this.state.is_auth_form_open}
@@ -599,6 +599,7 @@ class ParamEle extends React.Component {
                   getContactInformation={this.getContactInformation}
                   file_data={this.getFileData()}
                   setFileData={this.setFileData}
+                  user={this.state.user}
                 ></SharingManager>
                 <VersionManager
                   isOpen={this.state.is_version_manager_open}

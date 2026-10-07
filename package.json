@@ -10,10 +10,10 @@
     "@testing-library/react": "^13.3.0",
     "@testing-library/user-event": "^13.5.0",
     "cross-env": "^7.0.3",
-    "firebase": "^9.22.2",
+    "firebase": "^12.19.0",
     "framer-motion": "^6.5.1",
-    "lodash": "^4.17.21",
-    "plotly.js": "^2.18.1",
+    "lodash": "^4.18.1",
+    "plotly.js-gl3d-dist-min": "^2.35.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^4.7.1",
@@ -27,8 +27,9 @@
     "deploy:rules": "firebase deploy --only firestore,storage --project paramele-prod",
     "deploy:cors": "gcloud storage buckets update gs://paramele-prod.firebasestorage.app --cors-file=cors.json --project=paramele-prod",
     "start": "cross-env BROWSER=none react-scripts start",
-    "build": "react-scripts build",
+    "build": "cross-env GENERATE_SOURCEMAP=false react-scripts build",
     "test": "react-scripts test",
+    "test:rules": "firebase emulators:exec --only firestore,storage --project demo-paramele \"node --test rules-tests/rules.test.js\"",
     "eject": "react-scripts eject",
     "theme": "chakra-cli tokens src/theme.js"
   },
@@ -51,6 +52,7 @@
     ]
   },
   "devDependencies": {
-    "@chakra-ui/cli": "^2.3.0"
+    "@chakra-ui/cli": "^2.3.0",
+    "@firebase/rules-unit-testing": "^5.0.2"
   }
 }

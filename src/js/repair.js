@@ -1,6 +1,7 @@
 import { convertModel } from "../submodules/paramele-parsers/utils/model_converter";
 import utils from "../utils";
 import settings_template from "./../settings_template.json";
+import solverCredentials from "./solverCredentials";
 
 function repairModel(model) {
   model.nodes.forEach((node) => {
@@ -27,9 +28,12 @@ function repairSettings(settings) {
       settings[global_key] = {};
     }
     Object.entries(global_setting).forEach(([setting_key, setting]) => {
+      if (setting.scope === "user") return;
       if (should_update_all || !settings[global_key].hasOwnProperty(setting_key)) settings[global_key][setting_key] = setting.default;
     });
   });
+  // Older files carry the SkyCiv credentials, which now belong to the user (see solverCredentials.js)
+  solverCredentials.removeFromSettings(settings.global);
   return settings;
 }
 

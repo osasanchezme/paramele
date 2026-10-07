@@ -152,28 +152,15 @@ function FileManager({ user, is_file_manager_open, closeFileManager, file_manage
         file_shared_data: null,
       };
       file.setURLParams(file_path, file_name);
-      Firebase.saveFileToCloud(model_blob, local_file_data, (new_file) => {
+      Firebase.saveFileToCloud(model_blob, file.getResultsBlob(), local_file_data, false, "", (new_file) => {
+        if (new_file === false) {
+          setFileManagerWaiting(false);
+          return;
+        }
         updateFileManagerData(new_file, true);
         // Update the file data in the app state
         setFileData(local_file_data);
-        // Save the results to the cloud
-        let results_blob = file.getResultsBlob();
-        if (results_blob !== false) {
-          Firebase.saveFileToCloud(
-            results_blob,
-            local_file_data,
-            (new_file) => {
-              // Close the file manager
-              closeFileManager();
-            },
-            true,
-            "",
-            "results"
-          );
-        } else {
-          // Close the file manager
-          closeFileManager();
-        }
+        closeFileManager();
       });
     }
   }

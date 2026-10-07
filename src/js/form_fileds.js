@@ -23,7 +23,11 @@ const auth_form_fields = {
     password: {
       default: "",
       type: "password",
-      validation: [{ type: "no", criteria: "", msg: "cannot_be_empty" }],
+      // Keep in sync with the password policy in Firebase Authentication > Settings
+      validation: [
+        { type: "no", criteria: "", msg: "cannot_be_empty" },
+        { type: "min_length", criteria: 10, msg: "password_too_short" },
+      ],
     },
     verify_password: {
       default: "",

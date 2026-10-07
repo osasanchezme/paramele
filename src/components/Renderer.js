@@ -1,4 +1,4 @@
-import Plot from "react-plotly.js";
+import Plot from "./Plot";
 import renderer from "../js/renderer";
 import React from "react";
 

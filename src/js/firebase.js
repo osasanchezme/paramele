@@ -9,6 +9,7 @@ import {
   signInWithEmailAndPassword,
   updateProfile,
   sendPasswordResetEmail,
+  sendEmailVerification,
 } from "firebase/auth";
 import {
   getFirestore,
@@ -32,6 +33,7 @@ import utils from "../utils";
 import { notify } from "../components/notification";
 import file from "./file";
 import { getProcessResponseObject } from "./processResponse";
+import solverCredentials from "./solverCredentials";
 
 // Web app configuration of the paramele-prod project (Project settings > General > Your apps). These values are not secret
 const firebaseConfig = {
@@ -67,6 +69,8 @@ function createUserWithEmail(validated_user_data) {
       const user = userCredential.user;
       console.log("User created successfully");
       updateUserProfile(validated_user_data);
+      // The email index (needed to receive shared files) is written once the email is verified, see ensureEmailIndex
+      return sendEmailVerification(user).then(() => notify("info", "verify_email_sent", undefined, true));
     })
     .catch((error) => {
       const errorCode = error.code;
@@ -169,13 +173,69 @@ function updateUserProfile(validated_user_data) {
         industry: validated_user_data.industry.value,
       });
       batch.set(doc(db, "profiles", user.uid), { username, email: user.email });
-      batch.set(doc(db, "email_index", getEmailIndexKey(user.email)), { uid: user.uid });
       return batch.commit();
     })
     .then(() => {
       console.log("User profile updated successfully");
     })
     .catch((error) => handleDatabaseError(error));
+}
+
+/**
+ * Sends the verification email again to the signed-in user
+ * @param {import("./types").ParamEleProcessResponseHandlerCallback} callback
+ */
+function resendVerificationEmail(callback) {
+  sendEmailVerification(auth.currentUser)
+    .then(() => callback(getProcessResponseObject("success")))
+    .catch((error) => handleDatabaseError(error, callback));
+}
+
+/**
+ * Adds the user to the email index (so files can be shared with them by email) once their email is verified.
+ * The rules require email_verified in the ID token, so the token is refreshed first
+ * @param {import("firebase/auth").User} user
+ */
+function ensureEmailIndex(user) {
+  if (!user.emailVerified || !user.email) return;
+  const index_ref = doc(db, "email_index", getEmailIndexKey(user.email));
+  getDoc(index_ref)
+    .then((snapshot) => {
+      if (snapshot.exists() && snapshot.data().uid === user.uid) return;
+      return user.getIdToken(true).then(() => setDoc(index_ref, { uid: user.uid }));
+    })
+    .catch((error) => handleDatabaseError(error));
+}
+
+/**
+ * Loads the SkyCiv credentials of the user (users/{uid}.solver) into solverCredentials
+ * @param {import("firebase/auth").User} user
+ */
+function loadSolverCredentials(user) {
+  getDoc(doc(db, "users", user.uid))
+    .then((snapshot) => solverCredentials.setCredentials(snapshot.exists() ? snapshot.data().solver : undefined))
+    .catch((error) => handleDatabaseError(error));
+}
+
+/**
+ * Saves the SkyCiv credentials of the signed-in user in their private document
+ * @param {import("./types").ParamEleSolverCredentials} credentials
+ * @param {import("./types").ParamEleProcessResponseHandlerCallback} callback
+ */
+function saveSolverCredentials(credentials, callback) {
+  let user = auth.currentUser;
+  if (!user) {
+    callback(getProcessResponseObject("error", "log_in_to_save_credentials"));
+    return;
+  }
+  let { solver_username, solver_key } = credentials;
+  // email is required by the rules when the document does not exist yet
+  setDoc(doc(db, "users", user.uid), { solver: { solver_username, solver_key }, email: user.email }, { merge: true })
+    .then(() => {
+      solverCredentials.setCredentials({ solver_username, solver_key });
+      callback(getProcessResponseObject("success"));
+    })
+    .catch((error) => handleDatabaseError(error, callback));
 }
 
 /**
@@ -361,68 +421,44 @@ function createNewFolderForUser(folder_name, location, callback) {
 }
 
 /**
- * Saves a file to the cloud in the right location and creates a reference to the file in the database if needed
- * @param {*} model_blob
- * @param {import("./types").ParamEleFileData} local_file_data
- * @param {*} callback
- * @param {*} is_new_version
- * @param {*} commit_msg
+ * Uploads a JSON file of a version to the storage
+ * @param {Blob} blob
+ * @param {string} model_id
+ * @param {number} version
  * @param {"model"|"results"} file_type
+ * @returns {Promise}
  */
-function saveFileToCloud(model_blob, local_file_data, callback, is_new_version, commit_msg, file_type = "model") {
-  let { model_id, current_version } = local_file_data;
-  const storage = getStorage();
-  const model_ref = storageRef(storage, `projects/${model_id}/${current_version}/${file_type}.json`);
-  uploadBytes(model_ref, model_blob).then((snapshot) => {
-    console.log("File uploaded successfully!");
-    if (file_type === "model") {
-      createRefToModelFileForUser(local_file_data, callback, is_new_version, commit_msg);
-    } else {
-      updateRefToResultsFileForUser(local_file_data, callback);
-    }
-  });
+function uploadVersionFile(blob, model_id, version, file_type) {
+  const file_ref = storageRef(getStorage(), `projects/${model_id}/${version}/${file_type}.json`);
+  // The storage rules only accept JSON files
+  return uploadBytes(file_ref, blob, { contentType: "application/json" });
 }
 
 /**
- *
+ * Saves the model (and its results, if any) as a new version of a file.
+ * New files: the project document goes first, since the storage rules check it before accepting the upload.
+ * New versions of existing files: the files go first and the history entry is added at the end, already pointing to the results,
+ * because the rules do not let editors change existing history entries
+ * @param {Blob} model_blob
+ * @param {Blob|false} results_blob
  * @param {import("./types").ParamEleFileData} local_file_data
- * @param {*} callback
+ * @param {boolean} is_new_version False when the file is created
+ * @param {string} commit_msg
+ * @param {function(object|false)} callback Gets the new file entry for the file manager, false if the save failed
  */
-function updateRefToResultsFileForUser(local_file_data, callback) {
-  let { current_version } = local_file_data;
-  updateDoc(getProjectRef(local_file_data), new FieldPath("history", String(current_version), "results_available"), true)
-    .then(() => {
-      callback(true);
-    })
-    .catch((error) => handleDatabaseError(error));
-}
-
-/**
- *
- * @param {import("./types").ParamEleFileData} local_file_data
- * @param {number} version_key_to_update
- * @param {*} commit_msg
- * @param {*} callback
- */
-function updateCommitMsgForUser(local_file_data, version_key_to_update, commit_msg, callback) {
-  updateDoc(getProjectRef(local_file_data), new FieldPath("history", String(version_key_to_update), "commit_msg"), commit_msg)
-    .then(() => {
-      callback(true);
-    })
-    .catch((error) => handleDatabaseError(error));
-}
-
-/**
- *
- * @param {import("./types").ParamEleFileData} local_file_data
- * @param {*} callback
- * @param {*} is_new_version
- * @param {*} commit_msg
- */
-function createRefToModelFileForUser(local_file_data, callback, is_new_version, commit_msg) {
+function saveFileToCloud(model_blob, results_blob, local_file_data, is_new_version, commit_msg, callback) {
   let { model_id, current_version, file_name, file_path } = local_file_data;
   let author = auth.currentUser.uid;
-  let write_promise;
+  let has_results = results_blob !== false;
+  const project_ref = getProjectRef(local_file_data);
+  const uploadFiles = () =>
+    uploadVersionFile(model_blob, model_id, current_version, "model").then(() => {
+      if (has_results) {
+        utils.setLoadingDimmerMsg("saving_results");
+        return uploadVersionFile(results_blob, model_id, current_version, "results");
+      }
+    });
+  let save_promise;
   /** @type {import("./types").ParamEleFireBaseProjectData} */
   let new_file = null;
   if (!is_new_version) {
@@ -442,26 +478,55 @@ function createRefToModelFileForUser(local_file_data, callback, is_new_version, 
       shared_with: [],
     };
     new_file = getOwnedProjectData(project_doc);
-    write_promise = setDoc(getProjectRef(local_file_data), project_doc);
+    save_promise = setDoc(project_ref, project_doc)
+      .then(uploadFiles)
+      .then(() => {
+        if (!has_results) return;
+        new_file.history[current_version].results_available = true;
+        return updateDoc(project_ref, new FieldPath("history", String(current_version), "results_available"), true);
+      });
   } else {
     // Keep new_file equal to null not to return useless data
-    write_promise = updateDoc(
-      getProjectRef(local_file_data),
-      "current_version",
-      current_version,
-      "last_modified",
-      current_version,
-      new FieldPath("history", String(current_version)),
-      { num_nodes: 13, commit_msg, results_available: false, author }
+    save_promise = uploadFiles().then(() =>
+      updateDoc(
+        project_ref,
+        "current_version",
+        current_version,
+        "last_modified",
+        current_version,
+        new FieldPath("history", String(current_version)),
+        { num_nodes: 13, commit_msg, results_available: has_results, author }
+      )
     );
   }
-  write_promise
+  save_promise
     .then(() => {
+      console.log("File saved successfully!");
       // Do not read again from the data base but only get the new data to the file manager
       callback({ [file_name]: new_file });
     })
+    .catch((error) => {
+      handleDatabaseError(error);
+      notify("error", "generic_unhandled_issue", error.code, true);
+      callback(false);
+    });
+}
+
+/**
+ *
+ * @param {import("./types").ParamEleFileData} local_file_data
+ * @param {number} version_key_to_update
+ * @param {*} commit_msg
+ * @param {*} callback
+ */
+function updateCommitMsgForUser(local_file_data, version_key_to_update, commit_msg, callback) {
+  updateDoc(getProjectRef(local_file_data), new FieldPath("history", String(version_key_to_update), "commit_msg"), commit_msg)
+    .then(() => {
+      callback(true);
+    })
     .catch((error) => handleDatabaseError(error));
 }
+
 /**
  *
  * @param {string} file_id
@@ -600,8 +665,34 @@ function updateSharedFileData(shared_user_id, new_file_shared_data, is_remove_ac
     .catch((error) => handleDatabaseError(error, callback));
 }
 
+/**
+ * Removes the signed-in user from a file shared with them
+ * @param {import("./types").ParamEleFileData} file_data
+ * @param {import("./types").ParamEleProcessResponseHandlerCallback} callback
+ */
+function leaveSharedFile(file_data, callback) {
+  let uid = auth.currentUser.uid;
+  updateDoc(getProjectRef(file_data), new FieldPath("shared", uid), deleteField(), "shared_with", arrayRemove(uid))
+    .then(() => callback(getProcessResponseObject("success")))
+    .catch((error) => handleDatabaseError(error, callback));
+}
+
 function attachToAuthChangeFirebaseEvent(function_to_attach) {
-  onAuthStateChanged(auth, function_to_attach);
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      solverCredentials.setCredentials();
+      function_to_attach(user);
+      return;
+    }
+    loadSolverCredentials(user);
+    // The cached user does not know the email was verified in another tab, reload it before reading emailVerified
+    let reload_promise = user.emailVerified ? Promise.resolve() : user.reload().catch(() => {});
+    reload_promise.then(() => {
+      let current_user = auth.currentUser ?? user;
+      ensureEmailIndex(current_user);
+      function_to_attach(current_user);
+    });
+  });
 }
 
 /**
@@ -643,6 +734,9 @@ const Firebase = {
   shareFileWithUser,
   updateSharedFileData,
   getContactInformationFromDataBase,
+  resendVerificationEmail,
+  saveSolverCredentials,
+  leaveSharedFile,
 };
 
 export default Firebase;

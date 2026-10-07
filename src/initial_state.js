@@ -7,7 +7,7 @@ function getInitialState() {
     // Get language from URL
   let url_params = new URLSearchParams(window.location.search);
   let language = url_params.get("lang");
-  if (language === null) language = "es";
+  if (!["es", "en"].includes(language)) language = "es";
   let model = repair.repairModel(data.model);
   let nodes = JSON.parse(JSON.stringify(model.nodes));
   let edges = JSON.parse(JSON.stringify(model.edges));
