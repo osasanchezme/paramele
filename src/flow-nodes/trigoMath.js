@@ -1,88 +1,45 @@
 import GenericInOutNode from "./generics/genericInOut";
 import utils from "../utils";
 
-function localGetCopy(node_name){
+function localGetCopy(node_name) {
   return utils.getDisplayCopy("nodes", node_name);
 }
 
-// Sine
-function MathSin({ data }) {
-  return <GenericInOutNode node_label={localGetCopy("sin")} data={data} target_ids={["num-1-in"]} source_ids={["result_out"]}></GenericInOutNode>;
-}
+const trigo_target_ids = ["num-value"];
+const trigo_source_ids = ["result_out-value"];
 
-function MathSinExec(args) {
-  let num_1 = Number(args["num-1-in"]);
-  return { "result_out": Math.sin(num_1) };
-}
-
-// Cosine
-function MathCos({ data }) {
-  return <GenericInOutNode node_label={localGetCopy("cos")} data={data} target_ids={["num-1-in"]} source_ids={["result_out"]}></GenericInOutNode>;
-}
-
-function MathCosExec(args) {
-  let num_1 = Number(args["num-1-in"]);
-  return { "result_out": Math.cos(num_1) };
-}
-
-// Tangent
-function MathTan({ data }) {
-  return <GenericInOutNode node_label={localGetCopy("tan")} data={data} target_ids={["num-1-in"]} source_ids={["result_out"]}></GenericInOutNode>;
-}
-
-function MathTanExec(args) {
-  let num_1 = Number(args["num-1-in"]);
-  return { "result_out": Math.tan(num_1) };
-}
-
-// Arc-sine
-function MathAsin({ data }) {
-  return <GenericInOutNode node_label={localGetCopy("asin")} data={data} target_ids={["num-1-in"]} source_ids={["result_out"]}></GenericInOutNode>;
-}
-
-function MathAsinExec(args) {
-  let num_1 = Number(args["num-1-in"]);
-  return { "result_out": Math.asin(num_1) };
-}
-
-// Arc-cosine
-function MathAcos({ data }) {
-  return <GenericInOutNode node_label={localGetCopy("acos")} data={data} target_ids={["num-1-in"]} source_ids={["result_out"]}></GenericInOutNode>;
-}
-
-function MathAcosExec(args) {
-  let num_1 = Number(args["num-1-in"]);
-  return { "result_out": Math.acos(num_1) };
-}
-
-// Arc-tan
-function MathAtan({ data }) {
-  return <GenericInOutNode node_label={localGetCopy("atan")} data={data} target_ids={["num-1-in"]} source_ids={["result_out"]}></GenericInOutNode>;
-}
-
-function MathAtanExec(args) {
-  let num_1 = Number(args["num-1-in"]);
-  return { "result_out": Math.atan(num_1) };
-}
-
-// Deg-to-rad
-function MathDeg2Rad({ data }) {
-  return <GenericInOutNode node_label={localGetCopy("deg2rad")} data={data} target_ids={["num-1-in"]} source_ids={["result_out"]}></GenericInOutNode>;
-}
-
-function MathDeg2RadExec(args) {
-  let num_1 = Number(args["num-1-in"]);
-  return { "result_out": num_1 * Math.PI / 180 };
+/**
+ * Creates a box with one number in and the result of the given function out
+ * @param {string} copy_key Key of the box name in the language files
+ * @param {function(number): number} math_function
+ */
+function createTrigonometricNode(copy_key, math_function) {
+  function Node({ data, id }) {
+    return (
+      <GenericInOutNode
+        node_label={localGetCopy(copy_key)}
+        data={data}
+        id={id}
+        target_ids={trigo_target_ids}
+        source_ids={trigo_source_ids}
+      ></GenericInOutNode>
+    );
+  }
+  function Exec(args) {
+    args = utils.convertNodeToStructuralArgs(args, trigo_target_ids);
+    return { "result_out-value": { value: math_function(args["num"]), ...args } };
+  }
+  return { Node, Exec };
 }
 
 const TrigonometricNodes = {
-  MathSinNode: { "Node": MathSin, "Exec": MathSinExec },
-  MathCosNode: { "Node": MathCos, "Exec": MathCosExec },
-  MathTanNode: { "Node": MathTan, "Exec": MathTanExec },
-  MathAsinNode: { "Node": MathAsin, "Exec": MathAsinExec },
-  MathAcosNode: { "Node": MathAcos, "Exec": MathAcosExec },
-  MathAtanNode: { "Node": MathAtan, "Exec": MathAtanExec },
-  MathDeg2RadNode: { "Node": MathDeg2Rad, "Exec": MathDeg2RadExec },
+  MathSinNode: createTrigonometricNode("sin", Math.sin),
+  MathCosNode: createTrigonometricNode("cos", Math.cos),
+  MathTanNode: createTrigonometricNode("tan", Math.tan),
+  MathAsinNode: createTrigonometricNode("asin", Math.asin),
+  MathAcosNode: createTrigonometricNode("acos", Math.acos),
+  MathAtanNode: createTrigonometricNode("atan", Math.atan),
+  MathDeg2RadNode: createTrigonometricNode("deg2rad", (num) => (num * Math.PI) / 180),
 };
 
 export default TrigonometricNodes;
