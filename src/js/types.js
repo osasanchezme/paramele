@@ -166,3 +166,57 @@
  */
 
 exports.unused = {};
+
+/**
+ * A point picked in the renderer while drawing
+ * @typedef {Object} ParamEleDrawingPoint
+ * @property {number} x
+ * @property {number} y
+ * @property {number} z
+ * @property {number} [structural_id] Structural node that was clicked, if any
+ * @property {string} [node_id] Structural node box already resolved for this point
+ */
+
+/**
+ * @typedef {"none"|"member"|"plate"|"point_load"|"distributed_load"|"moment"|"support"|"delete"} ParamEleDrawingTool
+ */
+
+/**
+ * State of the drawing tools in the renderer
+ * @typedef {Object} ParamEleDrawingState
+ * @property {ParamEleDrawingTool} tool
+ * @property {"xy"|"xz"|"yz"} plane Work plane: xy is horizontal at z = offset, xz is at y = offset, yz is at x = offset
+ * @property {number} offset
+ * @property {number} spacing Grid spacing
+ * @property {ParamEleDrawingPoint[]} points Points picked for the member or plate being drawn
+ * @property {ParamEleDrawingPoint|null} hover_point Grid point or node under the cursor, for the member and plate tools
+ * @property {{kind: string, id: string, x: number, y: number, z: number}|null} hover_target Element under the cursor, for the other tools
+ * @property {{kind: string, id: string, x: number, y: number, z: number}|null} selected_target Element being edited in place
+ * @property {{x: number, y: number, z: number}} force Point load components
+ * @property {{x: number, y: number, z: number}} distributed Distributed load components
+ * @property {{x: number, y: number, z: number}} moment Moment components
+ * @property {number} thickness Plate thickness
+ * @property {"FFFFFF"|"FFFFFR"} restraint_code Support type
+ */
+
+/**
+ * An element clicked in the renderer to edit its inputs
+ * @typedef {Object} ParamEleDrawingEntity
+ * @property {string} node_id Box behind the element
+ * @property {string} type Type of the box
+ * @property {string} structure_key e.g. "point_loads"
+ * @property {string|undefined} element_id Structural ID of the element
+ * @property {ParamEleDrawingEntityField[]} fields
+ */
+
+/**
+ * @typedef {Object} ParamEleDrawingEntityField
+ * @property {string} key
+ * @property {string} [label] Label of the field, or label_copy to translate it
+ * @property {string} [label_copy]
+ * @property {"restraint"} [kind] Fields that are not numbers
+ * @property {string[]} handles Inputs of the box that take this value
+ * @property {number|string} value
+ * @property {{node_id: string, label: string, editable: boolean, shared_with: {type: string, count: number}[]}|null} source
+ *  Box that feeds the input: editable when it is a parameter box, shared_with lists the other boxes it feeds
+ */

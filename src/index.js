@@ -613,7 +613,13 @@ class ParamEle extends React.Component {
                     position={panel_plus_renderer}
                     changeAppMode={this.changeAppMode}
                   ></ResizeBorder>
-                  <Renderer visible={!general.show_nodes} width={layout.renderer_width} settings={general} layout={layout}></Renderer>
+                  <Renderer
+                    visible={!general.show_nodes}
+                    width={layout.renderer_width}
+                    settings={general}
+                    layout={layout}
+                    model_locked={this.state.model_locked}
+                  ></Renderer>
                   <SelectionBox
                     visible={this.state.mode === "selecting_nodes"}
                     x={this.state.selection_left}

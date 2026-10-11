@@ -383,6 +383,197 @@ div.small-circle.down {
   z-index: 10;
 }
 
+div.drawing-toolbar {
+  position: absolute;
+  top: 8px;
+  /* Centered, with the same room on both sides as the mode bar of Plotly takes on the right */
+  left: 48px;
+  right: 48px;
+  /* Above the plot (10), inside the renderer so panels of the app still cover it */
+  z-index: 11;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  pointer-events: none;
+}
+
+div.drawing-toolbar > * {
+  pointer-events: auto;
+}
+
+.drawing-toolbar-row {
+  background: #fff;
+  border-radius: var(--chakra-radii-md);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+.drawing-toolbar-options {
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid var(--chakra-colors-gray-200);
+  border-radius: var(--chakra-radii-md);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+  font-size: var(--chakra-fontSizes-xs);
+}
+
+.drawing-toolbar-label {
+  font-family: var(--chakra-fonts-mono);
+  font-size: 11px;
+  color: var(--chakra-colors-gray-600);
+  white-space: nowrap;
+}
+
+.drawing-toolbar-hint {
+  color: var(--chakra-colors-gray-600);
+  font-size: 11px;
+  max-width: 340px;
+}
+
+div.renderer-container.drawing .js-plotly-plot .plotly .cursor-crosshair,
+div.renderer-container.drawing .js-plotly-plot .gl-container {
+  cursor: crosshair;
+}
+
+svg.drawing-hover {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  /* Above the plot (10), under the toolbar and the editor */
+  z-index: 10;
+  pointer-events: none;
+  overflow: visible;
+}
+
+svg.drawing-hover .drawing-dimension line {
+  stroke: #4a5568;
+  stroke-width: 1;
+}
+
+svg.drawing-hover .drawing-dimension line.drawing-dimension-tick {
+  stroke-width: 1.5;
+}
+
+svg.drawing-hover .drawing-dimension-tag rect {
+  fill: white;
+  fill-opacity: 0.95;
+  stroke-width: 1;
+}
+
+svg.drawing-hover .drawing-dimension-tag text {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  fill: #1a202c;
+}
+
+svg.drawing-hover .drawing-dimension-value {
+  font-weight: 600;
+}
+
+svg.drawing-hover .drawing-dimension-detail {
+  font-size: 10px;
+  fill: #718096;
+}
+
+svg.drawing-hover .drawing-dimension-tag.muted rect {
+  stroke: #cbd5e0;
+}
+
+svg.drawing-hover .drawing-dimension-tag.muted text {
+  fill: #4a5568;
+}
+
+svg.drawing-hover .drawing-dimension-tag.muted .drawing-dimension-value {
+  font-weight: 500;
+}
+
+div.renderer-container.pointing .js-plotly-plot .gl-container {
+  cursor: pointer;
+}
+
+div.entity-editor {
+  position: absolute;
+  z-index: 12;
+  width: 300px;
+  max-width: calc(100% - 16px);
+  background: #fff;
+  border: 1px solid var(--chakra-colors-gray-300);
+  border-radius: var(--chakra-radii-md);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  font-size: var(--chakra-fontSizes-xs);
+}
+
+.entity-editor-header {
+  background-color: var(--chakra-colors-gray-100);
+  border-radius: var(--chakra-radii-md) var(--chakra-radii-md) 0 0;
+  padding: 2px 4px 2px 8px;
+  font-weight: 600;
+}
+
+.entity-editor-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+}
+
+.entity-editor-values {
+  margin-bottom: 2px;
+}
+
+.entity-editor-label {
+  font-family: var(--chakra-fonts-mono);
+  font-size: 11px;
+  color: var(--chakra-colors-gray-600);
+  white-space: nowrap;
+}
+
+.entity-editor-input {
+  text-align: right;
+}
+
+.entity-editor-source {
+  padding: 4px 6px;
+  border-radius: var(--chakra-radii-sm);
+  background: var(--chakra-colors-gray-50);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.entity-editor-source.shared {
+  background: var(--chakra-colors-orange-50);
+}
+
+.entity-editor-source .chakra-button {
+  font-size: 11px;
+  height: auto;
+  flex-shrink: 0;
+}
+
+.entity-editor-source-icon {
+  flex-shrink: 0;
+  color: var(--chakra-colors-orange-600);
+}
+
+.entity-editor-shared {
+  color: var(--chakra-colors-orange-700);
+}
+
+.entity-editor-param {
+  font-family: var(--chakra-fonts-mono);
+  font-weight: 600;
+}
+
+.entity-editor-muted {
+  color: var(--chakra-colors-gray-500);
+  font-size: 11px;
+}
+
 div.axis-indicator {
   position: absolute;
   bottom: 10px;

@@ -2,13 +2,20 @@ import getState from "../getState";
 import geom_utils from "../geom_utils";
 import state from "../state";
 import utils from "../utils";
+import drawingLayer from "./drawingLayer";
 
 function localGetCopy(node_name) {
   return utils.getDisplayCopy("renderer", node_name);
 }
 
-function getData() {
+/**
+ * @param {import("./types").ParamEleDrawingState} [drawing_state] Adds what the drawing tools need: clickable elements, the work plane grid...
+ */
+function getData(drawing_state) {
   let structure = getState("structure");
+  const tool = drawing_state ? drawing_state.tool : "none";
+  // Elements are named and carry their IDs, so a click in the renderer knows what was clicked
+  const handles = drawingLayer.getEmptyHandles(tool);
   let units = structure.settings.units;
   let plotly_data = [];
   const global_settings = getState("settings")["global"];
@@ -52,11 +59,14 @@ function getData() {
     z: [],
     type: "scatter3d",
     mode: "markers",
-    marker: { color: "#003CA0", size: 4 },
+    name: "nodes",
+    customdata: [],
+    marker: { color: "#003CA0", size: drawingLayer.getNodesMarkerSize(tool) },
     text: [],
     hovertemplate: "%{text} (%{x}, %{y}, %{z})<extra></extra>",
   };
   Object.entries(structure.nodes).forEach(([node_id, node_data]) => {
+    nodes.customdata.push(node_id);
     nodes.x.push(node_data.x);
     nodes.y.push(node_data.y);
     nodes.z.push(node_data.z);
@@ -71,7 +81,9 @@ function getData() {
     z: [],
     type: "scatter3d",
     mode: "markers",
-    marker: { color: [], size: 3 },
+    name: "members",
+    customdata: [],
+    marker: { color: [], size: drawingLayer.getMembersMarkerSize(tool) },
     text: [],
     hovertemplate: "%{text} <extra></extra>",
   };
@@ -100,6 +112,7 @@ function getData() {
     selection_nodes.y.push(node_middle.y);
     selection_nodes.z.push(node_middle.z);
     selection_nodes.text.push(member_label);
+    selection_nodes.customdata.push(member_id);
     selection_nodes.marker.color.push(section_color);
   });
   plotly_data.push(selection_nodes);
@@ -121,6 +134,7 @@ function getData() {
     support.y.push(...support_coords.support_y);
     support.z.push(...support_coords.support_z);
     plotly_data.push(support);
+    drawingLayer.pushHandle(handles, "supports", support_id, { x: node.x, y: node.y, z: node.z - 0.4 });
   });
 
   // Find the max magnitude to normalize the others
@@ -160,6 +174,8 @@ function getData() {
     pl.y.push(...pl_coords.pl_y);
     pl.z.push(...pl_coords.pl_z);
     plotly_data.push(pl);
+    // The first point of an arrow is its far end
+    drawingLayer.pushHandle(handles, "point_loads", pl_id, { x: pl.x[0], y: pl.y[0], z: pl.z[0] });
   });
 
   // Distributed loads
@@ -196,6 +212,14 @@ function getData() {
       dl.z.push(...dl_coords.dl_z[i]);
     }
     plotly_data.push(dl);
+    if (dl.x.length > 0) {
+      let far_B = dl_coords.dl_x[0].length;
+      drawingLayer.pushHandle(handles, "distributed_loads", dl_id, {
+        x: (dl.x[0] + dl.x[far_B]) / 2,
+        y: (dl.y[0] + dl.y[far_B]) / 2,
+        z: (dl.z[0] + dl.z[far_B]) / 2,
+      });
+    }
   });
 
   // Plates
@@ -205,7 +229,9 @@ function getData() {
     z: [],
     type: "scatter3d",
     mode: "markers",
-    marker: { color: "#D2DDE8", size: 5 },
+    name: "plates",
+    customdata: [],
+    marker: { color: "#D2DDE8", size: drawingLayer.getPlatesMarkerSize(tool) },
     text: [],
     hovertemplate: "%{text} <extra></extra>",
   };
@@ -253,6 +279,7 @@ function getData() {
     selection_nodes_plates.y.push(node_middle.y);
     selection_nodes_plates.z.push(node_middle.z);
     selection_nodes_plates.text.push(plate_label);
+    selection_nodes_plates.customdata.push(plate_id);
   });
   plotly_data.push(selection_nodes_plates);
   // Moments
@@ -272,13 +299,17 @@ function getData() {
     mm.y.push(...mm_coords.mm_y);
     mm.z.push(...mm_coords.mm_z);
     plotly_data.push(mm);
+    drawingLayer.pushHandle(handles, "moments", mm_id, { x: mm.x[0], y: mm.y[0], z: mm.z[0] });
   });
+  plotly_data.push(...drawingLayer.getHandlesTraces(handles, tool));
   return plotly_data;
 }
 
 function getLayout() {
   return {
     autosize: true,
+    // Keeps the camera of the user when the data or the layout change
+    uirevision: "renderer",
     showlegend: false,
     margin: { b: 0, l: 0, r: 0, t: 0 },
     modebar: { orientation: "v" },

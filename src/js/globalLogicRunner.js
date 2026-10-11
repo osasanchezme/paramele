@@ -11,7 +11,9 @@ function run(model) {
   }
   // Restart the structure
   state.setState(utils.getEmptyStructuralModel(), "structure");
-  let { nodes } = calculateModel(model, true);
+  let { nodes, origins } = calculateModel(model, true);
+  // Lets the drawing tools find the box behind an element clicked in the renderer
+  state.setGlobalVariable("structure_origins", origins);
   // Update the whole ReactFlow
   let rf_instance = state.getRfInstance();
   rf_instance.setNodes(nodes);
@@ -34,6 +36,8 @@ function calculateModel(model, is_from_main_model) {
   let nodes_data = {};
   let nodes_i = {};
   let range_nodes = [];
+  // Box that created each structural element, by structure key and ID (only for the main model, wrappers create their own)
+  let origins = {};
   const library = utils.getNodesLibrary();
   const global_settings = getState("settings")["global"];
   const iterate_sliders = global_settings["sliders_mode"] === "sliders_all";
@@ -170,6 +174,10 @@ function calculateModel(model, is_from_main_model) {
           if (res_type === "member") {
             state.setGlobalVariable("last_structural_member", actual_res_val);
           }
+          if (is_from_main_model) {
+            if (!origins[structure_key]) origins[structure_key] = {};
+            origins[structure_key][actual_res_val] = node_id;
+          }
           // Update the structure
           structure[structure_key][actual_res_val] = res_val;
           structure_changed = true;
@@ -206,7 +214,7 @@ function calculateModel(model, is_from_main_model) {
     });
   });
 
-  return { nodes };
+  return { nodes, origins };
 }
 
 const logic_runner = { run, calculateModel };
