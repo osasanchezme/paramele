@@ -51,9 +51,12 @@ function GlobalSettings({ user }) {
   window.ParamEle.openGlobalSettings = onOpen;
   let [localSettings, setLocalSettings] = useState(getSettingsToEdit);
   let [isSaving, setIsSaving] = useState(false);
+  // Text fields stay read only until focused so the browser does not autofill the account credentials into them
+  let [focusedFields, setFocusedFields] = useState({});
   useEffect(() => {
     if (isOpen) {
       setLocalSettings(getSettingsToEdit());
+      setFocusedFields({});
     }
   }, [isOpen]);
   function handleChange(event, id, type) {
@@ -135,7 +138,14 @@ function GlobalSettings({ user }) {
                             <FormLabel>{localGetDisplayCopy(setting.name)}</FormLabel>
                             <Input
                               type={setting.type}
-                              autoComplete="off"
+                              name={`paramele_setting_${setting.name}`}
+                              autoComplete={setting.type === "password" ? "new-password" : "off"}
+                              data-1p-ignore
+                              data-lpignore="true"
+                              data-bwignore
+                              data-form-type="other"
+                              readOnly={!focusedFields[setting.name]}
+                              onFocus={() => setFocusedFields((current) => ({ ...current, [setting.name]: true }))}
                               value={localSettings[setting.name] ?? ""}
                               onChange={(event) => {
                                 handleChange(event, setting.name);

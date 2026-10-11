@@ -95,6 +95,16 @@ function Authentication({ user, is_auth_form_open, closeAuthenticationForm, acti
     }
   }
   const tab_keys = ["sign_up", "log_in"];
+  /**
+   * Each tab is its own form (submitted by the footer button) so the browser password manager can tell the sign up and log in fields apart
+   * @param {function} action
+   */
+  function submitWith(action) {
+    return (event) => {
+      event.preventDefault();
+      action();
+    };
+  }
   function handleTabsChange(index) {
     setActiveTabAuthenticationForm(tab_keys[index]);
   }
@@ -114,7 +124,7 @@ function Authentication({ user, is_auth_form_open, closeAuthenticationForm, acti
               </TabList>
               <TabPanels>
                 <TabPanel key={"sign_up"}>
-                  <SimpleGrid columns={is_compact ? 1 : 2} spacing={4}>
+                  <SimpleGrid as="form" id="sign_up_form" onSubmit={submitWith(createUser)} columns={is_compact ? 1 : 2} spacing={4}>
                     <FormComponent
                       fields={auth_form_fields}
                       formState={authFormState}
@@ -124,7 +134,7 @@ function Authentication({ user, is_auth_form_open, closeAuthenticationForm, acti
                   </SimpleGrid>
                 </TabPanel>
                 <TabPanel key={"log_in"}>
-                  <SimpleGrid columns={1} spacing={4}>
+                  <SimpleGrid as="form" id="log_in_form" onSubmit={submitWith(logInUsingEmailPassword)} columns={1} spacing={4}>
                     <FormComponent
                       fields={log_in_form_fields}
                       formState={logInFormState}
@@ -149,14 +159,14 @@ function Authentication({ user, is_auth_form_open, closeAuthenticationForm, acti
               {localGetDisplayCopy("close_modal")}
             </Button>
             {active_tab_auth_form === "sign_up" ? (
-              <Button colorScheme="blue" onClick={createUser}>
+              <Button colorScheme="blue" type="submit" form="sign_up_form">
                 {localGetDisplayCopy("sign_up")}
               </Button>
             ) : (
               ""
             )}
             {active_tab_auth_form === "log_in" ? (
-              <Button colorScheme="blue" onClick={logInUsingEmailPassword}>
+              <Button colorScheme="blue" type="submit" form="log_in_form">
                 {localGetDisplayCopy("log_in")}
               </Button>
             ) : (

@@ -55,7 +55,7 @@
         },
         "solver_key": {
             "default": "",
-            "type": "password",
+            "type": "text",
             "scope": "user",
             "tab": "solver_tab"
         },

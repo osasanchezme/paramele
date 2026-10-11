@@ -28,6 +28,7 @@
  * @property {"text"|"email"|"dropdown"|"password"} type Type of the field
  * @property {Array.<ParamEleFormValidationObject>} validation
  * @property {Boolean} is_first_field
+ * @property {string} [autocomplete] Autocomplete token of the input (e.g. "username", "current-password"), "off" when missing
  */
 
 /**

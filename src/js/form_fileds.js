@@ -1,5 +1,5 @@
 const auth_form_fields = {
-    name: { default: "", type: "text", validation: [{ type: "no", criteria: "", msg: "cannot_be_empty" }] },
+    name: { default: "", type: "text", autocomplete: "name", validation: [{ type: "no", criteria: "", msg: "cannot_be_empty" }] },
     industry: {
       default: "",
       type: "dropdown",
@@ -9,11 +9,13 @@ const auth_form_fields = {
     company: {
       default: "",
       type: "text",
+      autocomplete: "organization",
       validation: [{ type: "no", criteria: "", msg: "cannot_be_empty" }],
     },
     email: {
       default: "",
       type: "email",
+      autocomplete: "email",
       validation: [
         { type: "no", criteria: "" },
         { type: "contains", criteria: "@", msg: "no_valid_email" },
@@ -23,6 +25,7 @@ const auth_form_fields = {
     password: {
       default: "",
       type: "password",
+      autocomplete: "new-password",
       // Keep in sync with the password policy in Firebase Authentication > Settings
       validation: [
         { type: "no", criteria: "", msg: "cannot_be_empty" },
@@ -32,6 +35,7 @@ const auth_form_fields = {
     verify_password: {
       default: "",
       type: "password",
+      autocomplete: "new-password",
       validation: [{ type: "equal_key", criteria: "password", msg: "passwords_no_match" }],
     },
   };
@@ -40,6 +44,7 @@ const auth_form_fields = {
     email: {
       default: "",
       type: "email",
+      autocomplete: "username",
       validation: [
         { type: "no", criteria: "" },
         { type: "contains", criteria: "@", msg: "no_valid_email" },
@@ -49,6 +54,7 @@ const auth_form_fields = {
     password: {
       default: "",
       type: "password",
+      autocomplete: "current-password",
       validation: [{ type: "no", criteria: "", msg: "cannot_be_empty" }],
     },
   };

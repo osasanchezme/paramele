@@ -50,7 +50,8 @@ function FormComponent({ fields, setFormState, formState, copies_key, firstField
             <Input
               ref={data.is_first_field ? firstFieldRef : null}
               type={data.type}
-              autoComplete="username email"
+              name={key}
+              autoComplete={data.autocomplete ?? "off"}
               onChange={(evt) => {
                 handleInputChange(evt, key);
               }}
@@ -96,6 +97,8 @@ function FormComponent({ fields, setFormState, formState, copies_key, firstField
             {form_label}
             {error_msg_pos === "top" ? form_error_msg : ""}
             <PasswordInput
+              name={key}
+              autoComplete={data.autocomplete ?? "off"}
               onChange={(evt) => {
                 handleInputChange(evt, key);
               }}
@@ -115,13 +118,13 @@ function FormComponent({ fields, setFormState, formState, copies_key, firstField
   });
 }
 
-function PasswordInput({ onChange }) {
+function PasswordInput({ name, autoComplete, onChange, onKeyUp }) {
   const [show, setShow] = React.useState(false);
   const handleClick = () => setShow(!show);
 
   return (
     <InputGroup size="md">
-      <Input pr="4.5rem" type={show ? "text" : "password"} onChange={onChange} autoComplete="password" />
+      <Input pr="4.5rem" type={show ? "text" : "password"} name={name} onChange={onChange} onKeyUp={onKeyUp} autoComplete={autoComplete} />
       <InputRightElement width="6.2rem">
         <Button h="1.75rem" size="sm" onClick={handleClick}>
           {show ? utils.getDisplayCopy("auth", "hide") : utils.getDisplayCopy("auth", "show")}
