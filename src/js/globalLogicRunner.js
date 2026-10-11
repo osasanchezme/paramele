@@ -3,6 +3,21 @@ import getState from "../getState";
 import utils from "../utils";
 
 const STRUCTURAL_RESULT_TYPES = new Set(["node", "member", "support", "point_load", "distributed_load", "plate", "moment", "section", "material"]);
+const ACCUMULATED_LIST_TYPES = new Set(["member_list", "node_list"]);
+
+/**
+ * Empties the member/node list outputs of the model and of the wrappers' inner models. They accumulate IDs across the
+ * combinations of one run, so they have to start empty on every run or they keep IDs that no longer exist.
+ * @param {object} model
+ */
+function clearAccumulatedLists(model) {
+  model.nodes.forEach((node) => {
+    Object.keys(node.data).forEach((key) => {
+      if (ACCUMULATED_LIST_TYPES.has(utils.splitArgName(key, "source").name)) node.data[key] = [];
+    });
+    if (node.data.internal_logic) clearAccumulatedLists(node.data.internal_logic);
+  });
+}
 
 function run(model) {
   if (model == undefined) {
@@ -11,6 +26,7 @@ function run(model) {
   }
   // Restart the structure
   state.setState(utils.getEmptyStructuralModel(), "structure");
+  clearAccumulatedLists(model);
   let { nodes } = calculateModel(model, true);
   // Update the whole ReactFlow
   let rf_instance = state.getRfInstance();

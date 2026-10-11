@@ -20,11 +20,13 @@ class Renderer extends React.Component {
     this.setState({ data: renderer.getData() });
   }
   handleMainPlotRelayout(eventData) {
-    // Extract camera eye from the relayout event
-    const mainCamera = eventData["scene.camera"];
-    const eyeX = mainCamera.eye.x;
-    const eyeY = mainCamera.eye.y;
-    const eyeZ = mainCamera.eye.z;
+    // Extract camera eye from the relayout event. Plotly also fires relayout for
+    // changes that don't touch the camera (autosize, mode bar, aspect ratio...).
+    const eye = eventData?.["scene.camera"]?.eye;
+    if (!eye) return;
+    const eyeX = eye.x;
+    const eyeY = eye.y;
+    const eyeZ = eye.z;
 
     if (eyeX !== undefined && eyeY !== undefined && eyeZ !== undefined) {
       // Normalize the eye vector to keep direction but remove zoom

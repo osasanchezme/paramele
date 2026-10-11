@@ -106,6 +106,7 @@ function MemberResultExec(args, data) {
       if (!Array.isArray(members)) members = [members]; // Support single member as input
       members.forEach((member_id) => {
         let member_result = structural_utils.getResult(results, result_value, result_direction, result_type, member_id, 0);
+        if (member_result === undefined) return; // No results for this member (e.g. results from an older model)
         if (isNaN(Number(member_result))) {
           x_y_data.push(member_result);
           member_ids.push(member_id);
@@ -119,7 +120,7 @@ function MemberResultExec(args, data) {
         x = iterating_node_data.variation_values;
       } else if (x_y_data.length > 0) {
         iterating_node_data.variation_values.forEach((variation_value, index) => {
-          x_y_data[index]["name"] = iterating_node_data.node_label + " = " + String(variation_value);
+          if (x_y_data[index]) x_y_data[index]["name"] = iterating_node_data.node_label + " = " + String(variation_value);
         });
       }
     } else {
