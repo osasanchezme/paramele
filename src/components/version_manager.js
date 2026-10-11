@@ -6,30 +6,23 @@ import {
   ModalBody,
   ModalCloseButton,
   Button,
-  Stack,
-  Card,
-  CardBody,
+  IconButton,
   Text,
   Tag,
-  TableContainer,
-  Table,
-  Tbody,
-  Tr,
-  Td,
+  TagLabel,
+  TagLeftIcon,
   Icon,
   Textarea,
   Box,
   Spinner,
   Flex,
-  Spacer,
-  Center,
+  HStack,
   Tooltip,
-  ButtonGroup,
   Avatar,
   Skeleton,
 } from "@chakra-ui/react";
 
-import { MdCancel, MdCheckCircle, MdDelete, MdEdit, MdSave } from "react-icons/md";
+import { MdCancel, MdCheckCircle, MdDelete, MdEdit, MdSave, MdAccountTree, MdOpenInBrowser } from "react-icons/md";
 
 import utils from "../utils";
 import Firebase from "../js/firebase";
@@ -55,11 +48,16 @@ function VersionManager({
   let versions_list = [];
   let userAllowedManageVersions = useUserAllowed("manage_versions");
   if (file_history) {
-    versions_list = Object.entries(file_history).map(([version_key, version_data]) => (
+    // Version keys are their creation timestamps: newest first
+    let sorted_versions = Object.entries(file_history).sort(([key_a], [key_b]) => Number(key_b) - Number(key_a));
+    let current_version = isOpen ? String(getFileData().current_version) : undefined;
+    versions_list = sorted_versions.map(([version_key, version_data], index) => (
       <VersionItem
         version_data={version_data}
         version_key={version_key}
         key={version_key}
+        is_current={version_key === current_version}
+        is_last={index === sorted_versions.length - 1}
         setFileData={setFileData}
         getFileData={getFileData}
         setModelLock={setModelLock}
@@ -72,14 +70,17 @@ function VersionManager({
     ));
   }
   return (
-    <Modal isOpen={isOpen} onClose={onClose} scrollBehavior="inside">
+    <Modal isOpen={isOpen} onClose={onClose} scrollBehavior="inside" size="lg">
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>{localGetDisplayCopy("title")}</ModalHeader>
+        <ModalHeader>
+          {localGetDisplayCopy("title")}
+          <Text fontSize="sm" fontWeight="normal" color="gray.500">
+            {versions_list.length} {localGetDisplayCopy(versions_list.length === 1 ? "version" : "versions")}
+          </Text>
+        </ModalHeader>
         <ModalCloseButton />
-        <ModalBody>
-          <Stack spacing="4">{versions_list}</Stack>
-        </ModalBody>
+        <ModalBody paddingBottom="6">{versions_list}</ModalBody>
       </ModalContent>
     </Modal>
   );
@@ -88,6 +89,8 @@ function VersionManager({
  *
  * @param {Object} param0
  * @param {import("../js/types").ParamEleFileVersionItem} param0.version_data
+ * @param {boolean} param0.is_current The version is the one currently open
+ * @param {boolean} param0.is_last The version is the last one of the timeline
  * @param {import("../js/types").ParamEleSetFileDataCallback} param0.setFileData
  * @param {import("../js/types").ParamEleGetFileDataCallback} param0.getFileData
  * @param {import("../js/state_types").ParamEleStateGetContactInformation} param0.getContactInformation
@@ -96,6 +99,8 @@ function VersionManager({
 function VersionItem({
   version_key,
   version_data,
+  is_current,
+  is_last,
   setFileData,
   getFileData,
   setModelLock,
@@ -105,7 +110,6 @@ function VersionItem({
   user,
   allowed_to_manage_versions,
 }) {
-  let reportable_props = ["num_nodes", "results_available"];
   const [commitMsgActive, setCommitMsgActive] = useState(false);
   const [commitMsg, setCommitMsg] = useState(version_data.commit_msg);
   const [isButtonLoading, setIsButtonLoading] = useState(false);
@@ -160,136 +164,159 @@ function VersionItem({
     ];
     openConfirmationDialog("delete_version", dialog_callbacks, true);
   }
-  let version_props = Object.entries(version_data).map(([prop_key, prop_val]) => {
-    let table_row = "";
-    if (reportable_props.includes(prop_key)) {
-      switch (typeof prop_val) {
-        case "boolean":
-          table_row = (
-            <Tr key={prop_key}>
-              <Td>{localGetDisplayCopy(prop_key)}</Td>
-              <Td textAlign="center">
-                <Icon as={prop_val ? MdCheckCircle : MdCancel} color="gray.500" />
-              </Td>
-            </Tr>
-          );
-          break;
-        case "number":
-          table_row = (
-            <Tr key={prop_key}>
-              <Td>{localGetDisplayCopy(prop_key)}</Td>
-              <Td textAlign="center">
-                <Tag paddingTop="0.5" size="sm" backgroundColor="gray.500" color="white">
-                  {prop_val}
-                </Tag>
-              </Td>
-            </Tr>
-          );
-          break;
-        default:
-          return "";
-          break;
-      }
-    }
-    return table_row;
-  });
-  // Add the commit message
-  let commit_message_editor = (
-    <Box paddingRight="4" paddingLeft="4">
-      <Textarea
-        defaultValue={commitMsg}
-        onChange={handleOnChangeTextArea}
-        resize="none"
-        isDisabled={!commitMsgActive}
-        size="sm"
-        marginRight="10"
-        ref={text_area_ref}
-      ></Textarea>
-    </Box>
-  );
-  version_props.push(
-    <Tr key={"commit_msg_row"}>
-      <Td borderBottom="none">{localGetDisplayCopy(localGetDisplayCopy("commit_msg"))}:</Td>
-      <Td textAlign="center" borderBottom="none">
-        {commitMsgActive ? (
-          <Tooltip label={allowed_to_manage_versions ? localGetDisplayCopy("save") : utils.getDisplayCopy("tooltips", "no_permissions")}>
-            <Tag size="sm" backgroundColor="blue.600" color="white" textTransform="uppercase" cursor="pointer" onClick={handleClickEditCommitMessage}>
-              {isButtonLoading ? <Spinner size="xs" speed="0.7s" /> : <Icon as={MdSave} />}
-            </Tag>
-          </Tooltip>
-        ) : (
-          <Tooltip label={allowed_to_manage_versions ? localGetDisplayCopy("edit") : utils.getDisplayCopy("tooltips", "no_permissions")}>
-            <Tag
-              size="sm"
-              backgroundColor="gray.500"
-              color="white"
-              textTransform="uppercase"
-              cursor={allowed_to_manage_versions ? "pointer" : "not-allowed"}
-              onClick={allowed_to_manage_versions ? handleClickEditCommitMessage : () => {}}
-            >
-              <Icon as={MdEdit} />
-            </Tag>
-          </Tooltip>
-        )}
-      </Td>
-    </Tr>
-  );
-  function getAuthorTag() {
+  function getPermissionLabel(copy_key) {
+    return allowed_to_manage_versions ? localGetDisplayCopy(copy_key) : utils.getDisplayCopy("tooltips", "no_permissions");
+  }
+  function getAuthor() {
     if (authorData == null && typeof authorData == "object") {
       return (
-        <Flex paddingTop={3}>
-          <Avatar size="sm" />
-          <Box ml="3">
-            <Skeleton height="10px" width="30px" marginTop="5px" />
-            <Skeleton height="8px" width="60px" marginTop="6px" />
-          </Box>
-        </Flex>
-      );
-    } else {
-      return (
-        <Flex paddingTop={3}>
-          <Avatar size="sm" name={version_data.author == user.uid ? null : authorData ? authorData.username : "?"} />
-          <Box ml="3">
-            <Text fontSize="small" fontWeight="bold">
-              {version_data.author == user.uid ? localGetDisplayCopy("you") : authorData ? authorData.username : localGetDisplayCopy("unknown")}
-            </Text>
-            <Text fontSize="smaller" marginTop={"-1.5"}>
-              {authorData ? authorData.email : ""}
-            </Text>
-          </Box>
-        </Flex>
+        <HStack spacing="2">
+          <Avatar size="xs" />
+          <Skeleton height="10px" width="80px" />
+        </HStack>
       );
     }
+    let is_user_author = version_data.author == user.uid;
+    return (
+      <HStack spacing="2" minWidth="0">
+        <Avatar size="xs" name={is_user_author ? null : authorData ? authorData.username : "?"} />
+        <Text fontSize="sm" fontWeight="semibold" whiteSpace="nowrap">
+          {is_user_author ? localGetDisplayCopy("you") : authorData ? authorData.username : localGetDisplayCopy("unknown")}
+        </Text>
+        {authorData ? (
+          <Text fontSize="xs" color="gray.500" noOfLines={1}>
+            {authorData.email}
+          </Text>
+        ) : null}
+      </HStack>
+    );
+  }
+  function getCommitMessage() {
+    if (commitMsgActive) {
+      return (
+        <Textarea
+          defaultValue={commitMsg}
+          onChange={handleOnChangeTextArea}
+          resize="vertical"
+          size="sm"
+          rows={2}
+          borderRadius="md"
+          placeholder={localGetDisplayCopy("commit_msg")}
+          ref={text_area_ref}
+        ></Textarea>
+      );
+    }
+    return commitMsg ? (
+      <Text fontSize="sm" color="gray.700" whiteSpace="pre-wrap" wordBreak="break-word">
+        {commitMsg}
+      </Text>
+    ) : (
+      <Text fontSize="sm" color="gray.400" fontStyle="italic">
+        {localGetDisplayCopy("no_commit_msg")}
+      </Text>
+    );
   }
   return (
-    <Card variant="elevated" key={version_key}>
-      <CardBody>
-        <Flex>
-          <Center>
-            <Text fontWeight="bold">{utils.getFormattedDate(Number(version_key))}</Text>
-          </Center>
-          <Spacer />
-          <ButtonGroup size="sm">
-            <Tooltip label={allowed_to_manage_versions ? localGetDisplayCopy("delete") : utils.getDisplayCopy("tooltips", "no_permissions")}>
-              <Button colorScheme="red" onClick={handleClickOnDeleteButton} padding={0.5} isDisabled={!allowed_to_manage_versions}>
-                <Icon as={MdDelete} />
-              </Button>
-            </Tooltip>
-            <Button colorScheme="blue" onClick={handleClickOnLoadButton}>
+    <Flex>
+      {/* Timeline marker */}
+      <Flex direction="column" alignItems="center" width="4" flexShrink={0} marginRight="3">
+        <Box
+          width="3"
+          height="3"
+          marginTop="1.5"
+          borderRadius="full"
+          borderWidth="2px"
+          borderColor={is_current ? "blue.500" : "gray.300"}
+          backgroundColor={is_current ? "blue.500" : "white"}
+          boxShadow={is_current ? "0 0 0 3px var(--chakra-colors-blue-100)" : "none"}
+        />
+        {is_last ? null : <Box width="2px" flex="1" backgroundColor="gray.200" marginTop="1" />}
+      </Flex>
+      <Box flex="1" minWidth="0" paddingBottom={is_last ? "0" : "5"}>
+        <Flex alignItems="center" gap="2">
+          <Text fontWeight="semibold" fontSize="sm">
+            {utils.getFormattedDate(Number(version_key))}
+          </Text>
+          {is_current ? (
+            <Tag size="sm" colorScheme="blue" borderRadius="full">
+              {localGetDisplayCopy("current")}
+            </Tag>
+          ) : null}
+        </Flex>
+        <Box
+          marginTop="2"
+          padding="3"
+          borderWidth="1px"
+          borderColor={is_current ? "blue.100" : "gray.200"}
+          backgroundColor={is_current ? "blue.50" : "gray.50"}
+          borderRadius="lg"
+        >
+          <Flex alignItems="center" gap="2">
+            <Box flex="1" minWidth="0">
+              {getAuthor()}
+            </Box>
+            <Button size="xs" colorScheme="blue" leftIcon={<Icon as={MdOpenInBrowser} />} onClick={handleClickOnLoadButton}>
               {localGetDisplayCopy("load")}
             </Button>
-          </ButtonGroup>
-        </Flex>
-        {getAuthorTag()}
-        <TableContainer marginTop="3">
-          <Table size="sm">
-            <Tbody>{version_props}</Tbody>
-          </Table>
-        </TableContainer>
-        {/* Add a label to label the textarea */}
-        {commit_message_editor}
-      </CardBody>
-    </Card>
+            <Tooltip label={getPermissionLabel("delete")}>
+              <IconButton
+                size="xs"
+                variant="ghost"
+                colorScheme="red"
+                icon={<Icon as={MdDelete} boxSize="4" />}
+                aria-label={localGetDisplayCopy("delete")}
+                onClick={handleClickOnDeleteButton}
+                isDisabled={!allowed_to_manage_versions}
+              />
+            </Tooltip>
+          </Flex>
+          <Flex marginTop="2" alignItems="flex-start" gap="2">
+            <Box flex="1" minWidth="0">
+              {getCommitMessage()}
+            </Box>
+            {commitMsgActive ? (
+              <Tooltip label={getPermissionLabel("save")}>
+                <IconButton
+                  size="xs"
+                  colorScheme="blue"
+                  icon={isButtonLoading ? <Spinner size="xs" speed="0.7s" /> : <Icon as={MdSave} boxSize="4" />}
+                  aria-label={localGetDisplayCopy("save")}
+                  onClick={handleClickEditCommitMessage}
+                />
+              </Tooltip>
+            ) : (
+              <Tooltip label={getPermissionLabel("edit")}>
+                <IconButton
+                  size="xs"
+                  variant="ghost"
+                  color="gray.500"
+                  icon={<Icon as={MdEdit} boxSize="4" />}
+                  aria-label={localGetDisplayCopy("edit")}
+                  cursor={allowed_to_manage_versions ? "pointer" : "not-allowed"}
+                  onClick={allowed_to_manage_versions ? handleClickEditCommitMessage : () => {}}
+                />
+              </Tooltip>
+            )}
+          </Flex>
+          <HStack spacing="2" marginTop="2">
+            {typeof version_data.num_nodes == "number" ? (
+              <Tag size="sm" variant="subtle" colorScheme="gray" borderRadius="full">
+                <TagLeftIcon as={MdAccountTree} />
+                <TagLabel>
+                  {version_data.num_nodes} {localGetDisplayCopy("nodes")}
+                </TagLabel>
+              </Tag>
+            ) : null}
+            {typeof version_data.results_available == "boolean" ? (
+              <Tag size="sm" variant="subtle" colorScheme={version_data.results_available ? "green" : "gray"} borderRadius="full">
+                <TagLeftIcon as={version_data.results_available ? MdCheckCircle : MdCancel} />
+                <TagLabel>{localGetDisplayCopy(version_data.results_available ? "results_available" : "no_results")}</TagLabel>
+              </Tag>
+            ) : null}
+          </HStack>
+        </Box>
+      </Box>
+    </Flex>
   );
 }
 

@@ -380,7 +380,13 @@
         "load": "Load",
         "delete": "Delete",
         "you": "You",
-        "unknown": "Unknown"
+        "unknown": "Unknown",
+        "current": "Current",
+        "version": "version",
+        "versions": "versions",
+        "nodes": "nodes",
+        "no_results": "No results",
+        "no_commit_msg": "No message"
     },
     "confirmation_dialog": {
         "title": "Confirmation",

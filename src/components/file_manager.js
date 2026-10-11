@@ -152,7 +152,7 @@ function FileManager({ user, is_file_manager_open, closeFileManager, file_manage
         file_shared_data: null,
       };
       file.setURLParams(file_path, file_name);
-      Firebase.saveFileToCloud(model_blob, file.getResultsBlob(), local_file_data, false, "", (new_file) => {
+      Firebase.saveFileToCloud(model_blob, file.getResultsBlob(), local_file_data, false, "", file.getModelNodesCount(), (new_file) => {
         if (new_file === false) {
           setFileManagerWaiting(false);
           return;

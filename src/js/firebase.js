@@ -444,9 +444,10 @@ function uploadVersionFile(blob, model_id, version, file_type) {
  * @param {import("./types").ParamEleFileData} local_file_data
  * @param {boolean} is_new_version False when the file is created
  * @param {string} commit_msg
+ * @param {number} num_nodes Number of nodes in the saved model
  * @param {function(object|false)} callback Gets the new file entry for the file manager, false if the save failed
  */
-function saveFileToCloud(model_blob, results_blob, local_file_data, is_new_version, commit_msg, callback) {
+function saveFileToCloud(model_blob, results_blob, local_file_data, is_new_version, commit_msg, num_nodes, callback) {
   let { model_id, current_version, file_name, file_path } = local_file_data;
   let author = auth.currentUser.uid;
   let has_results = results_blob !== false;
@@ -472,7 +473,7 @@ function saveFileToCloud(model_blob, results_blob, local_file_data, is_new_versi
       created: current_version,
       last_modified: current_version,
       history: {
-        [current_version]: { num_nodes: 12, results_available: false, author },
+        [current_version]: { num_nodes, results_available: false, author },
       },
       shared: {},
       shared_with: [],
@@ -495,7 +496,7 @@ function saveFileToCloud(model_blob, results_blob, local_file_data, is_new_versi
         "last_modified",
         current_version,
         new FieldPath("history", String(current_version)),
-        { num_nodes: 13, commit_msg, results_available: has_results, author }
+        { num_nodes, commit_msg, results_available: has_results, author }
       )
     );
   }

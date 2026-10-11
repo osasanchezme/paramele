@@ -23,6 +23,12 @@ const downloadAnyFile = (file_name, type, file_blob, no_blob) => {
   a.click();
 };
 
+/**
+ * Number of nodes in the model that is saved to files (the root model, even while editing the inner model of a wrapper node)
+ * @returns {number}
+ */
+const getModelNodesCount = () => getState().model.nodes.length;
+
 const getModelBlob = () => {
   let current_state = getState();
   current_state.model.nodes.forEach((node) => {
@@ -231,6 +237,7 @@ const file = {
   newFile,
   openSampleModel,
   getModelBlob,
+  getModelNodesCount,
   setModelAndResultsFromParsedBlob,
   getResultsBlob,
   downloadAndOpenModel,

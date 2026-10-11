@@ -366,7 +366,13 @@
         "load": "Cargar",
         "delete": "Eliminar",
         "you": "Tú",
-        "unknown": "Desconocido"
+        "unknown": "Desconocido",
+        "current": "Actual",
+        "version": "versión",
+        "versions": "versiones",
+        "nodes": "nodos",
+        "no_results": "Sin resultados",
+        "no_commit_msg": "Sin mensaje"
     },
     "confirmation_dialog": {
         "title": "Confirmación",
