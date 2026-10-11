@@ -7,7 +7,7 @@ function localGetDisplayCopy(copy_key) {
 }
 
 function LoadingDimmer() {
-  const {globalLoadingContent, globalLoadingVisible, hideGlobalLoading, showGlobalLoading} = useGlobalLoading();
+  const { globalLoadingContent, globalLoadingVisible, hideGlobalLoading, showGlobalLoading, setGlobalLoadingMsg } = useGlobalLoading();
   window.ParamEle.showLoadingDimmer = (msg) => {
     showGlobalLoading(msg);
   };
@@ -15,7 +15,7 @@ function LoadingDimmer() {
     hideGlobalLoading();
   };
   window.ParamEle.setLoadingDimmerMsg = (msg) => {
-    showGlobalLoading(msg)
+    setGlobalLoadingMsg(msg);
   };
   return (
     <Modal isOpen={globalLoadingVisible} closeOnOverlayClick={false} isCentered>

@@ -23,14 +23,19 @@ export const GlobalLoadingProvider = ({ children }) => {
     setGlobalLoadingContent("loading");
   };
 
+  // Only changes the message, it does not open the dimmer if it is hidden
+  const setGlobalLoadingMsg = (content) => {
+    setGlobalLoadingContent(content);
+  };
+
   return (
-    <GlobalLoadingContext.Provider value={{ globalLoadingVisible, globalLoadingContent, showGlobalLoading, hideGlobalLoading }}>
+    <GlobalLoadingContext.Provider value={{ globalLoadingVisible, globalLoadingContent, showGlobalLoading, hideGlobalLoading, setGlobalLoadingMsg }}>
       {children}
     </GlobalLoadingContext.Provider>
   );
 };
 /**
  *
- * @returns {{globalLoadingVisible: boolean, globalLoadingContent: string, showGlobalLoading: function(content), hideGlobalLoading: function()}}
+ * @returns {{globalLoadingVisible: boolean, globalLoadingContent: string, showGlobalLoading: function(content), hideGlobalLoading: function(), setGlobalLoadingMsg: function(content)}}
  */
 export const useGlobalLoading = () => useContext(GlobalLoadingContext);
