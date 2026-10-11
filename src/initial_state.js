@@ -1,13 +1,14 @@
-import data from "./data/template-results-gather.json";
 import utils from "./utils";
 import repair from "./js/repair";
 import { isCompactLayout } from "./js/breakpoints";
+import { getStartupData } from "./js/urlParams";
 
 function getInitialState() {
     // Get language from URL
   let url_params = new URLSearchParams(window.location.search);
   let language = url_params.get("lang");
   if (!["es", "en"].includes(language)) language = "es";
+  let data = getStartupData();
   let model = repair.repairModel(data.model);
   let nodes = JSON.parse(JSON.stringify(model.nodes));
   let edges = JSON.parse(JSON.stringify(model.edges));

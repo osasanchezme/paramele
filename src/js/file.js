@@ -8,6 +8,7 @@ import Firebase from "./firebase";
 import { notify } from "../components/notification";
 import { getInitialState } from "../initial_state";
 import solverCredentials from "./solverCredentials";
+import { getURLParams, getSampleData } from "./urlParams";
 
 const downloadJSONFile = () => {
   downloadAnyFile("modelo.json", "text/json", getModelBlob());
@@ -46,6 +47,13 @@ const getResultsBlob = () => {
   } else {
     return false;
   }
+};
+
+/**
+ * Opens the sample model in the editor, used when the saved model in the URL could not be opened
+ */
+const openSampleModel = () => {
+  setModelAndResultsFromParsedBlob(getSampleData());
 };
 
 const newFile = () => {
@@ -105,8 +113,9 @@ const setModelAndResultsFromParsedBlob = (state_from_file, results_from_file) =>
  * @param {import("./types").ParamEleFileData} local_file_data
  * @param {import("./types").ParamEleSetFileDataCallback} setFileData
  * @param {*} setModelLock
+ * @param {function()} [onDownloadError] Called after the error is notified when the model could not be downloaded
  */
-const downloadAndOpenModel = (local_file_data, setFileData, setModelLock) => {
+const downloadAndOpenModel = (local_file_data, setFileData, setModelLock, onDownloadError) => {
   utils.showLoadingDimmer("loading_model");
   let { file_path, file_history, current_version, model_id, file_name } = local_file_data;
   let current_version_info = file_history[current_version];
@@ -123,6 +132,7 @@ const downloadAndOpenModel = (local_file_data, setFileData, setModelLock) => {
           notify("error", "generic_unhandled_issue", process_response.msg, true);
           break;
       }
+      if (onDownloadError) onDownloadError();
       return;
     }
     setFileData({ ...local_file_data, is_saved: true, last_saved: current_version });
@@ -150,8 +160,9 @@ const downloadAndOpenModel = (local_file_data, setFileData, setModelLock) => {
  * @param {import("./types").ParamEleSetFileDataCallback} setFileData
  * @param {function(boolean)} setModelLock
  * @param {function()} fileDoesNotExistCallback
+ * @param {function()} [onDownloadError] Called when the file exists but its model could not be downloaded
  */
-const getFileDataAndOpenModel = (file_path, file_name, setFileData, setModelLock, fileDoesNotExistCallback) => {
+const getFileDataAndOpenModel = (file_path, file_name, setFileData, setModelLock, fileDoesNotExistCallback, onDownloadError) => {
   Firebase.getProjectData(file_path, file_name, (file_data) => {
     let { current_version, history, id, path, is_shared_with_me, shared } = file_data;
     if (current_version == undefined || history == undefined || id == undefined) {
@@ -168,7 +179,7 @@ const getFileDataAndOpenModel = (file_path, file_name, setFileData, setModelLock
         file_shared_data: shared,
         model_id: id,
       };
-      downloadAndOpenModel(local_file_data, setFileData, setModelLock);
+      downloadAndOpenModel(local_file_data, setFileData, setModelLock, onDownloadError);
     }
   });
 };
@@ -192,16 +203,6 @@ const setURLParams = (fileManagerPath, file_name) => {
 const appendParamsToCurrentURL = (queryParams) => {
   const newUrl = `${window.location.pathname}?${queryParams.toString()}`;
   window.history.pushState({}, "", newUrl);
-};
-
-const getURLParams = () => {
-  const queryParams = new URLSearchParams(window.location.search);
-  let important_params = ["path", "name"];
-  let params_object = {};
-  important_params.forEach((param_key) => {
-    params_object[param_key] = queryParams.get(param_key);
-  });
-  return params_object;
 };
 
 /**
@@ -228,6 +229,7 @@ const file = {
   downloadAnyFile,
   uploadJSONFile,
   newFile,
+  openSampleModel,
   getModelBlob,
   setModelAndResultsFromParsedBlob,
   getResultsBlob,

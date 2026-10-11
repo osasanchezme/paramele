@@ -1,18 +1,10 @@
-// import data from "./data/template-4-two-beams.json";
-// import data from "./data/template-0.json";
-// import data from "./data/template-5-frame.json";
-// import data from "./data/template-quad-wrapper.json";
-// import data from "./data/template-math-quadratic.json";
-// import data from "./data/template-simple-beam-wrapper.json";
-// import data from "./data/template-simple-beam-wrapper-with-slider.json";
-import data from "./data/template-results-gather.json";
-// import data from "./data/template-wrapper-frame-with-sliders.json";
 import logic_runner from "./js/globalLogicRunner";
 import getState from "./getState";
 import utils from "./utils";
 import repair from "./js/repair";
 import notification from "./components/notification";
 import { ReactFlowInstance } from "reactflow";
+import { getStartupData } from "./js/urlParams";
 const { notify } = notification;
 
 function setInitialState() {
@@ -20,6 +12,7 @@ function setInitialState() {
   let url_params = new URLSearchParams(window.location.search);
   let language = url_params.get("lang");
   if (!["es", "en"].includes(language)) language = "es";
+  let data = getStartupData();
   // Set the initial state
   window.ParamEle = {};
   window.ParamEle.rfInstance = undefined;

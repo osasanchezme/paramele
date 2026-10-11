@@ -34,6 +34,7 @@ import StatusBar from "./components/status_bar";
 import ViewSwitch from "./components/view_switch";
 import boxes from "./js/boxes";
 import { onCompactLayoutChange } from "./js/breakpoints";
+import { hasModelInURL } from "./js/urlParams";
 
 setInitialState();
 const library = createNodesLibrary();
@@ -83,6 +84,8 @@ class ParamEle extends React.Component {
     this.setEdges = this.setEdges.bind(this);
     this.getContactInformation = this.getContactInformation.bind(this);
 
+    // The app starts empty when the URL points to a saved model, until that model is opened or fails to open
+    this.is_startup_model_pending = hasModelInURL();
     // Manage auth state changes - This is the last thing that loads
     Firebase.attachToAuthChangeFirebaseEvent((user) => {
       let params_object = file.getURLParams();
@@ -93,13 +96,32 @@ class ParamEle extends React.Component {
       } else {
         utils.setUser(null);
       }
-      utils.hideLoadingDimmer();
-      if (is_params_available) {
-        let file_path = path.split(",");
-        file.getFileDataAndOpenModel(file_path, name, this.setFileData, this.setModelLock, () => {
-          notify("warning", "file_does_not_exist", undefined, true);
-        });
+      if (!is_params_available) {
+        utils.hideLoadingDimmer();
+        return;
       }
+      // The loading dimmer stays open until the model is downloaded, so the empty startup model is never shown
+      let file_path = path.split(",");
+      let setFileData = (file_data) => {
+        this.is_startup_model_pending = false;
+        this.setFileData(file_data);
+      };
+      let onOpenFailed = () => {
+        utils.hideLoadingDimmer();
+        if (this.is_startup_model_pending) file.openSampleModel();
+        this.is_startup_model_pending = false;
+      };
+      file.getFileDataAndOpenModel(
+        file_path,
+        name,
+        setFileData,
+        this.setModelLock,
+        () => {
+          onOpenFailed();
+          notify("warning", "file_does_not_exist", undefined, true);
+        },
+        onOpenFailed
+      );
     });
   }
   componentDidMount() {
