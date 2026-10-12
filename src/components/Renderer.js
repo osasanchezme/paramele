@@ -7,6 +7,7 @@ import DrawingToolbar from "./drawing_toolbar";
 import EntityEditor from "./entity_editor";
 import drawingDimensions from "./drawing_dimensions";
 import { notify } from "./notification";
+import AxisIndicator from "./axis_indicator";
 import React from "react";
 
 const TOOL_SHORTCUTS = { m: "member", p: "plate", s: "support", l: "point_load", d: "distributed_load", o: "moment", e: "delete" };
@@ -23,41 +24,6 @@ const CLICK_TOLERANCE = 5;
 // Parts of the drawing state that Plotly draws. The hover feedback is drawn over the plot instead, replotting on every hover makes rotating slow
 const PLOTTED_KEYS = ["tool", "plane", "offset", "spacing", "points", "selected_target"];
 const HOVER_COLORS = { delete: "#E53E3E", default: "#DD6B20" };
-
-const MINI_AXIS = {
-  ticks: "",
-  showticklabels: false,
-  zeroline: false,
-  title: "",
-  gridwidth: 0,
-  spikesides: false,
-  spikethickness: 0,
-  range: [0, 1.5],
-};
-const MINI_PLOT_DATA = [
-  { x: [1, 0], y: [0, 0], z: [0, 0], line: { width: 5, color: "red" }, text: ["x", ""] },
-  { x: [0, 0], y: [0, 1], z: [0, 0], line: { width: 5, color: "green" }, text: ["", "y"] },
-  { x: [0, 0], y: [0, 0], z: [0, 1], line: { width: 5, color: "blue" }, text: ["", "z"] },
-].map((trace) => ({ ...trace, mode: "lines+text", type: "scatter3d", hoverinfo: "none" }));
-const MINI_PLOT_CONFIG = { displayModeBar: false, scrollZoom: false, displaylogo: false };
-
-/**
- * Layout of the axis indicator, which follows the direction of the camera of the renderer
- * @param {object|null} camera
- */
-function getMiniPlotLayout(camera) {
-  let scene = { aspectmode: "data", xaxis: MINI_AXIS, yaxis: MINI_AXIS, zaxis: MINI_AXIS };
-  if (camera) scene.camera = camera;
-  return {
-    showlegend: false,
-    width: 120,
-    height: 120,
-    margin: { l: 0, r: 0, t: 0, b: 0 },
-    paper_bgcolor: "rgba(255,255,255,0.1)",
-    plot_bgcolor: "rgba(255,255,255,0.1)",
-    scene,
-  };
-}
 
 /** @returns {import("../js/types").ParamEleDrawingState} */
 function getInitialDrawingState() {
@@ -118,7 +84,6 @@ class Renderer extends React.Component {
       layout: renderer.getLayout(),
       frames: [],
       config: renderer.getConfig(),
-      mini_plot_layout: getMiniPlotLayout(null),
       drawing_state: this.drawing_state,
       // What is under the cursor, in pixels of the renderer
       hover_visual: null,
@@ -129,6 +94,9 @@ class Renderer extends React.Component {
     };
     this.updateRenderer = this.updateRenderer.bind(this);
     this.handleMainPlotRelayout = this.handleMainPlotRelayout.bind(this);
+    this.handleMainPlotRelayouting = this.handleMainPlotRelayouting.bind(this);
+    this.updateAxisIndicator = this.updateAxisIndicator.bind(this);
+    this.axis_indicator = React.createRef();
     this.setDrawingState = this.setDrawingState.bind(this);
     this.handlePointerDown = this.handlePointerDown.bind(this);
     this.handlePointerMove = this.handlePointerMove.bind(this);
@@ -479,29 +447,27 @@ class Renderer extends React.Component {
     return [...new Set(values)].sort((a, b) => a - b);
   }
   handleMainPlotRelayout(eventData) {
-    // Extract camera eye from the relayout event
-    const mainCamera = eventData["scene.camera"];
-    if (!mainCamera) return;
+    this.updateAxisIndicator(eventData["scene.camera"]);
+    if (!eventData["scene.camera"]) return;
     // The camera moved: the hover feedback is stale and the card goes back next to its element
     let editor = this.state.editor;
     let selected_target = this.drawing_state.selected_target;
     let editor_position = editor && selected_target && drawingLayer.getScreenProjector(this.plot_element)?.(selected_target);
     this.setState({ hover_visual: null, ...(editor_position ? { editor: { ...editor, position: editor_position } } : {}) });
-    const eyeX = mainCamera.eye.x;
-    const eyeY = mainCamera.eye.y;
-    const eyeZ = mainCamera.eye.z;
-
-    if (eyeX !== undefined && eyeY !== undefined && eyeZ !== undefined) {
-      // Normalize the eye vector to keep direction but remove zoom
-      const dist = Math.sqrt(eyeX * eyeX + eyeY * eyeY + eyeZ * eyeZ);
-      const fixedDist = 3; // fixed distance for the mini plot
-      const scale = fixedDist / dist;
-      const camera = {
-        eye: { x: eyeX * scale, y: eyeY * scale, z: eyeZ * scale },
-      };
-
-      this.setState({ mini_plot_layout: getMiniPlotLayout(camera) });
-    }
+  }
+  /**
+   * Plotly reports the camera on every move of a drag, so the axis indicator follows it while rotating
+   */
+  handleMainPlotRelayouting(eventData) {
+    this.updateAxisIndicator(eventData["scene.camera"]);
+  }
+  /**
+   * @param {object} [camera] Scene camera, read from the renderer when not given
+   */
+  updateAxisIndicator(camera) {
+    let scene = this.plot_element?._fullLayout?.scene?._scene;
+    if (!camera?.eye && scene && typeof scene.getCamera === "function") camera = scene.getCamera();
+    if (camera) this.axis_indicator.current?.setCamera(camera);
   }
   componentDidUpdate(prevProps) {
     if (prevProps.settings.side_by_side !== this.props.settings.side_by_side || prevProps.width !== this.props.width) {
@@ -528,6 +494,8 @@ class Renderer extends React.Component {
           frames={this.state.frames}
           config={this.state.config}
           onRelayout={this.handleMainPlotRelayout}
+          onRelayouting={this.handleMainPlotRelayouting}
+          onAfterPlot={this.updateAxisIndicator}
           divId={"renderer-container"}
         />
         {this.isShown() && (
@@ -555,9 +523,7 @@ class Renderer extends React.Component {
             onClose={() => this.closeEditor()}
           />
         )}
-        <div className="axis-indicator">
-          <Plot data={MINI_PLOT_DATA} layout={this.state.mini_plot_layout} config={MINI_PLOT_CONFIG} />
-        </div>
+        <AxisIndicator ref={this.axis_indicator} />
       </div>
     );
   }
