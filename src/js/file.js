@@ -64,6 +64,9 @@ const openSampleModel = () => {
 
 const newFile = () => {
   clearURLParams();
+  // Leave the inner model of a wrapper node, the new model replaces the root one
+  state.setState(["model"], "model_path");
+  state.setState(["model"], "model_path_print");
   blank_model.settings = repair.repairSettings(blank_model.settings);
   state.setState(repair.repairModel(blank_model.model), "model");
   let rf_instance = state.getRfInstance();
@@ -86,14 +89,22 @@ const uploadJSONFile = () => {
       let user_file = a.files[0];
       let fr = new FileReader();
       fr.onload = function (e) {
-        clearURLParams();
         let lines = e.target.result;
         var state_from_file = JSON.parse(lines);
-        setModelAndResultsFromParsedBlob(state_from_file);
+        openModelFromParsedBlob(state_from_file);
       };
       fr.readAsText(user_file);
     }
   };
+};
+
+/**
+ * Opens a model from a ParamEle file as a new unsaved file
+ * @param {{model: object, settings: object}} state_from_file
+ */
+const openModelFromParsedBlob = (state_from_file) => {
+  clearURLParams();
+  setModelAndResultsFromParsedBlob(state_from_file);
 };
 
 const setModelAndResultsFromParsedBlob = (state_from_file, results_from_file) => {
@@ -239,6 +250,7 @@ const file = {
   getModelBlob,
   getModelNodesCount,
   setModelAndResultsFromParsedBlob,
+  openModelFromParsedBlob,
   getResultsBlob,
   downloadAndOpenModel,
   getFileDataAndOpenModel,

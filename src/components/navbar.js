@@ -211,7 +211,7 @@ function NavBar({
               showGlobalLoading("generating_parametric_model");
               structure.importStructureModel((process_response) => {
                 hideGlobalLoading();
-                if (!process_response.success) {
+                if (process_response && !process_response.success) {
                   if (process_response.msg === "parametricGenerator/generic_fail") {
                     notify("error", "generic_unhandled_issue", process_response.msg, true);
                   } else {

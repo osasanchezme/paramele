@@ -286,7 +286,21 @@
         "parametricGenerator/no_extension_on_file_title": "Imported file with no extension",
         "parametricGenerator/no_extension_on_file_desc": "The selected file has no extension, make sure you select the right file",
         "parametricGenerator/not_supported_format_title": "Not supported file",
-        "parametricGenerator/not_supported_format_desc": "The selected file has a not supported format"
+        "parametricGenerator/not_supported_format_desc": "The selected file has a not supported format",
+        "import/invalid_json_title": "Invalid JSON file",
+        "import/invalid_json_desc": "The file could not be read as JSON, make sure it is not damaged",
+        "import/unknown_json_title": "Unknown JSON file",
+        "import/unknown_json_desc": "The JSON file is neither a ParamEle model (boxes and links) nor a SkyCiv S3D model",
+        "import/read_failed_title": "The file could not be read",
+        "import/read_failed_desc": "Make sure the file exists and try again",
+        "import/load_failed_title": "The model could not be loaded",
+        "import/load_failed_desc": "The ParamEle file seems damaged or comes from an incompatible version",
+        "import/convert_failed_title": "The file could not be converted",
+        "import/convert_failed_desc": "The structural model could not be read from the file, make sure it is complete",
+        "import/empty_model_title": "Empty structural model",
+        "import/empty_model_desc": "No structural nodes were found in the file",
+        "parametricGenerator/generic_fail_title": "The parametric model could not be generated",
+        "parametricGenerator/generic_fail_desc": "Something went wrong while generating the boxes from the structural model"
     },
     "navigator":{
         "model": "Main model"
@@ -408,5 +422,35 @@
         "add_node": "Select the box type to add to the editor",
         "duplicate_point_1": "Select the reference position to duplicate the selection",
         "duplicate_point_2": "Select the target position to paste the selection"
+    },
+    "import": {
+        "drop_title": "Drop the file to import it",
+        "drop_formats": "ParamEle model (.json) · SkyCiv S3D (.json) · DXF (.dxf) · SAP2000 (.$2k, .s2k)",
+        "title_running": "Importing file",
+        "title_success": "File imported",
+        "title_error": "The file could not be imported",
+        "detecting_type": "Detecting format",
+        "type_paramele": "ParamEle model",
+        "type_skyciv": "SkyCiv S3D model",
+        "type_dxf": "DXF drawing",
+        "type_csi": "SAP2000 model (CSI)",
+        "step_reading": "Reading file",
+        "step_detecting": "Detecting format",
+        "step_converting": "Converting to a structural model",
+        "step_generating_parametric_model": "Generating parametric model",
+        "step_loading_model": "Loading boxes and links",
+        "summary_boxes": "boxes",
+        "summary_nodes": "nodes",
+        "summary_members": "members",
+        "summary_plates": "plates",
+        "summary_supports": "supports",
+        "summary_point_loads": "point loads",
+        "summary_distributed_loads": "distributed loads",
+        "summary_moments": "moments",
+        "summary_sections": "sections",
+        "summary_materials": "materials",
+        "unsupported_drop_title": "Not supported file",
+        "unsupported_drop_desc": "Drop a ParamEle or SkyCiv JSON, a DXF or a SAP2000 ($2k) file",
+        "close": "Close"
     }
 }

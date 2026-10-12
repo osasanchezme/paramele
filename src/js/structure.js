@@ -10,8 +10,7 @@ import file from "./file";
 import { parsers } from "../submodulesAPI";
 import generateParametricModel from "./generateParametricModel";
 import { getProcessResponseObject } from "./processResponse";
-import { dxf2s3d } from "../submodules/paramele-parsers/structural/dxf/generateS3DModel";
-import { csi2s3d } from "../submodules/paramele-parsers/structural/csi/csi2s3d";
+import importer from "./importer";
 import repair from "./repair";
 import pyniteWasm from "./pyniteWasm";
 import solverCredentials from "./solverCredentials";
@@ -220,28 +219,12 @@ const importStructureModel = (callback) => {
       let fr = new FileReader();
       fr.onload = function (e) {
         try {
-          let lines = e.target.result;
-          let file_extension_match = user_file.name.match(/.*\.([0-9A-Za-z\$]+)$/);
-          let file_extension = file_extension_match ? file_extension_match[1] : null;
-          if (!file_extension) callback(getProcessResponseObject("error", "parametricGenerator/no_extension_on_file"));
-          let structure_from_file;
-          let call_generator = true;
-          switch (file_extension) {
-            case "json":
-              structure_from_file = JSON.parse(lines);
-              break;
-            case "dxf":
-              structure_from_file = dxf2s3d(lines);
-              break;
-            case "$2k":
-              structure_from_file = csi2s3d(lines);
-              break;
-            default:
-              callback(getProcessResponseObject("error", "parametricGenerator/not_supported_format", file_extension));
-              call_generator = false;
-              break;
-          }
-          if (call_generator) generateParametricModel(structure_from_file, callback);
+          let detection = importer.detectFileType(user_file.name, e.target.result);
+          if (!detection.success) return callback(detection);
+          let { type, parsed } = detection.data;
+          // This menu only parametrizes structural models, ParamEle files are opened from File > Import
+          if (type === "paramele") return callback(getProcessResponseObject("error", "parametricGenerator/not_supported_format"));
+          generateParametricModel(importer.getS3DModel(type, parsed), callback);
         } catch (error) {
           callback(getProcessResponseObject("error", "parametricGenerator/generic_fail"));
         }

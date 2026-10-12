@@ -272,7 +272,21 @@
         "parametricGenerator/no_extension_on_file_title": "Archivo a importar sin extensión",
         "parametricGenerator/no_extension_on_file_desc": "El archivo seleccionado no tiene ninguna extensión, asegúrate que el archivo sea correcto",
         "parametricGenerator/not_supported_format_title": "Archivo no soportado",
-        "parametricGenerator/not_supported_format_desc": "El archivo seleccionado no tiene un formato soportado"
+        "parametricGenerator/not_supported_format_desc": "El archivo seleccionado no tiene un formato soportado",
+        "import/invalid_json_title": "Archivo JSON inválido",
+        "import/invalid_json_desc": "No se pudo leer el archivo como JSON, asegúrate de que no esté dañado",
+        "import/unknown_json_title": "Archivo JSON desconocido",
+        "import/unknown_json_desc": "El archivo JSON no es un modelo de ParamEle (cajas y enlaces) ni un modelo S3D de SkyCiv",
+        "import/read_failed_title": "No se pudo leer el archivo",
+        "import/read_failed_desc": "Asegúrate de que el archivo exista e intenta de nuevo",
+        "import/load_failed_title": "No se pudo cargar el modelo",
+        "import/load_failed_desc": "El archivo de ParamEle parece dañado o es de una versión incompatible",
+        "import/convert_failed_title": "No se pudo convertir el archivo",
+        "import/convert_failed_desc": "No se pudo leer el modelo estructural del archivo, asegúrate de que esté completo",
+        "import/empty_model_title": "Modelo estructural vacío",
+        "import/empty_model_desc": "No se encontraron nodos estructurales en el archivo",
+        "parametricGenerator/generic_fail_title": "No se pudo generar el modelo paramétrico",
+        "parametricGenerator/generic_fail_desc": "Algo salió mal al generar las cajas a partir del modelo estructural"
     },
     "navigator": {
         "model": "Modelo principal"
@@ -410,5 +424,35 @@
         "min": "Mín.",
         "max": "Máx.",
         "step": "Paso"
+    },
+    "import": {
+        "drop_title": "Suelta el archivo para importarlo",
+        "drop_formats": "Modelo ParamEle (.json) · SkyCiv S3D (.json) · DXF (.dxf) · SAP2000 (.$2k, .s2k)",
+        "title_running": "Importando archivo",
+        "title_success": "Archivo importado",
+        "title_error": "No se pudo importar el archivo",
+        "detecting_type": "Detectando formato",
+        "type_paramele": "Modelo ParamEle",
+        "type_skyciv": "Modelo S3D de SkyCiv",
+        "type_dxf": "Dibujo DXF",
+        "type_csi": "Modelo SAP2000 (CSI)",
+        "step_reading": "Leyendo archivo",
+        "step_detecting": "Detectando formato",
+        "step_converting": "Convirtiendo a modelo estructural",
+        "step_generating_parametric_model": "Generando modelo paramétrico",
+        "step_loading_model": "Cargando cajas y enlaces",
+        "summary_boxes": "cajas",
+        "summary_nodes": "nodos",
+        "summary_members": "miembros",
+        "summary_plates": "placas",
+        "summary_supports": "apoyos",
+        "summary_point_loads": "cargas puntuales",
+        "summary_distributed_loads": "cargas distribuidas",
+        "summary_moments": "momentos",
+        "summary_sections": "secciones",
+        "summary_materials": "materiales",
+        "unsupported_drop_title": "Archivo no soportado",
+        "unsupported_drop_desc": "Suelta un JSON de ParamEle o SkyCiv, un DXF o un archivo de SAP2000 ($2k)",
+        "close": "Cerrar"
     }
 }

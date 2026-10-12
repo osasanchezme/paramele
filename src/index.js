@@ -18,6 +18,7 @@ import GlobalSettings from "./components/global_settings";
 import Authentication from "./components/authentication";
 import FileManager from "./components/file_manager";
 import { LoadingDimmer } from "./components/loading_dimmer";
+import FileDropZone from "./components/file_drop_zone";
 import utils from "./utils";
 import VisualEditor, { deselectAllNodesAndHandles, fitView, screenCoordsToReactFlow } from "./components/VisualEditor";
 import createNodesLibrary from "./flow-nodes/handler";
@@ -570,6 +571,11 @@ class ParamEle extends React.Component {
                   onMouseUp={this.handleMouseUp}
                 >
                   <LoadingDimmer />
+                  <FileDropZone
+                    openConfirmationDialog={this.openConfirmationDialog}
+                    setFileData={this.setFileData}
+                    setModelLock={this.setModelLock}
+                  ></FileDropZone>
                   <ConfirmationDialog
                     isDialogOpen={this.state.is_confirmation_open}
                     closeDialog={this.closeConfirmationDialog}

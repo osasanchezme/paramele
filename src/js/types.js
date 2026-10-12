@@ -172,3 +172,20 @@
  */
 
 exports.unused = {};
+
+/**
+ * @typedef {"paramele"|"skyciv"|"dxf"|"csi"} ParamEleImportFileType Formats that can be imported (dropped or picked) into the editor
+ */
+
+/**
+ * @typedef {"reading"|"detecting"|"converting"|"generating_parametric_model"|"loading_model"} ParamEleImportStep
+ */
+
+/**
+ * @typedef {object} ParamEleImportStatus Progress of a file import
+ * @property {string} file_name
+ * @property {ParamEleImportFileType|null} type Null until the format is detected
+ * @property {ParamEleImportStep[]} steps Steps of the process for this type of file
+ * @property {ParamEleImportStep} step Step that is running
+ * @property {Object.<string, number>|null} summary Number of elements per S3D group found in a structural file
+ */
