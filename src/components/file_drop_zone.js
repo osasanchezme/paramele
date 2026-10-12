@@ -99,7 +99,9 @@ function FileDropZone({ openConfirmationDialog, setFileData, setModelLock }) {
       );
       is_importing.current = false;
       setImportState((current) => ({ ...current, result: response }));
-      if (response.success) close_timer.current = setTimeout(() => setImportState(null), SUCCESS_CLOSE_DELAY);
+      // The status stays open when entities were left out, so the user can read which ones
+      let has_skipped = response.data && response.data.skipped && response.data.skipped.length > 0;
+      if (response.success && !has_skipped) close_timer.current = setTimeout(() => setImportState(null), SUCCESS_CLOSE_DELAY);
     };
 
     const onDragEnter = (event) => {
@@ -171,7 +173,8 @@ function FileDropZone({ openConfirmationDialog, setFileData, setModelLock }) {
       return "running";
     };
     let title_key = result == null ? "title_running" : result.success ? "title_success" : "title_error";
-    let summary = result && result.success ? Object.entries(result.data || {}) : [];
+    let summary = result && result.success ? Object.entries(result.data.summary) : [];
+    let skipped = (result && result.data && result.data.skipped) || [];
     status_content = (
       <>
         <ModalHeader>{localGetCopy(title_key)}</ModalHeader>
@@ -207,6 +210,16 @@ function FileDropZone({ openConfirmationDialog, setFileData, setModelLock }) {
                   </Tag>
                 ))}
               </Flex>
+            )}
+            {skipped.length > 0 && (
+              <Box p="3" borderRadius="md" bg="orange.50" color="orange.800" fontSize="sm">
+                <Text fontWeight="semibold">{localGetCopy("skipped_title")}</Text>
+                {skipped.map(({ type, reason, count }) => (
+                  <Text key={`${type}-${reason}`}>
+                    {count} {type}: {localGetCopy(`skipped_${reason}`)}
+                  </Text>
+                ))}
+              </Box>
             )}
             {result && !result.success && (
               <Box p="3" borderRadius="md" bg="red.50" color="red.700" fontSize="sm">

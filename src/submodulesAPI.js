@@ -1,5 +1,5 @@
 import generateInputFile from "./submodules/paramele-parsers/structural/csi/generateInputFile";
-import { dxf2s3d } from "./submodules/paramele-parsers/structural/dxf/generateS3DModel";
+import { parseDxf } from "./submodules/paramele-parsers/structural/dxf/generateS3DModel";
 import { csi2s3d } from "./submodules/paramele-parsers/structural/csi/csi2s3d";
 
 const parsers = {
@@ -8,7 +8,8 @@ const parsers = {
     getS3DModel: (csi_string) => csi2s3d(csi_string),
   },
   dxf: {
-    getS3DModel: (dxf_string) => dxf2s3d(dxf_string),
+    /** @returns {import("./submodules/paramele-parsers/structural/dxf/generateS3DModel").dxf_import_result} */
+    parse: (dxf_string) => parseDxf(dxf_string),
   },
 };
 export { parsers };

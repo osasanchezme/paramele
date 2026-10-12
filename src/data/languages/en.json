@@ -449,6 +449,12 @@
         "summary_moments": "moments",
         "summary_sections": "sections",
         "summary_materials": "materials",
+        "skipped_title": "Some entities of the file were not imported",
+        "skipped_unsupported": "type not supported",
+        "skipped_invalid": "missing or invalid coordinates",
+        "skipped_paper_space": "in paper space",
+        "skipped_zero_length": "zero length",
+        "skipped_duplicate": "duplicated, overlaps another member",
         "unsupported_drop_title": "Not supported file",
         "unsupported_drop_desc": "Drop a ParamEle or SkyCiv JSON, a DXF or a SAP2000 ($2k) file",
         "close": "Close"

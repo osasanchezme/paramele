@@ -451,6 +451,12 @@
         "summary_moments": "momentos",
         "summary_sections": "secciones",
         "summary_materials": "materiales",
+        "skipped_title": "Algunas entidades del archivo no se importaron",
+        "skipped_unsupported": "tipo no soportado",
+        "skipped_invalid": "coordenadas faltantes o inválidas",
+        "skipped_paper_space": "en el espacio papel",
+        "skipped_zero_length": "longitud cero",
+        "skipped_duplicate": "duplicada, se superpone a otro miembro",
         "unsupported_drop_title": "Archivo no soportado",
         "unsupported_drop_desc": "Suelta un JSON de ParamEle o SkyCiv, un DXF o un archivo de SAP2000 ($2k)",
         "close": "Cerrar"

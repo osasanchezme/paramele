@@ -224,7 +224,7 @@ const importStructureModel = (callback) => {
           let { type, parsed } = detection.data;
           // This menu only parametrizes structural models, ParamEle files are opened from File > Import
           if (type === "paramele") return callback(getProcessResponseObject("error", "parametricGenerator/not_supported_format"));
-          generateParametricModel(importer.getS3DModel(type, parsed), callback);
+          generateParametricModel(importer.getS3DModel(type, parsed).s3d_model, callback);
         } catch (error) {
           callback(getProcessResponseObject("error", "parametricGenerator/generic_fail"));
         }

@@ -80,17 +80,17 @@ const detectFileType = (file_name, file_text) => {
  * Converts the parsed file contents into a S3D model
  * @param {import("./types").ParamEleImportFileType} type
  * @param {any} parsed
- * @returns {import("../submodules/paramele-parsers/types").s3d_model}
+ * @returns {{s3d_model: import("../submodules/paramele-parsers/types").s3d_model, skipped: import("./types").ParamEleImportSkipped[]}}
+ * `skipped` lists the entities of the file that were left out of the model
  */
 const getS3DModel = (type, parsed) => {
   switch (type) {
     case "skyciv":
-      return parsed;
+      return { s3d_model: parsed, skipped: [] };
     case "dxf":
-      // The DXF parser only matches CRLF line endings, files saved on macOS or Linux can use LF
-      return parsers.dxf.getS3DModel(parsed.replace(/\r?\n/g, "\r\n"));
+      return parsers.dxf.parse(parsed);
     case "csi":
-      return parsers.csi.getS3DModel(parsed);
+      return { s3d_model: parsers.csi.getS3DModel(parsed), skipped: [] };
     default:
       throw new Error(`No structural importer for ${type}`);
   }
@@ -137,11 +137,11 @@ const waitForEmptyEditor = async (timeout = 2000) => {
  * @param {File} user_file
  * @param {function(import("./types").ParamEleImportStatus): void} onStatus Called every time the process changes
  * @param {function(): void} [onReplaceModel] Called right before the current model is replaced, it is not called when the file is rejected
- * @returns {Promise<import("./types").ParamEleProcessResponse>} `data` is the import summary on success
+ * @returns {Promise<import("./types").ParamEleProcessResponse>} `data` is `{summary, skipped}` on success, an empty model also has `skipped`
  */
 const importFile = async (user_file, onStatus, onReplaceModel = () => {}) => {
   /** @type {import("./types").ParamEleImportStatus} */
-  let status = { file_name: user_file.name, type: null, steps: ["reading", "detecting"], step: "reading", summary: null };
+  let status = { file_name: user_file.name, type: null, steps: ["reading", "detecting"], step: "reading", summary: null, skipped: [] };
   const update = (changes) => {
     status = { ...status, ...changes };
     onStatus(status);
@@ -169,29 +169,29 @@ const importFile = async (user_file, onStatus, onReplaceModel = () => {}) => {
     } catch {
       return getProcessResponseObject("error", "import/load_failed");
     }
-    return getProcessResponseObject("success", "", { boxes: parsed.model.nodes.length });
+    return getProcessResponseObject("success", "", { summary: { boxes: parsed.model.nodes.length }, skipped: [] });
   }
 
-  let s3d_model;
+  let s3d_model, skipped;
   try {
     if (type !== "skyciv") {
       update({ step: "converting" });
       await nextFrame();
     }
-    s3d_model = getS3DModel(type, parsed);
+    ({ s3d_model, skipped } = getS3DModel(type, parsed));
   } catch {
     return getProcessResponseObject("error", "import/convert_failed");
   }
   let summary = getS3DSummary(s3d_model);
-  if (!summary.nodes) return getProcessResponseObject("error", "import/empty_model");
-  update({ step: "generating_parametric_model", summary });
+  if (!summary.nodes) return getProcessResponseObject("error", "import/empty_model", { skipped });
+  update({ step: "generating_parametric_model", summary, skipped });
   await nextFrame();
   try {
     onReplaceModel();
     file.newFile();
     await waitForEmptyEditor();
     let process_response = await new Promise((resolve) => generateParametricModel(s3d_model, resolve));
-    return process_response.success ? getProcessResponseObject("success", "", summary) : process_response;
+    return process_response.success ? getProcessResponseObject("success", "", { summary, skipped }) : process_response;
   } catch {
     return getProcessResponseObject("error", "parametricGenerator/generic_fail");
   }

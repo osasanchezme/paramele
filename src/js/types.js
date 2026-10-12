@@ -188,4 +188,12 @@ exports.unused = {};
  * @property {ParamEleImportStep[]} steps Steps of the process for this type of file
  * @property {ParamEleImportStep} step Step that is running
  * @property {Object.<string, number>|null} summary Number of elements per S3D group found in a structural file
+ * @property {ParamEleImportSkipped[]} skipped Entities of the file that were left out of the model
+ */
+
+/**
+ * @typedef {object} ParamEleImportSkipped Entities of the same type that an importer left out for the same reason
+ * @property {string} type Entity type in the source format, e.g. CIRCLE in a DXF
+ * @property {"unsupported"|"invalid"|"paper_space"|"zero_length"|"duplicate"} reason
+ * @property {number} count
  */
