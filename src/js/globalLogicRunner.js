@@ -11,9 +11,11 @@ function run(model) {
   }
   // Restart the structure
   state.setState(utils.getEmptyStructuralModel(), "structure");
-  let { nodes, origins } = calculateModel(model, true);
+  let { nodes, origins, combinations } = calculateModel(model, true);
   // Lets the drawing tools find the box behind an element clicked in the renderer
   state.setGlobalVariable("structure_origins", origins);
+  // Lets the renderer frame and label each possibility
+  state.setGlobalVariable("structure_combinations", combinations);
   // Update the whole ReactFlow
   let rf_instance = state.getRfInstance();
   rf_instance.setNodes(nodes);
@@ -38,6 +40,8 @@ function calculateModel(model, is_from_main_model) {
   let range_nodes = [];
   // Box that created each structural element, by structure key and ID (only for the main model, wrappers create their own)
   let origins = {};
+  // Structural nodes created by each possibility when all of them are calculated (only for the main model)
+  let combinations = [];
   const library = utils.getNodesLibrary();
   const global_settings = getState("settings")["global"];
   const iterate_sliders = global_settings["sliders_mode"] === "sliders_all";
@@ -139,6 +143,7 @@ function calculateModel(model, is_from_main_model) {
       // Case with no range iterators and not from a wrapper node (there should not be shift)
       state.setGlobalVariable("structure_nodes_shift", 0);
     }
+    const previous_node_ids = new Set(Object.keys(structure["nodes"]));
     // Run all the logic
     Object.entries(connected_nodes).forEach(([node_id, node]) => {
       let structure_changed = false;
@@ -212,9 +217,14 @@ function calculateModel(model, is_from_main_model) {
       nodes[nodes_i[node_id]]["data"]["input"] = result_input;
       if (structure_changed) state.setState(structure, "structure");
     });
+    if (is_from_main_model && iterate_sliders && model_combination !== null && max_range_node.data.iterating) {
+      // Wrapper nodes add their own structural nodes, so the new IDs are read from the structure
+      const node_ids = Object.keys(getState("structure")["nodes"]).filter((node_id) => !previous_node_ids.has(node_id));
+      combinations.push({ node_label: max_range_node.data.custom_label || max_range_node.id, value: model_combination[max_range_node.id]["slider-value"], node_ids });
+    }
   });
 
-  return { nodes, origins };
+  return { nodes, origins, combinations };
 }
 
 const logic_runner = { run, calculateModel };

@@ -165,6 +165,14 @@
  * @typedef {"number"|"string"|"range"} ParamEleFavoriteKind How a favorite parameter is edited: free number, text, or a variableRange slider
  */
 
+/**
+ * One possibility calculated when sliders_mode is "sliders_all", stored in the "structure_combinations" global variable
+ * @typedef {object} ParamEleStructureCombination
+ * @property {string} node_label Label of the variableRange node that is iterated
+ * @property {number} value Value that the iterated node takes in this possibility
+ * @property {string[]} node_ids Structural nodes created by this possibility
+ */
+
 exports.unused = {};
 
 /**

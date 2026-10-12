@@ -301,8 +301,87 @@ function getData(drawing_state) {
     plotly_data.push(mm);
     drawingLayer.pushHandle(handles, "moments", mm_id, { x: mm.x[0], y: mm.y[0], z: mm.z[0] });
   });
+  plotly_data.push(...getCombinationsFrames(structure.nodes, state.getGlobalVariable("structure_combinations"), global_settings));
   plotly_data.push(...drawingLayer.getHandlesTraces(handles, tool));
   return plotly_data;
+}
+
+/**
+ * Faint wireframe boxes around each possibility, all with the size of the largest one, labeled with the value of the iterated node
+ * @param {object} structural_nodes
+ * @param {import("./types").ParamEleStructureCombination[]} [combinations]
+ * @param {object} global_settings
+ */
+function getCombinationsFrames(structural_nodes, combinations, global_settings) {
+  if (!combinations || combinations.length === 0) return [];
+  const axes = ["x", "y", "z"];
+  const bounds = combinations.map((combination) => {
+    const min = { x: Infinity, y: Infinity, z: Infinity };
+    const max = { x: -Infinity, y: -Infinity, z: -Infinity };
+    combination.node_ids.forEach((node_id) => {
+      const node = structural_nodes[node_id];
+      if (!node) return;
+      axes.forEach((axis) => {
+        min[axis] = Math.min(min[axis], node[axis]);
+        max[axis] = Math.max(max[axis], node[axis]);
+      });
+    });
+    return min.x === Infinity ? null : { min, max };
+  });
+  const size = { x: 0, y: 0, z: 0 };
+  bounds.forEach((bound) => {
+    if (bound) axes.forEach((axis) => (size[axis] = Math.max(size[axis], bound.max[axis] - bound.min[axis])));
+  });
+  // The margin around the largest possibility stays under half the spacing, so neighbor boxes of the same size do not touch
+  const spacing = Number(global_settings["spacing_between_combinations"]) || 0;
+  const margin = Math.min(0.1 * Math.max(size.x, size.y, size.z, 1), 0.4 * spacing);
+  axes.forEach((axis) => (size[axis] += 2 * margin));
+
+  const frames = { x: [], y: [], z: [], type: "scatter3d", mode: "lines", hoverinfo: "none", opacity: 0.25, line: { width: 1, color: "#718096" } };
+  const labels = {
+    x: [],
+    y: [],
+    z: [],
+    text: [],
+    type: "scatter3d",
+    mode: "text",
+    hoverinfo: "none",
+    textposition: "top right",
+    textfont: { color: "#718096", size: 11 },
+  };
+  // Edges of a unit box as pairs of corners
+  const corners = [
+    [0, 0, 0],
+    [1, 0, 0],
+    [1, 1, 0],
+    [0, 1, 0],
+    [0, 0, 1],
+    [1, 0, 1],
+    [1, 1, 1],
+    [0, 1, 1],
+  ];
+  const edges = [
+    [0, 1, 2, 3, 0, 4, 5, 6, 7, 4],
+    [1, 5],
+    [2, 6],
+    [3, 7],
+  ];
+  bounds.forEach((bound, i) => {
+    if (!bound) return;
+    // Centered on its possibility
+    const origin = {};
+    axes.forEach((axis) => (origin[axis] = (bound.min[axis] + bound.max[axis]) / 2 - size[axis] / 2));
+    edges.forEach((edge) => {
+      edge.forEach((corner_i) => axes.forEach((axis, axis_i) => frames[axis].push(origin[axis] + corners[corner_i][axis_i] * size[axis])));
+      axes.forEach((axis) => frames[axis].push(null));
+    });
+    const combination = combinations[i];
+    labels.x.push(origin.x);
+    labels.y.push(origin.y);
+    labels.z.push(origin.z + size.z);
+    labels.text.push(`${combination.node_label} = ${Number(combination.value.toFixed(10))}`);
+  });
+  return [frames, labels];
 }
 
 function getLayout() {
