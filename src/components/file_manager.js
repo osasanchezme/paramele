@@ -224,7 +224,7 @@ function FileManager({ user, is_file_manager_open, closeFileManager, file_manage
             firstFieldRef={file_name_ref}
           ></FormComponent>
           {close_button}
-          <Button colorScheme="blue" onClick={saveFile}>
+          <Button colorScheme="brand" onClick={saveFile}>
             {localGetDisplayCopy("save")}
           </Button>
         </>
@@ -233,7 +233,7 @@ function FileManager({ user, is_file_manager_open, closeFileManager, file_manage
       fileman_footer = (
         <>
           {close_button}
-          <Button colorScheme="blue">{localGetDisplayCopy("open")}</Button>
+          <Button colorScheme="brand">{localGetDisplayCopy("open")}</Button>
         </>
       );
     }

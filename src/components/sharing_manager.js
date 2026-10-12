@@ -150,7 +150,7 @@ function SharingManager({ is_sharing_manager_open, closeSharingManager, getConta
           <Flex pt={2}>
             <Spacer />
             <Tooltip label={userAllowedShare ? "" : utils.getDisplayCopy("tooltips", "no_permissions")}>
-              <Button isDisabled={!userAllowedShare} colorScheme="blue" onClick={shareFileWithUser} isLoading={shareButtonLoading}>
+              <Button isDisabled={!userAllowedShare} colorScheme="brand" onClick={shareFileWithUser} isLoading={shareButtonLoading}>
                 {localGetDisplayCopy("title")}
               </Button>
             </Tooltip>
@@ -245,7 +245,7 @@ function PersonItem({ file_shared_data, shared_user_id, getContactInformation, f
     });
   };
   return (
-    <Card mb={3} colorScheme="blue" variant="outline">
+    <Card mb={3} colorScheme="brand" variant="outline">
       <CardBody p={2}>
         {contactData ? (
           <Flex>

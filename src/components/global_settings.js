@@ -171,7 +171,7 @@ function GlobalSettings({ user }) {
                       case "link":
                         setting_block = (
                           <p style={{ textAlign: "right" }} key={setting.name}>
-                            <Link href={setting.data} color="blue" isExternal>
+                            <Link href={setting.data} color="brand.600" isExternal>
                               {localGetDisplayCopy(setting.name)} <Icon as={MdOpenInNew} mx="2px" />
                             </Link>
                           </p>
@@ -207,7 +207,7 @@ function GlobalSettings({ user }) {
           </Tabs>
         </ModalBody>
         <ModalFooter>
-          <Button colorScheme="blue" mr={3} onClick={saveSettings} isLoading={isSaving}>
+          <Button colorScheme="brand" mr={3} onClick={saveSettings} isLoading={isSaving}>
             {localGetDisplayCopy("save_changes")}
           </Button>
           <Button variant="ghost" onClick={onClose}>

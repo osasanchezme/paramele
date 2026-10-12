@@ -387,7 +387,7 @@ function NumberControl({ favorite, node, kind, value, label, model_locked }) {
         <Slider
           flex="1"
           size="sm"
-          colorScheme="blue"
+          colorScheme="brand"
           min={min}
           max={max}
           step={step}

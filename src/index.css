@@ -53,6 +53,13 @@ div.nav-bar .nav-bar-right-corner {
   padding-right: 8px;
 }
 
+div.nav-bar .nav-bar-logomark {
+  flex-shrink: 0;
+  margin: 0 4px;
+  color: var(--chakra-colors-brand-ink);
+  --pe-logo-accent: var(--chakra-colors-brand-olive_deep);
+}
+
 .nav-bar-compact-menu {
   max-height: calc(var(--app-height) - 60px);
   overflow-y: auto;
@@ -303,7 +310,7 @@ div.parameters-panel.minimized.compact {
 }
 
 .parameters-panel-pill:focus-visible {
-  outline: 2px solid var(--chakra-colors-blue-500);
+  outline: 2px solid var(--chakra-colors-brand-500);
   outline-offset: 2px;
 }
 
@@ -451,7 +458,7 @@ svg.drawing-hover {
 }
 
 svg.drawing-hover .drawing-dimension line {
-  stroke: #4a5568;
+  stroke: var(--chakra-colors-gray-600);
   stroke-width: 1;
 }
 
@@ -468,7 +475,7 @@ svg.drawing-hover .drawing-dimension-tag rect {
 svg.drawing-hover .drawing-dimension-tag text {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 11px;
-  fill: #1a202c;
+  fill: var(--chakra-colors-gray-800);
 }
 
 svg.drawing-hover .drawing-dimension-value {
@@ -477,15 +484,15 @@ svg.drawing-hover .drawing-dimension-value {
 
 svg.drawing-hover .drawing-dimension-detail {
   font-size: 10px;
-  fill: #718096;
+  fill: var(--chakra-colors-gray-500);
 }
 
 svg.drawing-hover .drawing-dimension-tag.muted rect {
-  stroke: #cbd5e0;
+  stroke: var(--chakra-colors-gray-300);
 }
 
 svg.drawing-hover .drawing-dimension-tag.muted text {
-  fill: #4a5568;
+  fill: var(--chakra-colors-gray-600);
 }
 
 svg.drawing-hover .drawing-dimension-tag.muted .drawing-dimension-value {

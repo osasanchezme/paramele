@@ -52,7 +52,7 @@ const hasFiles = (event) => event.dataTransfer != null && Array.from(event.dataT
  */
 function ImportStep({ step, state }) {
   let icon = { done: <Icon as={MdCheckCircle} color="green.500" boxSize="5" />, error: <Icon as={MdError} color="red.500" boxSize="5" /> }[state];
-  if (state === "running") icon = <Spinner size="sm" speed="0.8s" color="blue.500" mx="2px" />;
+  if (state === "running") icon = <Spinner size="sm" speed="0.8s" color="brand.500" mx="2px" />;
   if (state === "pending") icon = <Icon as={MdRadioButtonUnchecked} color="gray.300" boxSize="5" />;
   return (
     <HStack spacing="3">
@@ -142,7 +142,7 @@ function FileDropZone({ openConfirmationDialog, setFileData, setModelLock }) {
               startImport(user_file);
             },
             copy: "ok",
-            color: "blue",
+            color: "brand",
           },
         ],
         true
@@ -187,7 +187,7 @@ function FileDropZone({ openConfirmationDialog, setFileData, setModelLock }) {
                   {status.file_name}
                 </Text>
                 {status.type ? (
-                  <Tag size="sm" colorScheme="blue" mt="1">
+                  <Tag size="sm" colorScheme="brand" mt="1">
                     {localGetCopy(`type_${status.type}`)}
                   </Tag>
                 ) : (
@@ -249,7 +249,7 @@ function FileDropZone({ openConfirmationDialog, setFileData, setModelLock }) {
             bg="white"
             borderWidth="2px"
             borderStyle="dashed"
-            borderColor="blue.400"
+            borderColor="brand.400"
             borderRadius="lg"
             px="10"
             py="8"
@@ -257,7 +257,7 @@ function FileDropZone({ openConfirmationDialog, setFileData, setModelLock }) {
             textAlign="center"
             boxShadow="lg"
           >
-            <Icon as={MdFileUpload} boxSize="12" color="blue.500" />
+            <Icon as={MdFileUpload} boxSize="12" color="brand.500" />
             <Text fontSize="lg" fontWeight="semibold">
               {localGetCopy("drop_title")}
             </Text>

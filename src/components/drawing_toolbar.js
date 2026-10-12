@@ -139,8 +139,8 @@ function DrawingToolbar({ drawing_state, setDrawingState, levels, can_undo, undo
                   aria-label={label}
                   aria-pressed={is_selected}
                   icon={<ToolIcon size={17} />}
-                  bg={is_selected ? "blue.50" : "white"}
-                  color={is_selected ? "blue.600" : "gray.700"}
+                  bg={is_selected ? "brand.50" : "white"}
+                  color={is_selected ? "brand.600" : "gray.700"}
                   isDisabled={model_locked && tool_key !== "none"}
                   onClick={() => setDrawingState({ tool: tool_key })}
                 />
@@ -180,8 +180,8 @@ function DrawingToolbar({ drawing_state, setDrawingState, levels, can_undo, undo
                   <Tooltip key={plane_key} label={localGetCopy(`plane_${plane_key}`)} placement="bottom" openDelay={300}>
                     <Button
                       aria-pressed={plane === plane_key}
-                      bg={plane === plane_key ? "blue.50" : "white"}
-                      color={plane === plane_key ? "blue.600" : "gray.700"}
+                      bg={plane === plane_key ? "brand.50" : "white"}
+                      color={plane === plane_key ? "brand.600" : "gray.700"}
                       onClick={() => setDrawingState({ plane: plane_key })}
                     >
                       {plane_key.toUpperCase()}
@@ -248,8 +248,8 @@ function DrawingToolbar({ drawing_state, setDrawingState, levels, can_undo, undo
                 <Button
                   key={code}
                   aria-pressed={drawing_state.restraint_code === code}
-                  bg={drawing_state.restraint_code === code ? "blue.50" : "white"}
-                  color={drawing_state.restraint_code === code ? "blue.600" : "gray.700"}
+                  bg={drawing_state.restraint_code === code ? "brand.50" : "white"}
+                  color={drawing_state.restraint_code === code ? "brand.600" : "gray.700"}
                   onClick={() => setDrawingState({ restraint_code: code })}
                 >
                   {localGetCopy(copy)}

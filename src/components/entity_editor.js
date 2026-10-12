@@ -104,7 +104,7 @@ function FieldSource({ field, onDetach, isDisabled }) {
         </Text>
         {shared_count > 0 && (
           <Tooltip label={localGetCopy("editor_detach_tooltip")} placement="top" openDelay={300}>
-            <Button size="xs" variant="link" colorScheme="blue" leftIcon={<TbLinkOff />} onClick={onDetach} isDisabled={isDisabled}>
+            <Button size="xs" variant="link" colorScheme="brand" leftIcon={<TbLinkOff />} onClick={onDetach} isDisabled={isDisabled}>
               {localGetCopy("editor_detach")}
             </Button>
           </Tooltip>
@@ -166,8 +166,8 @@ function EntityEditor({ entity, position, container_size, model_locked, onChange
                         key={code}
                         flex="1"
                         aria-pressed={field.value === code}
-                        bg={field.value === code ? "blue.50" : "white"}
-                        color={field.value === code ? "blue.600" : "gray.700"}
+                        bg={field.value === code ? "brand.50" : "white"}
+                        color={field.value === code ? "brand.600" : "gray.700"}
                         isDisabled={is_disabled}
                         onClick={() => field.value !== code && onChange(field.key, code)}
                       >

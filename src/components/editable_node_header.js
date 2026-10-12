@@ -126,7 +126,7 @@ function EditableNodeHeader({ node_label, id, identifier_icon, node_type }) {
       {identifier_icon ? (
         <Tooltip label={utils.getDisplayCopy("tooltips", "iterating_box")}>
           <Box position="absolute" top="5px" right="3px">
-            <Icon boxSize={4} color="blue.500" as={identifier_icon} />
+            <Icon boxSize={4} color="brand.500" as={identifier_icon} />
           </Box>
         </Tooltip>
       ) : (

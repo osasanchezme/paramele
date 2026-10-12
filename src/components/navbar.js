@@ -30,6 +30,7 @@ import Firebase from "../js/firebase";
 import { useGlobalLoading } from "../Context";
 import { notify } from "./notification";
 import { COMPACT_LAYOUT_QUERY, COMPACT_NAV_BAR_QUERY } from "../js/breakpoints";
+import { ReactComponent as Logomark } from "../assets/logomark.svg";
 
 function localGetCopy(node_name) {
   return utils.getDisplayCopy("nav_bar", node_name);
@@ -90,7 +91,7 @@ function NavBar({
                       close_dialog_callback();
                     },
                     copy: "ok",
-                    color: "blue",
+                    color: "brand",
                   },
                 ],
                 true
@@ -144,7 +145,7 @@ function NavBar({
                       close_dialog_callback();
                     },
                     copy: "ok",
-                    color: "blue",
+                    color: "brand",
                   },
                 ],
                 true
@@ -271,6 +272,7 @@ function NavBar({
       <div className="nav-bar">
         <Flex direction="row" className="nav-bar-button-group">
           <Box className="nav-bar-left-corner">
+            <BrandMark />
             <PanelToggle visible={show_properties_panel} onToggle={togglePropertiesPanel} />
             <ParametersPanelToggle visible={show_parameters_panel} onToggle={toggleParametersPanel} count={favorites_count} />
             <CompactMenu options={navbar_options.current} />
@@ -303,6 +305,7 @@ function NavBar({
     <div className="nav-bar">
       <Flex direction="row" spacing={0} className="nav-bar-button-group">
         <Box width="150px" className="nav-bar-left-corner">
+          <BrandMark />
           <PanelToggle visible={show_properties_panel} onToggle={togglePropertiesPanel} />
           <ParametersPanelToggle visible={show_parameters_panel} onToggle={toggleParametersPanel} count={favorites_count} />
         </Box>
@@ -405,6 +408,13 @@ function ParametersPanelToggle({ visible, onToggle, count }) {
       </Box>
     </Tooltip>
   );
+}
+
+/**
+ * The ParamEle logomark, inlined so it takes the light-ground brand colours: ink, and olive-deep for the accent
+ */
+function BrandMark() {
+  return <Logomark className="nav-bar-logomark" width={30} height={26} />;
 }
 
 function PanelToggle({ visible, onToggle }) {

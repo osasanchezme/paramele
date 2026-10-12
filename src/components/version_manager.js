@@ -226,9 +226,9 @@ function VersionItem({
           marginTop="1.5"
           borderRadius="full"
           borderWidth="2px"
-          borderColor={is_current ? "blue.500" : "gray.300"}
-          backgroundColor={is_current ? "blue.500" : "white"}
-          boxShadow={is_current ? "0 0 0 3px var(--chakra-colors-blue-100)" : "none"}
+          borderColor={is_current ? "brand.500" : "gray.300"}
+          backgroundColor={is_current ? "brand.500" : "white"}
+          boxShadow={is_current ? "0 0 0 3px var(--chakra-colors-brand-100)" : "none"}
         />
         {is_last ? null : <Box width="2px" flex="1" backgroundColor="gray.200" marginTop="1" />}
       </Flex>
@@ -238,7 +238,7 @@ function VersionItem({
             {utils.getFormattedDate(Number(version_key))}
           </Text>
           {is_current ? (
-            <Tag size="sm" colorScheme="blue" borderRadius="full">
+            <Tag size="sm" colorScheme="brand" borderRadius="full">
               {localGetDisplayCopy("current")}
             </Tag>
           ) : null}
@@ -247,15 +247,15 @@ function VersionItem({
           marginTop="2"
           padding="3"
           borderWidth="1px"
-          borderColor={is_current ? "blue.100" : "gray.200"}
-          backgroundColor={is_current ? "blue.50" : "gray.50"}
+          borderColor={is_current ? "brand.100" : "gray.200"}
+          backgroundColor={is_current ? "brand.50" : "gray.50"}
           borderRadius="lg"
         >
           <Flex alignItems="center" gap="2">
             <Box flex="1" minWidth="0">
               {getAuthor()}
             </Box>
-            <Button size="xs" colorScheme="blue" leftIcon={<Icon as={MdOpenInBrowser} />} onClick={handleClickOnLoadButton}>
+            <Button size="xs" colorScheme="brand" leftIcon={<Icon as={MdOpenInBrowser} />} onClick={handleClickOnLoadButton}>
               {localGetDisplayCopy("load")}
             </Button>
             <Tooltip label={getPermissionLabel("delete")}>
@@ -278,7 +278,7 @@ function VersionItem({
               <Tooltip label={getPermissionLabel("save")}>
                 <IconButton
                   size="xs"
-                  colorScheme="blue"
+                  colorScheme="brand"
                   icon={isButtonLoading ? <Spinner size="xs" speed="0.7s" /> : <Icon as={MdSave} boxSize="4" />}
                   aria-label={localGetDisplayCopy("save")}
                   onClick={handleClickEditCommitMessage}

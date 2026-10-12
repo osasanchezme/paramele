@@ -16,6 +16,8 @@ import {
   SimpleGrid,
   Link,
   useMediaQuery,
+  Image,
+  VStack,
 } from "@chakra-ui/react";
 import utils from "../utils";
 import Firebase from "../js/firebase";
@@ -23,6 +25,7 @@ import { auth_form_fields, log_in_form_fields } from "../js/form_fileds";
 import ParamEleForm from "./form";
 import { notify } from "./notification";
 import { COMPACT_LAYOUT_QUERY } from "../js/breakpoints";
+import logo_light from "../assets/logo-light.svg";
 const { FormComponent, getDefaultState, validateInputData } = ParamEleForm;
 
 function localGetDisplayCopy(copy_key) {
@@ -113,7 +116,12 @@ function Authentication({ user, is_auth_form_open, closeAuthenticationForm, acti
       <Modal isOpen={is_auth_form_open} onClose={closeAuthenticationForm} size={is_compact ? "full" : "5xl"} scrollBehavior="inside">
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>{localGetDisplayCopy("title")}</ModalHeader>
+          <ModalHeader>
+            <VStack align="start" spacing={3}>
+              <Image src={logo_light} alt="ParamEle" height="28px" />
+              <span>{localGetDisplayCopy("title")}</span>
+            </VStack>
+          </ModalHeader>
           <ModalCloseButton />
           <ModalBody paddingX={is_compact ? 2 : undefined}>
             <Tabs onChange={handleTabsChange} defaultIndex={tab_keys.indexOf(active_tab_auth_form)} isFitted={is_compact}>
@@ -146,7 +154,7 @@ function Authentication({ user, is_auth_form_open, closeAuthenticationForm, acti
                     onClick={resetPassword}
                     marginTop={is_compact ? 4 : undefined}
                     display={is_compact ? "inline-block" : undefined}
-                    color={is_compact ? "blue.500" : undefined}
+                    color={is_compact ? "brand.600" : undefined}
                   >
                     {localGetDisplayCopy("reset_password")}
                   </Link>
@@ -159,14 +167,14 @@ function Authentication({ user, is_auth_form_open, closeAuthenticationForm, acti
               {localGetDisplayCopy("close_modal")}
             </Button>
             {active_tab_auth_form === "sign_up" ? (
-              <Button colorScheme="blue" type="submit" form="sign_up_form">
+              <Button colorScheme="brand" type="submit" form="sign_up_form">
                 {localGetDisplayCopy("sign_up")}
               </Button>
             ) : (
               ""
             )}
             {active_tab_auth_form === "log_in" ? (
-              <Button colorScheme="blue" type="submit" form="log_in_form">
+              <Button colorScheme="brand" type="submit" form="log_in_form">
                 {localGetDisplayCopy("log_in")}
               </Button>
             ) : (
