@@ -4,6 +4,7 @@ import logic_runner from "./globalLogicRunner";
 import blank_model from "../data/template-0.json";
 import repair from "./repair";
 import utils from "../utils";
+import drawing from "./drawing";
 import Firebase from "./firebase";
 import { notify } from "../components/notification";
 import { getInitialState } from "../initial_state";
@@ -73,7 +74,14 @@ const newFile = () => {
   rf_instance.setNodes(blank_model.model.nodes);
   rf_instance.setEdges(blank_model.model.edges);
   state.updateSettingsFromLocalState(blank_model.settings);
+  onModelReplaced();
   logic_runner.run(blank_model.model);
+};
+
+// What was drawn and the view fixed for it belong to the previous model
+const onModelReplaced = () => {
+  drawing.clearHistory();
+  utils.resetRendererView();
 };
 
 const uploadJSONFile = () => {
@@ -122,6 +130,7 @@ const setModelAndResultsFromParsedBlob = (state_from_file, results_from_file) =>
   rf_instance.setEdges(model.edges);
   state.updateSettingsFromLocalState(state_from_file.settings);
   state.resetView();
+  onModelReplaced();
   logic_runner.run(model);
 };
 

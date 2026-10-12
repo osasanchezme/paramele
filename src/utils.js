@@ -111,6 +111,10 @@ function updateRenderer() {
   window.ParamEle.updateRenderer();
 }
 
+function resetRendererView() {
+  window.ParamEle.resetRendererView?.();
+}
+
 function updateNavigator() {
   window.ParamEle.updateNavigator();
 }
@@ -323,6 +327,7 @@ const utils = {
   nextStructuralId,
   getEmptyStructuralModel,
   updateRenderer,
+  resetRendererView,
   convertNodeToStructuralArgs,
   splitArgName,
   getDisplayCopy,
@@ -344,7 +349,7 @@ const utils = {
   decodeUniqueIDToName,
   getNodeFullID,
   nextNodeIndex,
-  print
+  print,
 };
 
 export default utils;
