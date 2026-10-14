@@ -3,6 +3,10 @@ import geom_utils from "../geom_utils";
 import state from "../state";
 import utils from "../utils";
 import drawingLayer from "./drawingLayer";
+import mesher from "./mesher";
+
+const PLATE_COLOR = "#D2DDE8";
+const MESH_LINES_COLOR = "#5A6B7D";
 
 function localGetCopy(node_name) {
   return utils.getDisplayCopy("renderer", node_name);
@@ -65,7 +69,11 @@ function getData(drawing_state) {
     text: [],
     hovertemplate: "%{text} (%{x}, %{y}, %{z})<extra></extra>",
   };
+  // The nodes made by the mesher are drawn with the mesh, they are not boxes of the model
+  const structure_mesh = state.getGlobalVariable("structure_mesh");
+  const mesh_node_ids = new Set(structure_mesh ? structure_mesh.node_ids.map(String) : []);
   Object.entries(structure.nodes).forEach(([node_id, node_data]) => {
+    if (mesh_node_ids.has(node_id)) return;
     nodes.customdata.push(node_id);
     nodes.x.push(node_data.x);
     nodes.y.push(node_data.y);
@@ -235,46 +243,45 @@ function getData(drawing_state) {
     text: [],
     hovertemplate: "%{text} <extra></extra>",
   };
+  const quads_by_plate = getQuadsByPlate(structure.meshed_plates);
+  const plate_contour = getPlateDisplacementContour(structure.meshed_plates, units);
+  let show_scale = true;
   Object.entries(structure.plates).forEach(([plate_id, plate_data]) => {
     if (!plate_data.nodes || !Array.isArray(plate_data.nodes)) return;
-    // Find the best Delaunay axis
-    let delaunayaxis = "x";
-    if (plate_data.nodes.length > 2) {
-      let { vector_1, vector_2 } = geom_utils.findNotParallelVectorsInNodesList(plate_data.nodes.map((node_id) => structure.nodes[node_id]));
-      delaunayaxis = geom_utils.getMostPerpendicularAxisToPlane(vector_1, vector_2);
+    if (quads_by_plate[plate_id]) {
+      let plate_trace = getMeshedPlateTrace(structure.nodes, quads_by_plate[plate_id], plate_contour, show_scale);
+      // Plotly keeps the colors of a mesh3d trace that goes from intensity to a plain color, a new uid redraws it
+      plate_trace.uid = `plate-${plate_id}-${plate_contour ? "contour" : "plain"}`;
+      plotly_data.push(plate_trace);
+      show_scale = false;
+    } else {
+      // Triangles of the plate's own polygon: Delaunay over the corners would fill a concave plate up to its convex hull
+      let plate_nodes = plate_data.nodes.map((node_id) => structure.nodes[node_id]).filter(Boolean);
+      let triangles = mesher.triangulatePolygon(plate_nodes);
+      let plate = {
+        x: plate_nodes.map((node) => node.x),
+        y: plate_nodes.map((node) => node.y),
+        z: plate_nodes.map((node) => node.z),
+        i: triangles.map((triangle) => triangle[0]),
+        j: triangles.map((triangle) => triangle[1]),
+        k: triangles.map((triangle) => triangle[2]),
+        type: "mesh3d",
+        color: PLATE_COLOR,
+        hoverinfo: "none",
+        opacity: 0.5,
+        flatshading: true,
+        lighting: { ambient: 0.85, diffuse: 0.3, specular: 0, roughness: 1, fresnel: 0 },
+      };
+      plotly_data.push(plate);
     }
-    let plate = {
-      x: [],
-      y: [],
-      z: [],
-      type: "mesh3d",
-      delaunayaxis,
-      color: "#D2DDE8",
-      hoverinfo: "none",
-      opacity: 0.5,
-    };
-    plate_data.nodes.forEach((node_id) => {
-      let node_data = structure.nodes[node_id];
-      plate.x.push(node_data.x);
-      plate.y.push(node_data.y);
-      plate.z.push(node_data.z);
-    });
-    plotly_data.push(plate);
 
     // Selection node a the middle of the plate
-    let avg_x = 0;
-    let avg_y = 0;
-    let avg_z = 0;
-    for (let i in plate.x) {
-      avg_x += plate.x[i];
-      avg_y += plate.y[i];
-      avg_z += plate.z[i];
-    }
-    avg_x /= plate.x.length;
-    avg_y /= plate.y.length;
-    avg_z /= plate.z.length;
+    let node_middle = { x: 0, y: 0, z: 0 };
+    plate_data.nodes.forEach((node_id) => {
+      let node_data = structure.nodes[node_id];
+      ["x", "y", "z"].forEach((axis) => (node_middle[axis] += node_data[axis] / plate_data.nodes.length));
+    });
     let plate_label = `${localGetCopy("plate")}  ${plate_id}`;
-    let node_middle = { x: avg_x, y: avg_y, z: avg_z };
     selection_nodes_plates.x.push(node_middle.x);
     selection_nodes_plates.y.push(node_middle.y);
     selection_nodes_plates.z.push(node_middle.z);
@@ -282,6 +289,7 @@ function getData(drawing_state) {
     selection_nodes_plates.customdata.push(plate_id);
   });
   plotly_data.push(selection_nodes_plates);
+  if (Object.keys(quads_by_plate).length > 0) plotly_data.push(getMeshLinesTrace(structure.nodes, Object.values(quads_by_plate).flat()));
   // Moments
   Object.entries(structure.moments).forEach(([mm_id, mm_data]) => {
     let mm = {
@@ -304,6 +312,142 @@ function getData(drawing_state) {
   plotly_data.push(...getCombinationsFrames(structure.nodes, state.getGlobalVariable("structure_combinations"), global_settings));
   plotly_data.push(...drawingLayer.getHandlesTraces(handles, tool));
   return plotly_data;
+}
+
+/**
+ * Quads of the meshed plates (lists of 4 node IDs) by parent plate
+ * @param {object} [meshed_plates]
+ * @returns {Object<string, number[][]>}
+ */
+function getQuadsByPlate(meshed_plates) {
+  const quads_by_plate = {};
+  Object.values(meshed_plates || {}).forEach(({ node_A, node_B, node_C, node_D, parent_plate }) => {
+    const quad = [node_A, node_B, node_C, node_D].filter((node_id) => node_id !== null && node_id !== undefined);
+    (quads_by_plate[parent_plate] = quads_by_plate[parent_plate] || []).push(quad);
+  });
+  return quads_by_plate;
+}
+
+/**
+ * Displacement of each node of the meshed plates in the results, when they were solved with the current mesh
+ * @param {object} [meshed_plates]
+ * @param {object} units
+ * @returns {{values: Object<string, number>, min: number, max: number, title: string}|null}
+ */
+function getPlateDisplacementContour(meshed_plates, units) {
+  const results = getState("results");
+  const plate_displacements = results && results[0] && results[0].plate_displacements;
+  if (!plate_displacements || !plate_displacements.displacement_sum) return null;
+  const solved_meshed_plates = state.getGlobalVariable("results_meshed_plates");
+  if (!solved_meshed_plates || JSON.stringify(solved_meshed_plates) !== JSON.stringify(meshed_plates || {})) return null;
+  const values = {};
+  Object.entries(meshed_plates).forEach(([quad_id, { node_A, node_B, node_C, node_D }]) => {
+    const quad_values = plate_displacements.displacement_sum[quad_id];
+    if (!quad_values) return;
+    [node_A, node_B, node_C, node_D].forEach((node_id, k) => (values[node_id] = quad_values[k]));
+  });
+  const all_values = Object.values(values);
+  if (all_values.length === 0) return null;
+  const title = `${localGetCopy("displacement")} (${units.translation})`;
+  return { values, min: Math.min(...all_values), max: Math.max(...all_values), title };
+}
+
+/**
+ * Surface of a meshed plate, two triangles per quad, so it follows any shape (Delaunay over the corners does not).
+ * With results, it is colored by the displacement of its nodes.
+ * @param {object} structural_nodes
+ * @param {number[][]} quads
+ * @param {{values: Object<string, number>, min: number, max: number, title: string}|null} contour
+ * @param {boolean} show_scale Whether this trace shows the color bar (only one plate does)
+ */
+function getMeshedPlateTrace(structural_nodes, quads, contour, show_scale) {
+  const trace = {
+    x: [],
+    y: [],
+    z: [],
+    i: [],
+    j: [],
+    k: [],
+    type: "mesh3d",
+    color: PLATE_COLOR,
+    hoverinfo: "none",
+    opacity: 0.5,
+    flatshading: true,
+    // Matte, so the triangles of a flat plate look the same and the contour colors match the color bar
+    lighting: { ambient: 0.85, diffuse: 0.3, specular: 0, roughness: 1, fresnel: 0 },
+  };
+  if (contour) {
+    Object.assign(trace, {
+      intensity: [],
+      cmin: contour.min,
+      cmax: contour.max,
+      colorscale: "Viridis",
+      showscale: show_scale,
+      colorbar: { title: { text: contour.title, side: "right" }, thickness: 12, len: 0.5, x: 0.98 },
+      opacity: 0.9,
+      hovertemplate: `%{intensity:.4g} <extra>${contour.title}</extra>`,
+    });
+    delete trace.hoverinfo;
+    delete trace.color;
+  }
+  const vertex_index = {};
+  const getVertex = (node_id) => {
+    if (vertex_index[node_id] === undefined) {
+      const node = structural_nodes[node_id];
+      vertex_index[node_id] = trace.x.length;
+      trace.x.push(node.x);
+      trace.y.push(node.y);
+      trace.z.push(node.z);
+      if (contour) trace.intensity.push(contour.values[node_id] ?? 0);
+    }
+    return vertex_index[node_id];
+  };
+  quads.forEach((quad) => {
+    const vertices = quad.map(getVertex);
+    for (let k = 1; k < vertices.length - 1; k++) {
+      trace.i.push(vertices[0]);
+      trace.j.push(vertices[k]);
+      trace.k.push(vertices[k + 1]);
+    }
+  });
+  return trace;
+}
+
+/**
+ * Edges of the mesh elements, each edge drawn once
+ * @param {object} structural_nodes
+ * @param {number[][]} quads
+ */
+function getMeshLinesTrace(structural_nodes, quads) {
+  const trace = {
+    x: [],
+    y: [],
+    z: [],
+    type: "scatter3d",
+    mode: "lines",
+    name: "mesh",
+    hoverinfo: "none",
+    line: { width: 1, color: MESH_LINES_COLOR },
+  };
+  const drawn = new Set();
+  quads.forEach((quad) =>
+    quad.forEach((node_a, k) => {
+      const node_b = quad[(k + 1) % quad.length];
+      const key = node_a < node_b ? `${node_a}-${node_b}` : `${node_b}-${node_a}`;
+      if (drawn.has(key)) return;
+      drawn.add(key);
+      [node_a, node_b].forEach((node_id) => {
+        const node = structural_nodes[node_id];
+        trace.x.push(node.x);
+        trace.y.push(node.y);
+        trace.z.push(node.z);
+      });
+      trace.x.push(null);
+      trace.y.push(null);
+      trace.z.push(null);
+    })
+  );
+  return trace;
 }
 
 /**

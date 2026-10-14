@@ -14,6 +14,7 @@ import importer from "./importer";
 import repair from "./repair";
 import pyniteWasm from "./pyniteWasm";
 import solverCredentials from "./solverCredentials";
+import mesher from "./mesher";
 
 const PYNITE_SERVER_URL = "http://127.0.0.1:5013";
 
@@ -26,13 +27,88 @@ const isPyniteServerRunning = () =>
     .then(() => true)
     .catch(() => false);
 
+/**
+ * Turns meshing on or off and runs the logic, which meshes the plates when it is on
+ * @param {boolean} enabled
+ */
+const setMeshing = (enabled) => {
+  let settings = getState("settings");
+  settings.global.mesh_plates = enabled;
+  state.setState(settings, "settings");
+  logic_runner.run();
+};
+
+const isMeshing = () => Boolean(getState("settings")["global"]["mesh_plates"]);
+
+/**
+ * Meshes the plates (Structure > Mesh plates). Meshing stays on, so the mesh follows the changes of the model.
+ */
+const meshPlates = () => {
+  setMeshing(true);
+  /** @type {import("./types").ParamEleStructureMesh} */
+  const structure_mesh = state.getGlobalVariable("structure_mesh");
+  if (structure_mesh.plate_count === 0 && structure_mesh.skipped.length === 0) {
+    notify("warning", "no_plates_to_mesh", undefined, true);
+    return;
+  }
+  if (structure_mesh.plate_count > 0) {
+    notification.notify(
+      "success",
+      utils.getDisplayCopy("notifications", "plates_meshed_title"),
+      utils
+        .getDisplayCopy("notifications", "plates_meshed_desc")
+        .replace("{plates}", structure_mesh.plate_count)
+        .replace("{elements}", structure_mesh.element_count)
+        .replace("{size}", structure_mesh.mesh_size),
+      false,
+      6000
+    );
+  }
+  notifySkippedPlates(structure_mesh);
+};
+
+/**
+ * @param {import("./types").ParamEleStructureMesh} structure_mesh
+ */
+const notifySkippedPlates = (structure_mesh) => {
+  if (structure_mesh.skipped.length === 0) return;
+  const plates = structure_mesh.skipped.map(({ plate_id, reason }) => `${plate_id} (${utils.getDisplayCopy("renderer", `mesh_reason_${reason}`)})`);
+  notification.notify(
+    "warning",
+    utils.getDisplayCopy("notifications", "plates_not_meshed_title"),
+    `${utils.getDisplayCopy("notifications", "plates_not_meshed_desc")} ${plates.join(", ")}`,
+    false,
+    10000
+  );
+};
+
+const removeMesh = () => {
+  setMeshing(false);
+  notify("info", "mesh_removed", undefined, true);
+};
+
 const solveStructure = () => {
   let global_settings = getState("settings")["global"];
   const { solver_engine } = global_settings;
+  // PyNite only takes meshed plates
+  if (solver_engine !== "skyciv" && !isMeshing() && Object.keys(getState("structure").plates).length > 0) {
+    setMeshing(true);
+    const structure_mesh = state.getGlobalVariable("structure_mesh");
+    notification.notify(
+      "info",
+      utils.getDisplayCopy("notifications", "meshing_for_solve_title"),
+      utils.getDisplayCopy("notifications", "meshing_for_solve_desc").replace("{size}", structure_mesh.mesh_size),
+      false,
+      6000
+    );
+    notifySkippedPlates(structure_mesh);
+  }
   let structure = repair.repairStructuralModel(getState("structure"), solver_engine);
   if (solver_engine !== "pynite_wasm") notification.notify("info", "requested_solve", "", true, 90000);
   function setResults(results) {
     state.setState(results, "results");
+    // The plate results are by meshed plate, the renderer only shows them while the mesh is the one solved
+    state.setGlobalVariable("results_meshed_plates", structure.meshed_plates || {});
     notification.notify("info", "results_saved", null, true);
     // Run the logic to get the results plot
     logic_runner.run();
@@ -58,13 +134,18 @@ const solveStructure = () => {
             s3d_model: structure,
           },
         },
-        {
-          function: "S3D.model.mesh",
-          arguments: {
-            method: "delaunay",
-            granularity: 3,
-          },
-        },
+        // The plates meshed in ParamEle keep their mesh, otherwise SkyCiv meshes them
+        ...(Object.keys(structure.meshed_plates || {}).length > 0
+          ? []
+          : [
+              {
+                function: "S3D.model.mesh",
+                arguments: {
+                  method: "delaunay",
+                  granularity: 3,
+                },
+              },
+            ]),
         {
           function: "S3D.file.save",
           arguments: {
@@ -181,7 +262,8 @@ const solveStructure = () => {
  */
 const downloadInputTextFile = (format) => {
   let file_str = "";
-  let structure = repair.repairStructuralModel(getState("structure"), "csi");
+  // SAP2000 meshes the areas itself, the mesh nodes would be loose joints
+  let structure = repair.repairStructuralModel(mesher.removeMesh(getState("structure")).structure, "csi");
   try {
     switch (format) {
       case "SAP2000":
@@ -235,5 +317,5 @@ const importStructureModel = (callback) => {
   a.click();
 };
 
-const structure = { solveStructure, downloadInputTextFile, importStructureModel, isPyniteServerRunning };
+const structure = { solveStructure, meshPlates, removeMesh, isMeshing, downloadInputTextFile, importStructureModel, isPyniteServerRunning };
 export default structure;

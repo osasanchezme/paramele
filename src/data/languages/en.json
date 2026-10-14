@@ -120,6 +120,8 @@
         "spacing_between_combinations": "Spacing between combinations",
         "physical_load_size": "Physical size to scale loads",
         "show_proportional_loads": "Display proportional loads",
+        "mesh_plates": "Mesh the plates",
+        "mesh_size": "Mesh size (length units)",
         "duplicate_connected_edges": "When duplicating include associated links",
         "solver_engine": "Solve engine",
         "pynite": "Pynite (local)",
@@ -163,6 +165,8 @@
         "change_type": "Change type",
         "duplicate": "Duplicar",
         "structure": "Structure",
+        "mesh": "Mesh plates",
+        "remove_mesh": "Remove mesh",
         "solve": "Solve",
         "settings": "Settings",
         "delete": "Delete",
@@ -186,7 +190,13 @@
     "renderer":{
         "node": "Node",
         "member": "Member",
-        "plate": "Plate"
+        "plate": "Plate",
+        "displacement": "Displacement",
+        "mesh_reason_invalid_nodes": "missing or repeated nodes",
+        "mesh_reason_degenerate": "no area",
+        "mesh_reason_not_flat": "not flat",
+        "mesh_reason_self_intersecting": "its edges cross",
+        "mesh_reason_mesh_failed": "the mesher failed"
     },
     "tooltips": {
         "add_favorite": "Add to favorite parameters",
@@ -310,7 +320,17 @@
         "import/empty_model_title": "Empty structural model",
         "import/empty_model_desc": "No structural nodes were found in the file",
         "parametricGenerator/generic_fail_title": "The parametric model could not be generated",
-        "parametricGenerator/generic_fail_desc": "Something went wrong while generating the boxes from the structural model"
+        "parametricGenerator/generic_fail_desc": "Something went wrong while generating the boxes from the structural model",
+        "plates_meshed_title": "Plates meshed",
+        "plates_meshed_desc": "{plates} plates in {elements} quads of size {size}. The mesh follows the changes of the model, change its size in Settings.",
+        "no_plates_to_mesh_title": "No plates to mesh",
+        "no_plates_to_mesh_desc": "Add plates to the model first, meshing stays on for the ones you add.",
+        "plates_not_meshed_title": "Some plates could not be meshed",
+        "plates_not_meshed_desc": "Plates left out:",
+        "mesh_removed_title": "Mesh removed",
+        "mesh_removed_desc": "The plates are not meshed anymore.",
+        "meshing_for_solve_title": "Meshing the plates",
+        "meshing_for_solve_desc": "PyNite needs meshed plates, they were meshed with size {size}."
     },
     "navigator":{
         "model": "Main model"
@@ -465,6 +485,7 @@
         "skipped_paper_space": "in paper space",
         "skipped_zero_length": "zero length",
         "skipped_duplicate": "duplicated, overlaps another member",
+        "skipped_mesh": "mesh of the plates, ParamEle meshes them with Structure > Mesh plates",
         "unsupported_drop_title": "Not supported file",
         "unsupported_drop_desc": "Drop a ParamEle or SkyCiv JSON, a DXF or a SAP2000 ($2k) file",
         "close": "Close"
@@ -486,7 +507,7 @@
         "plane_yz": "Vertical work plane (YZ)",
         "levels": "Existing coordinates",
         "spacing": "Grid",
-        "thickness": "Thickness",
+        "thickness": "Thickness (mm)",
         "fixed": "Fixed",
         "pinned": "Pinned",
         "hint_none": "Click a node, load, support or plate to edit it. Drag to rotate the model.",

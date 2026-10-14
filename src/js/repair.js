@@ -2,6 +2,7 @@ import { convertModel } from "../submodules/paramele-parsers/utils/model_convert
 import utils from "../utils";
 import settings_template from "./../settings_template.json";
 import solverCredentials from "./solverCredentials";
+import { units } from "../submodulesAPI";
 
 function repairModel(model) {
   model.nodes.forEach((node) => {
@@ -48,7 +49,10 @@ function repairSettings(settings) {
 function repairStructuralModel(structure, solver_engine) {
   let used_section_ids = [...new Set(Object.values(structure.members).map(({ section_id }) => section_id))];
   let used_material_ids = [
-    ...new Set(used_section_ids.map((section_id) => (structure.sections[section_id] ? structure.sections[section_id].material_id : "1"))),
+    ...new Set([
+      ...used_section_ids.map((section_id) => (structure.sections[section_id] ? structure.sections[section_id].material_id : "1")),
+      ...Object.values(structure.plates).map(({ material_id }) => material_id ?? "1"),
+    ]),
   ];
   if (used_section_ids.length === 0) used_section_ids.push("1");
   if (used_material_ids.length === 0) used_material_ids.push("1");
@@ -90,6 +94,18 @@ function repairStructuralModel(structure, solver_engine) {
   }
 
   if (solver_engine === "pynite" || solver_engine === "pynite_wasm") {
+    // Plate thicknesses are in section length units (as in SkyCiv), PyNite takes them in length units like the sections
+    let { section_length, length } = structure.settings.units;
+    structure.plates = Object.fromEntries(
+      Object.entries(structure.plates).map(([plate_id, plate]) => {
+        let converted = { ...plate };
+        ["thickness", "membrane_thickness", "shear_thickness", "bending_thickness"].forEach((key) => {
+          if (plate[key] !== null && plate[key] !== undefined && plate[key] !== "")
+            converted[key] = units.convert(Number(plate[key]), section_length, length);
+        });
+        return [plate_id, converted];
+      })
+    );
     structure = convertModel(structure, { section_length: "m" });
   }
   // TODO - Move the CSI model conversion to here

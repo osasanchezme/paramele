@@ -3,6 +3,7 @@ import renderer from "../js/renderer";
 import drawingLayer from "../js/drawingLayer";
 import drawing from "../js/drawing";
 import getState from "../getState";
+import state from "../state";
 import DrawingToolbar from "./drawing_toolbar";
 import EntityEditor from "./entity_editor";
 import drawingDimensions from "./drawing_dimensions";
@@ -39,7 +40,7 @@ function getInitialDrawingState() {
     force: { x: 0, y: 0, z: -10 },
     distributed: { x: 0, y: 0, z: -5 },
     moment: { x: 0, y: 0, z: 10 },
-    thickness: 0.2,
+    thickness: 200,
     restraint_code: "FFFFFF",
   };
 }
@@ -443,7 +444,12 @@ class Renderer extends React.Component {
    */
   getLevels(structure) {
     let { normal } = drawingLayer.getPlaneAxes(this.drawing_state.plane);
-    let values = Object.values(structure.nodes).map((node) => Number(Number(node[normal]).toPrecision(10)));
+    // The nodes made by the mesher are not levels of the model
+    let structure_mesh = state.getGlobalVariable("structure_mesh");
+    let mesh_node_ids = new Set(structure_mesh ? structure_mesh.node_ids.map(String) : []);
+    let values = Object.entries(structure.nodes)
+      .filter(([node_id]) => !mesh_node_ids.has(node_id))
+      .map(([, node]) => Number(Number(node[normal]).toPrecision(10)));
     return [...new Set(values)].sort((a, b) => a - b);
   }
   handleMainPlotRelayout(eventData) {

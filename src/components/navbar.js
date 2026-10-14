@@ -17,13 +17,14 @@ import {
   MenuDivider,
   useMediaQuery,
 } from "@chakra-ui/react";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import * as MaterialDesign from "react-icons/md";
 import { TbLayoutSidebarLeftCollapse, TbLayoutSidebarLeftExpand } from "react-icons/tb";
 import boxes from "../js/boxes";
 import file from "../js/file";
 import structure from "../js/structure";
 import utils from "../utils";
+import state from "../state";
 import FileStatusIndicator from "./file_status_indicator";
 import SolverStatusIndicator from "./solver_status_indicator";
 import Firebase from "../js/firebase";
@@ -60,6 +61,10 @@ function NavBar({
   let [activeGroup, setActiveGroup] = useState("left");
   const { showGlobalLoading, hideGlobalLoading } = useGlobalLoading();
   const [is_compact_nav_bar, is_compact_layout] = useMediaQuery([COMPACT_NAV_BAR_QUERY, COMPACT_LAYOUT_QUERY]);
+
+  // Some options depend on the settings (Remove mesh), render again when they change
+  const [, setSettingsVersion] = useState(0);
+  useEffect(() => state.onSettingsChange(() => setSettingsVersion((version) => version + 1)), []);
 
   const navbar_options = useRef(null);
   if (navbar_options.current == null) {
@@ -190,6 +195,17 @@ function NavBar({
       structure: {
         icon: "MdFoundation",
         options: [
+          {
+            name: localGetCopy("mesh"),
+            icon: "MdGridOn",
+            callback: structure.meshPlates,
+          },
+          {
+            name: localGetCopy("remove_mesh"),
+            icon: "MdGridOff",
+            callback: structure.removeMesh,
+            isVisible: structure.isMeshing,
+          },
           {
             name: localGetCopy("solve"),
             icon: "MdPlayCircle",
@@ -446,7 +462,7 @@ function CompactMenu({ options }) {
             {index > 0 && <MenuDivider />}
             {nav_menu_options.options ? (
               <MenuGroup title={localGetCopy(nav_menu_key)}>
-                {nav_menu_options.options.map((option) => (
+                {getVisibleOptions(nav_menu_options.options).map((option) => (
                   <MenuItem key={option.name} icon={<Icon as={MaterialDesign[option.icon]} boxSize={4} />} onClick={() => option.callback()}>
                     {option.name}
                   </MenuItem>
@@ -488,8 +504,15 @@ function AccountMenu({ user, openAuthenticationForm }) {
   );
 }
 
+/**
+ * Options of a menu without the ones hidden in the current state (isVisible returns false)
+ */
+function getVisibleOptions(options) {
+  return options.filter((option) => !option.isVisible || option.isVisible());
+}
+
 function NavMenu({ left, right, options, visibility, handleChange }) {
-  const options_list = options.map((option) => {
+  const options_list = getVisibleOptions(options).map((option) => {
     return (
       <ListItem
         height="40px"

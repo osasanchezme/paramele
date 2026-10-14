@@ -202,7 +202,7 @@ exports.unused = {};
 /**
  * @typedef {object} ParamEleImportSkipped Entities of the same type that an importer left out for the same reason
  * @property {string} type Entity type in the source format, e.g. CIRCLE in a DXF
- * @property {"unsupported"|"invalid"|"paper_space"|"zero_length"|"duplicate"} reason
+ * @property {"unsupported"|"invalid"|"paper_space"|"zero_length"|"duplicate"|"mesh"} reason
  * @property {number} count
  */
 
@@ -258,4 +258,23 @@ exports.unused = {};
  * @property {number|string} value
  * @property {{node_id: string, label: string, editable: boolean, shared_with: {type: string, count: number}[]}|null} source
  *  Box that feeds the input: editable when it is a parameter box, shared_with lists the other boxes it feeds
+ */
+
+/**
+ * Mesh of the plates made in the last run of the logic (see globalLogicRunner.meshPlates)
+ * @typedef {Object} ParamEleStructureMesh
+ * @property {number} mesh_size
+ * @property {number[]} node_ids Nodes created by the mesher
+ * @property {number} element_count Quads in meshed_plates
+ * @property {number} plate_count Plates meshed
+ * @property {{plate_id: string, reason: "invalid_nodes"|"degenerate"|"not_flat"|"self_intersecting"|"mesh_failed"}[]} skipped Plates that could not be meshed
+ */
+
+/**
+ * @typedef {Object} ParamEleMeshResult
+ * @property {import("../submodules/paramele-parsers/types").s3d_model} structure The meshed copy of the structure
+ * @property {number[]} node_ids Nodes created by the mesher
+ * @property {number} element_count
+ * @property {string[]} meshed_plate_ids
+ * @property {{plate_id: string, reason: string}[]} skipped
  */

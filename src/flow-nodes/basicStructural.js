@@ -260,7 +260,8 @@ function StructuralPlateExec(args) {
       shear_thickness: structural_args["thickness"],
       bending_thickness: structural_args["thickness"],
       state: "stress",
-      isMeshed: true,
+      // The mesher (Structure > Mesh plates) meshes it
+      isMeshed: false,
     },
   };
 }

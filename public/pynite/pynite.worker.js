@@ -37,12 +37,14 @@ for _name in ["matplotlib", "matplotlib.pyplot", "matplotlib.patches", "scipy"]:
     _stub(_name)
 `;
 
+// Pynite/__init__.py rebinds Pynite.FEModel3D to the class, so the module (which did `import scipy as sp` while the
+// stub was in place) has to be reached through sys.modules.
 const USE_REAL_SCIPY_PY = `
 import sys
 del sys.modules["scipy"]
 import scipy, scipy.sparse, scipy.sparse.linalg
 import Pynite.FEModel3D
-Pynite.FEModel3D.sp = scipy
+sys.modules["Pynite.FEModel3D"].sp = scipy
 `;
 
 let pyodideReady = null;

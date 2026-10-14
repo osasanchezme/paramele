@@ -1,6 +1,8 @@
 import state from "../state";
 import getState from "../getState";
 import utils from "../utils";
+import mesher from "./mesher";
+import settings_template from "../settings_template.json";
 
 const STRUCTURAL_RESULT_TYPES = new Set(["node", "member", "support", "point_load", "distributed_load", "plate", "moment", "section", "material"]);
 const ACCUMULATED_LIST_TYPES = new Set(["member_list", "node_list"]);
@@ -32,6 +34,7 @@ function run(model) {
   state.setGlobalVariable("structure_origins", origins);
   // Lets the renderer frame and label each possibility
   state.setGlobalVariable("structure_combinations", combinations);
+  meshPlates();
   // Update the whole ReactFlow
   let rf_instance = state.getRfInstance();
   rf_instance.setNodes(nodes);
@@ -39,6 +42,34 @@ function run(model) {
   utils.updateRenderer();
   // Update the properties panel
   utils.updatePropertiesPanel();
+}
+
+/**
+ * Meshes the plates of the structure when meshing is on (Structure > Mesh plates), so the mesh follows every change
+ * of the model. What was meshed is kept in the "structure_mesh" global variable.
+ */
+function meshPlates() {
+  const global_settings = getState("settings")["global"];
+  if (!global_settings["mesh_plates"]) {
+    state.setGlobalVariable("structure_mesh", null);
+    return;
+  }
+  const mesh_size = getMeshSize(global_settings);
+  const { structure, node_ids, element_count, meshed_plate_ids, skipped } = mesher.meshStructure(getState("structure"), { mesh_size });
+  state.setState(structure, "structure");
+  /** @type {import("./types").ParamEleStructureMesh} */
+  const structure_mesh = { mesh_size, node_ids, element_count, plate_count: meshed_plate_ids.length, skipped };
+  state.setGlobalVariable("structure_mesh", structure_mesh);
+}
+
+/**
+ * Mesh size from the settings, the default one when it is not a positive number
+ * @param {object} global_settings
+ * @returns {number}
+ */
+function getMeshSize(global_settings) {
+  const mesh_size = Number(global_settings["mesh_size"]);
+  return mesh_size > 0 ? mesh_size : settings_template.global.mesh_size.default;
 }
 
 /**

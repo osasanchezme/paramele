@@ -83,6 +83,16 @@
             "type": "check",
             "tab": "structure_tab"
         },
+        "mesh_plates": {
+            "default": false,
+            "type": "check",
+            "tab": "structure_tab"
+        },
+        "mesh_size": {
+            "default": 0.5,
+            "type": "text",
+            "tab": "structure_tab"
+        },
         "duplicate_connected_edges": {
             "default": true,
             "type": "check",

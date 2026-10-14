@@ -120,6 +120,8 @@
         "spacing_between_combinations": "Espaciamiento entre combinaciones",
         "physical_load_size": "Tamaño físico para escalar cargas",
         "show_proportional_loads": "Mostrar cargas proporcionales",
+        "mesh_plates": "Mallar las placas",
+        "mesh_size": "Tamaño de la malla (unidades de longitud)",
         "duplicate_connected_edges": "Al duplicar incluir conectores asociados",
         "solver_engine": "Motor de cálculo",
         "pynite": "Pynite (local)",
@@ -161,6 +163,8 @@
         "change_type": "Cambiar tipo",
         "duplicate": "Duplicar",
         "structure": "Estructura",
+        "mesh": "Mallar placas",
+        "remove_mesh": "Quitar malla",
         "solve": "Resolver",
         "settings": "Configuración",
         "delete": "Eliminar",
@@ -186,7 +190,13 @@
     "renderer": {
         "node": "Nodo",
         "member": "Elemento",
-        "plate": "Placa"
+        "plate": "Placa",
+        "displacement": "Desplazamiento",
+        "mesh_reason_invalid_nodes": "nodos faltantes o repetidos",
+        "mesh_reason_degenerate": "sin área",
+        "mesh_reason_not_flat": "no es plana",
+        "mesh_reason_self_intersecting": "sus bordes se cruzan",
+        "mesh_reason_mesh_failed": "falló el mallador"
     },
     "tooltips": {
         "edit": "Editar",
@@ -296,7 +306,17 @@
         "import/empty_model_title": "Modelo estructural vacío",
         "import/empty_model_desc": "No se encontraron nodos estructurales en el archivo",
         "parametricGenerator/generic_fail_title": "No se pudo generar el modelo paramétrico",
-        "parametricGenerator/generic_fail_desc": "Algo salió mal al generar las cajas a partir del modelo estructural"
+        "parametricGenerator/generic_fail_desc": "Algo salió mal al generar las cajas a partir del modelo estructural",
+        "plates_meshed_title": "Placas malladas",
+        "plates_meshed_desc": "{plates} placas en {elements} cuadriláteros de tamaño {size}. La malla sigue los cambios del modelo, cambia su tamaño en Configuración.",
+        "no_plates_to_mesh_title": "No hay placas para mallar",
+        "no_plates_to_mesh_desc": "Agrega placas al modelo primero, el mallado queda activo para las que agregues.",
+        "plates_not_meshed_title": "Algunas placas no se pudieron mallar",
+        "plates_not_meshed_desc": "Placas sin mallar:",
+        "mesh_removed_title": "Malla eliminada",
+        "mesh_removed_desc": "Las placas ya no están malladas.",
+        "meshing_for_solve_title": "Mallando las placas",
+        "meshing_for_solve_desc": "PyNite necesita placas malladas, se mallaron con tamaño {size}."
     },
     "navigator": {
         "model": "Modelo principal"
@@ -467,6 +487,7 @@
         "skipped_paper_space": "en el espacio papel",
         "skipped_zero_length": "longitud cero",
         "skipped_duplicate": "duplicada, se superpone a otro miembro",
+        "skipped_mesh": "malla de las placas, ParamEle las malla con Estructura > Mallar placas",
         "unsupported_drop_title": "Archivo no soportado",
         "unsupported_drop_desc": "Suelta un JSON de ParamEle o SkyCiv, un DXF o un archivo de SAP2000 ($2k)",
         "close": "Cerrar"
@@ -488,7 +509,7 @@
         "plane_yz": "Plano de trabajo vertical (YZ)",
         "levels": "Coordenadas existentes",
         "spacing": "Grilla",
-        "thickness": "Espesor",
+        "thickness": "Espesor (mm)",
         "fixed": "Empotrado",
         "pinned": "Articulado",
         "hint_none": "Haz clic en un nodo, carga, apoyo o placa para editarlo. Arrastra para rotar el modelo.",

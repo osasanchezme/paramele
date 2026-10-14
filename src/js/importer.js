@@ -3,6 +3,7 @@ import state from "../state";
 import { parsers } from "../submodulesAPI";
 import generateParametricModel from "./generateParametricModel";
 import { getProcessResponseObject } from "./processResponse";
+import mesher from "./mesher";
 
 /**
  * Supported import formats. `steps` are the process steps shown to the user while the file is imported
@@ -85,8 +86,14 @@ const detectFileType = (file_name, file_text) => {
  */
 const getS3DModel = (type, parsed) => {
   switch (type) {
-    case "skyciv":
-      return { s3d_model: parsed, skipped: [] };
+    case "skyciv": {
+      // ParamEle meshes the plates itself, the mesh nodes of the file would become node boxes
+      let { structure, element_count, node_count } = mesher.removeMesh(parsed);
+      let skipped = [];
+      if (element_count > 0) skipped.push({ type: "meshed_plates", reason: "mesh", count: element_count });
+      if (node_count > 0) skipped.push({ type: "nodes", reason: "mesh", count: node_count });
+      return { s3d_model: structure, skipped };
+    }
     case "dxf":
       return parsers.dxf.parse(parsed);
     case "csi":
