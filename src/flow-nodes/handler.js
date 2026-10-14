@@ -44,6 +44,7 @@ function createNodesLibrary() {
     },
     structuralPlate: { node_component: BasicStructuralNodes.StructuralPlateNode, label: localGetCopy("structuralPlate") },
     structuralMoment: { node_component: BasicStructuralNodes.StructuralMomentNode, label: localGetCopy("structuralMoment") },
+    structuralPressure: { node_component: BasicStructuralNodes.StructuralPressureNode, label: localGetCopy("structuralPressure") },
     structuralMaterial: { node_component: BasicStructuralNodes.StructuralMaterialNode, label: localGetCopy("structuralMaterial") },
     // Section shapes
     structuralRectangleSection: { node_component: StructuralSectionNodes.RectangleNode, label: localGetCopy("structuralRectangleSection") },

@@ -10,17 +10,24 @@ const PICK_RADIUS = 12;
 // Structural elements each tool can click, besides the snap points of the point tools.
 // The tools that add loads or supports also click the existing ones of their kind, to edit them
 const TOOL_TARGETS = {
-  none: ["nodes", "plates", "supports", "point_loads", "distributed_loads", "moments"],
+  none: ["nodes", "plates", "supports", "point_loads", "distributed_loads", "pressures", "moments"],
   member: ["nodes"],
   plate: ["nodes"],
   point_load: ["nodes", "point_loads"],
   moment: ["nodes", "moments"],
   support: ["nodes", "supports"],
   distributed_load: ["members", "distributed_loads"],
-  delete: ["nodes", "members", "plates", "supports", "point_loads", "distributed_loads", "moments"],
+  pressure: ["plates", "pressures"],
+  delete: ["nodes", "members", "plates", "supports", "point_loads", "distributed_loads", "pressures", "moments"],
 };
 // Load or support each tool adds
-const TOOL_HANDLE_KIND = { point_load: "point_loads", moment: "moments", support: "supports", distributed_load: "distributed_loads" };
+const TOOL_HANDLE_KIND = {
+  point_load: "point_loads",
+  moment: "moments",
+  support: "supports",
+  distributed_load: "distributed_loads",
+  pressure: "pressures",
+};
 // Points to draw on: the grid of the work plane and the line normal to it through the last picked point
 const SNAP_KINDS = new Set(["grid", "normal_line"]);
 const NODE_TOOLS = new Set(["member", "plate", "point_load", "moment", "support", "delete"]);
@@ -29,8 +36,8 @@ const GRID_COLORS = { minor: "#EDF2F7", major: "#D5DCE6", point: "#CBD3DE" };
 const DRAFT_COLOR = "#DD6B20";
 const NORMAL_LINE_COLOR = "#B7A4E6";
 const SELECTED_COLOR = "#3182CE";
-const HANDLE_KINDS = ["supports", "point_loads", "distributed_loads", "moments"];
-const HANDLE_COLORS = { supports: "#2D3748", point_loads: "#E53E3E", distributed_loads: "#DD6B20", moments: "#38A169" };
+const HANDLE_KINDS = ["supports", "point_loads", "distributed_loads", "pressures", "moments"];
+const HANDLE_COLORS = { supports: "#2D3748", point_loads: "#E53E3E", distributed_loads: "#DD6B20", pressures: "#805AD5", moments: "#38A169" };
 
 function localGetCopy(copy_key) {
   return utils.getDisplayCopy("drawing", copy_key);
@@ -59,7 +66,7 @@ function getMembersMarkerSize(tool) {
 }
 
 function getPlatesMarkerSize(tool) {
-  return tool === "delete" ? 8 : 5;
+  return tool === "delete" || tool === "pressure" ? 8 : 5;
 }
 
 function isSnapKind(kind) {
@@ -334,7 +341,10 @@ function getHighlightTraces(highlight, structure) {
     else if (structure_key === "members") pushMember(element_id);
     else if (structure_key === "distributed_loads") pushMember(element.member);
     else if (structure_key === "plates" && Array.isArray(element.nodes)) pushLine([...element.nodes, element.nodes[0]]);
-    else if (element.node !== undefined) pushPoint(element.node);
+    else if (structure_key === "pressures") {
+      let plate = structure.plates[element.plate_id];
+      if (plate && Array.isArray(plate.nodes)) pushLine([...plate.nodes, plate.nodes[0]]);
+    } else if (element.node !== undefined) pushPoint(element.node);
   });
   let traces = [];
   if (lines.x.length > 0)

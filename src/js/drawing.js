@@ -25,6 +25,7 @@ const ESTIMATED_HEIGHTS = {
   structuralPointLoad: 150,
   structuralMoment: 150,
   structuralDistributedLoad: 330,
+  structuralPressure: 170,
 };
 // Boxes that cannot exist without the box they take an ID from
 const DEPENDENT_TYPES = new Set([
@@ -36,6 +37,7 @@ const DEPENDENT_TYPES = new Set([
   "structuralPointLoad",
   "structuralMoment",
   "structuralDistributedLoad",
+  "structuralPressure",
 ]);
 const SUPPORT_TYPES = new Set(["structuralFixedSupport", "structuralPinSupport", "structuralGenericSupport"]);
 
@@ -447,6 +449,33 @@ function addDistributedLoad(structural_member_id, magnitudes) {
 }
 
 /**
+ * Adds a uniform pressure over the whole plate
+ * @param {number} structural_plate_id
+ * @param {{x: number, y: number, z: number}} magnitudes
+ * @param {"global"|"local"} axes Axes of the components: global, or the plate's local axes
+ */
+function addPressure(structural_plate_id, magnitudes, axes) {
+  if (!hasMagnitude(magnitudes)) return;
+  let transaction = new DrawingTransaction();
+  let plate_id = transaction.getOriginNodeId("plates", structural_plate_id);
+  if (!plate_id) {
+    notify("warning", "drawing_not_editable", null, true);
+    return;
+  }
+  let load = transaction.addBox("structuralPressure", "loads");
+  transaction.connect(plate_id, "plate_out-id", load, "plate_id-id");
+  transaction.connectMagnitudes(load, "structuralPressure", magnitudes, "p", (axis) => [`${axis}_mag-value`]);
+  let axes_source = transaction.getSharedSource({
+    target_types: ["structuralPressure"],
+    target_handle: "axes-string-global",
+    value: axes,
+    param_key: "Axes",
+  });
+  transaction.connect(axes_source.source, axes_source.source_handle, load, "axes-string-global");
+  transaction.commit();
+}
+
+/**
  * Adds a support to a node, replacing the one it had
  * @param {number} structural_node_id
  * @param {string} restraint_code e.g. "FFFFFF"
@@ -496,6 +525,14 @@ function deleteElement(structure_key, element_id) {
 
 // Inputs of each box that can be edited from the renderer, and where their value is in the structural element
 const AXES = ["x", "y", "z"];
+const RESTRAINT_OPTIONS = [
+  { value: "FFFFFF", copy: "fixed" },
+  { value: "FFFFFR", copy: "pinned" },
+];
+const LOAD_AXES_OPTIONS = [
+  { value: "global", copy: "axes_global" },
+  { value: "local", copy: "axes_local" },
+];
 const ENTITY_FIELDS = {
   structuralNode: AXES.map((axis) => ({
     key: axis,
@@ -525,11 +562,32 @@ const ENTITY_FIELDS = {
     param_key: `w${axis}`,
     element_key: `${axis}_mag_A`,
   })),
+  structuralPressure: [
+    ...AXES.map((axis) => ({
+      key: axis,
+      label: `p${axis}`,
+      handles: [`${axis}_mag-value`],
+      param_key: `p${axis}`,
+      element_key: `${axis}_mag`,
+    })),
+    {
+      key: "axes",
+      kind: "axes",
+      options: LOAD_AXES_OPTIONS,
+      default: "global",
+      label_copy: "axes",
+      handles: ["axes-string-global"],
+      param_key: "Axes",
+      element_key: "axes",
+    },
+  ],
   structuralPlate: [{ key: "thickness", label_copy: "thickness", handles: ["thickness-value"], param_key: "t", element_key: "thickness" }],
   structuralGenericSupport: [
     {
       key: "restraint_code",
       kind: "restraint",
+      options: RESTRAINT_OPTIONS,
+      default: "FFFFFF",
       label_copy: "support_type",
       handles: ["restraint_code-string-FFFFFF"],
       param_key: "Support",
@@ -542,6 +600,7 @@ const ENTITY_STRUCTURE_KEYS = {
   structuralPointLoad: "point_loads",
   structuralMoment: "moments",
   structuralDistributedLoad: "distributed_loads",
+  structuralPressure: "pressures",
   structuralPlate: "plates",
   structuralGenericSupport: "supports",
   structuralFixedSupport: "supports",
@@ -594,7 +653,7 @@ function getEntity(node_id) {
         shared_with: Object.entries(shared_with).map(([type, targets]) => ({ type, count: targets.size })),
       };
     }
-    return { ...field, value: value === undefined ? (field.kind === "restraint" ? "FFFFFF" : 0) : value, source };
+    return { ...field, value: value === undefined ? field.default ?? 0 : value, source };
   });
   return { node_id, type: node.type, structure_key, element_id, fields };
 }
@@ -687,6 +746,7 @@ const drawing = {
   addPointLoad,
   addMoment,
   addDistributedLoad,
+  addPressure,
   addSupport,
   deleteElement,
   getElementNodeId,

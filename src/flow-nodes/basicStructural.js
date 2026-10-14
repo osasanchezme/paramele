@@ -231,6 +231,29 @@ function StructuralDistributedLoadExec(args) {
   };
 }
 
+// Pressure on a plate (uniform, by unit area). axes: "global", "local" (the plate's axes) or "global_projected"
+const pressure_target_ids = ["plate_id-id", "x_mag-value", "y_mag-value", "z_mag-value", "axes-string-global", "load_group-name-LG"];
+function StructuralPressure({ data, id }) {
+  return (
+    <GenericInOutNode
+      node_label={localGetCopy("structuralPressure")}
+      data={data}
+      id={id}
+      target_ids={pressure_target_ids}
+      source_ids={["pressure_out-id"]}
+    ></GenericInOutNode>
+  );
+}
+
+function StructuralPressureExec(args) {
+  let structural_args = utils.convertNodeToStructuralArgs(args, pressure_target_ids);
+  return {
+    "pressure_out-id": {
+      ...structural_args,
+    },
+  };
+}
+
 // Plate
 const plate_target_ids = ["nodes-ids", "thickness-value"];
 function StructuralPlate({ data, id }) {
@@ -332,6 +355,7 @@ const BasicStructuralNodes = {
   StructuralDistributedLoadNode: { Node: StructuralDistributedLoad, Exec: StructuralDistributedLoadExec },
   StructuralPlateNode: { Node: StructuralPlate, Exec: StructuralPlateExec },
   StructuralMomentNode: { Node: StructuralMoment, Exec: StructuralMomentExec },
+  StructuralPressureNode: { Node: StructuralPressure, Exec: StructuralPressureExec },
   StructuralMaterialNode: { Node: StructuralMaterial, Exec: StructuralMaterialExec },
 };
 

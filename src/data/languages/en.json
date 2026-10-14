@@ -57,7 +57,10 @@
         "displacement": "displacement",
         "local-displacement": "local displacement",
         "direction_code": "direction",
-        "restraint_code": "restraint"
+        "restraint_code": "restraint",
+        "plate_id": "plate",
+        "axes": "axes",
+        "pressure": "pressure"
     },
     "types": {
         "id": "ID",
@@ -91,6 +94,7 @@
         "structuralDistributedLoad": "Distributed load",
         "structuralPlate": "Plate",
         "structuralMoment": "Moment",
+        "structuralPressure": "Pressure",
         "structuralMaterial": "Material",
         "structuralRectangleSection": "Rectangular Section",
         "structuralCircularSection": "Circular Section",
@@ -479,6 +483,7 @@
         "summary_point_loads": "point loads",
         "summary_distributed_loads": "distributed loads",
         "summary_moments": "moments",
+        "summary_pressures": "pressures",
         "summary_sections": "sections",
         "summary_materials": "materials",
         "skipped_title": "Some entities of the file were not imported",
@@ -507,6 +512,7 @@
         "support": "Add supports",
         "point_load": "Add point loads",
         "distributed_load": "Add distributed loads",
+        "pressure": "Add pressures on plates",
         "moment": "Add moments",
         "delete": "Delete elements",
         "undo": "Undo last drawing action",
@@ -528,12 +534,14 @@
         "hint_support": "Click a node to add the support (again to remove it), or a dark diamond to edit one.",
         "hint_point_load": "Click a node to add the point load, or a red diamond to edit one.",
         "hint_distributed_load": "Click the middle point of a member to add a uniform load along it, or an orange diamond to edit one.",
+        "hint_pressure": "Click the middle point of a plate to add a uniform pressure over it, or a purple diamond to edit one.",
         "hint_moment": "Click a node to add the moment, or a green diamond to edit one.",
         "hint_delete": "Click a node, member, plate, support or load to delete it with everything that depends on it.",
         "hint_locked": "Unlock the model to draw.",
         "supports": "Support",
         "point_loads": "Point load",
         "distributed_loads": "Distributed load",
+        "pressures": "Pressure",
         "moments": "Moment",
         "editor_close": "Close",
         "editor_computed": "Calculated by",
@@ -551,6 +559,11 @@
         "nodes": "Node",
         "members": "Member",
         "plates": "Plate",
-        "support_type": "Type"
+        "support_type": "Type",
+        "axes": "Axes",
+        "axes_global": "Global",
+        "axes_local": "Local",
+        "axes_global_tooltip": "Components along the global axes X, Y, Z",
+        "axes_local_tooltip": "Components along the plate's local axes (x along its first edge, z normal to it)"
     }
 }

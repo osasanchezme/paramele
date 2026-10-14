@@ -12,7 +12,7 @@ import { notify } from "./notification";
 import AxisIndicator from "./axis_indicator";
 import React from "react";
 
-const TOOL_SHORTCUTS = { m: "member", p: "plate", s: "support", l: "point_load", d: "distributed_load", o: "moment", e: "delete" };
+const TOOL_SHORTCUTS = { m: "member", p: "plate", s: "support", l: "point_load", d: "distributed_load", a: "pressure", o: "moment", e: "delete" };
 // Tools that act on a clicked structural node
 const NODE_ACTIONS = {
   point_load: (id, drawing_state) => drawing.addPointLoad(id, drawing_state.force),
@@ -20,7 +20,13 @@ const NODE_ACTIONS = {
   support: (id, drawing_state) => drawing.addSupport(id, drawing_state.restraint_code),
 };
 // Loads and supports each tool clicks to edit them (the other targets of the tool are for adding)
-const TOOL_EDIT_KINDS = { point_load: "point_loads", moment: "moments", support: "supports", distributed_load: "distributed_loads" };
+const TOOL_EDIT_KINDS = {
+  point_load: "point_loads",
+  moment: "moments",
+  support: "supports",
+  distributed_load: "distributed_loads",
+  pressure: "pressures",
+};
 // Moving less than this between pressing and releasing is a click, more is rotating the view
 const CLICK_TOLERANCE = 5;
 // Parts of the drawing state that Plotly draws. The hover feedback is drawn over the plot instead, replotting on every hover makes rotating slow
@@ -42,6 +48,8 @@ function getInitialDrawingState() {
     force: { x: 0, y: 0, z: -10 },
     distributed: { x: 0, y: 0, z: -5 },
     moment: { x: 0, y: 0, z: 10 },
+    pressure: { x: 0, y: 0, z: -5 },
+    pressure_axes: "global",
     thickness: 200,
     restraint_code: "FFFFFF",
   };
@@ -417,6 +425,9 @@ class Renderer extends React.Component {
       }
       case "distributed_load":
         drawing.addDistributedLoad(candidate.id, drawing_state.distributed);
+        break;
+      case "pressure":
+        drawing.addPressure(candidate.id, drawing_state.pressure, drawing_state.pressure_axes);
         break;
       case "delete":
         drawing.deleteElement(candidate.kind, candidate.id);

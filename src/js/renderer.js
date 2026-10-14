@@ -7,6 +7,7 @@ import mesher from "./mesher";
 
 const PLATE_COLOR = "#D2DDE8";
 const MESH_LINES_COLOR = "#5A6B7D";
+const PRESSURE_COLOR = "#805AD5";
 
 function localGetCopy(node_name) {
   return utils.getDisplayCopy("renderer", node_name);
@@ -149,6 +150,7 @@ function getData(drawing_state) {
   let magnitude_sources = {
     point_loads: [["x_mag", "y_mag", "z_mag"]],
     moments: [["x_mag", "y_mag", "z_mag"]],
+    pressures: [["x_mag", "y_mag", "z_mag"]],
     distributed_loads: [
       ["x_mag_A", "y_mag_A", "z_mag_A"],
       ["x_mag_B", "y_mag_B", "z_mag_B"],
@@ -156,7 +158,7 @@ function getData(drawing_state) {
   };
   let max_abs_mag = 0;
   Object.entries(magnitude_sources).forEach(([source_key, magnitude_keys]) => {
-    Object.values(structure[source_key]).forEach((source_object) => {
+    Object.values(structure[source_key] || {}).forEach((source_object) => {
       magnitude_keys.forEach(([mag_key_x, mag_key_y, mag_key_z]) => {
         let abs_candidate = Math.sqrt(source_object[mag_key_x] ** 2 + source_object[mag_key_y] ** 2 + source_object[mag_key_z] ** 2);
         if (abs_candidate > max_abs_mag) max_abs_mag = abs_candidate;
@@ -290,6 +292,16 @@ function getData(drawing_state) {
   });
   plotly_data.push(selection_nodes_plates);
   if (Object.keys(quads_by_plate).length > 0) plotly_data.push(getMeshLinesTrace(structure.nodes, Object.values(quads_by_plate).flat()));
+  // Pressures
+  Object.entries(structure.pressures || {}).forEach(([pressure_id, pressure_data]) => {
+    let plate_data = structure.plates[pressure_data.plate_id];
+    if (!plate_data || !Array.isArray(plate_data.nodes)) return;
+    let plate_nodes = plate_data.nodes.map((node_id) => structure.nodes[node_id]).filter(Boolean);
+    let pressure = createPressure(plate_nodes, plate_data.rotZ, pressure_data, max_abs_mag, physical_load_size, show_proportional_loads);
+    if (!pressure) return;
+    plotly_data.push(pressure.trace);
+    drawingLayer.pushHandle(handles, "pressures", pressure_id, pressure.handle);
+  });
   // Moments
   Object.entries(structure.moments).forEach(([mm_id, mm_data]) => {
     let mm = {
@@ -760,6 +772,46 @@ function createDistributedLoad(
   dl_z.push(plotable_vector_end.z);
 
   return { dl_x, dl_y, dl_z };
+}
+
+/**
+ * Arrows spread over a plate that end on it, with the outline of the plate through their tails
+ * @param {{x: number, y: number, z: number}[]} plate_nodes Corners of the plate, in order
+ * @param {number} rot_z rotZ of the plate
+ * @param {{x_mag: number, y_mag: number, z_mag: number, axes: string}} pressure_data Components in the global axes, or in the
+ *  plate's local axes when axes is "local" ("global_projected" only changes the area they act on, not their direction)
+ * @returns {{trace: object, handle: {x: number, y: number, z: number}}|null}
+ */
+function createPressure(plate_nodes, rot_z, pressure_data, max_abs_mag, physical_load_size, show_proportional_loads) {
+  let surface = mesher.getPlateSurfacePoints(plate_nodes, rot_z);
+  if (!surface) return null;
+  let magnitudes = ["x", "y", "z"].map((axis) => Number(pressure_data[`${axis}_mag`]) || 0);
+  let direction = { x: magnitudes[0], y: magnitudes[1], z: magnitudes[2] };
+  if (pressure_data.axes === "local") {
+    let { axes } = surface;
+    direction = {};
+    ["x", "y", "z"].forEach((axis) => (direction[axis] = magnitudes[0] * axes.x[axis] + magnitudes[1] * axes.y[axis] + magnitudes[2] * axes.z[axis]));
+  }
+  let magnitude = Math.hypot(direction.x, direction.y, direction.z);
+  if (magnitude === 0) return null;
+  let length = show_proportional_loads ? (physical_load_size * magnitude) / max_abs_mag : physical_load_size;
+  // Where the tails are, from a point on the plate
+  let tail = { x: (-direction.x * length) / magnitude, y: (-direction.y * length) / magnitude, z: (-direction.z * length) / magnitude };
+  let trace = { x: [], y: [], z: [], type: "scatter3d", mode: "lines", hoverinfo: "none", line: { width: 3, color: PRESSURE_COLOR } };
+  [...surface.points, ...surface.edge_points].forEach((point) => {
+    let vector = new geom_utils.Vector(point.x + tail.x, point.y + tail.y, point.z + tail.z, point.x, point.y, point.z);
+    let arrow = geom_utils.getPlotableArrow(vector, length);
+    trace.x.push(...arrow.x, null);
+    trace.y.push(...arrow.y, null);
+    trace.z.push(...arrow.z, null);
+  });
+  [...plate_nodes, plate_nodes[0]].forEach((node) => {
+    trace.x.push(node.x + tail.x);
+    trace.y.push(node.y + tail.y);
+    trace.z.push(node.z + tail.z);
+  });
+  let { centroid } = surface;
+  return { trace, handle: { x: centroid.x + tail.x, y: centroid.y + tail.y, z: centroid.z + tail.z } };
 }
 
 const renderer = { getData, getLayout, getConfig };

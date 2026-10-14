@@ -19,6 +19,7 @@ import {
 import { useEffect, useState } from "react";
 import {
   TbArrowBackUp,
+  TbArrowBigDownLines,
   TbArrowDown,
   TbArrowsDown,
   TbChevronDown,
@@ -39,15 +40,18 @@ const TOOLS = [
   { tool: "support", icon: TbTriangle, shortcut: "S" },
   { tool: "point_load", icon: TbArrowDown, shortcut: "L" },
   { tool: "distributed_load", icon: TbArrowsDown, shortcut: "D" },
+  { tool: "pressure", icon: TbArrowBigDownLines, shortcut: "A" },
   { tool: "moment", icon: TbRotateClockwise, shortcut: "O" },
   { tool: "delete", icon: TbEraser, shortcut: "E" },
 ];
 const LOAD_TOOLS = {
   point_load: { key: "force", prefix: "F" },
   distributed_load: { key: "distributed", prefix: "w" },
+  pressure: { key: "pressure", prefix: "p" },
   moment: { key: "moment", prefix: "M" },
 };
 const PLANES = ["xy", "xz", "yz"];
+const PRESSURE_AXES = ["global", "local"];
 const RESTRAINTS = [
   { code: "FFFFFF", copy: "fixed" },
   { code: "FFFFFR", copy: "pinned" },
@@ -240,6 +244,22 @@ function DrawingToolbar({ drawing_state, setDrawingState, levels, can_undo, undo
                   width="56px"
                 />
               ))}
+              {tool === "pressure" && (
+                <ButtonGroup size="xs" isAttached variant="outline">
+                  {PRESSURE_AXES.map((axes) => (
+                    <Tooltip key={axes} label={localGetCopy(`axes_${axes}_tooltip`)} placement="bottom" openDelay={300}>
+                      <Button
+                        aria-pressed={drawing_state.pressure_axes === axes}
+                        bg={drawing_state.pressure_axes === axes ? "brand.50" : "white"}
+                        color={drawing_state.pressure_axes === axes ? "brand.600" : "gray.700"}
+                        onClick={() => setDrawingState({ pressure_axes: axes })}
+                      >
+                        {localGetCopy(`axes_${axes}`)}
+                      </Button>
+                    </Tooltip>
+                  ))}
+                </ButtonGroup>
+              )}
             </HStack>
           )}
           {tool === "support" && (

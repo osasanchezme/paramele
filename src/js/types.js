@@ -147,7 +147,7 @@
  */
 
 /**
- * @typedef {'inputNumber'|'variableRange'|'sumNumbers'|'multiplyNumbers'|'divideNumbers'|'roundNumber'|'powerNumber'|'rootNumber'|'sin'|'cos'|'tan'|'asin'|'acos'|'atan'|'deg2rad'|'structuralNode'|'structuralMember'|'structuralFixedSupport'|'structuralPinSupport'|'structuralGenericSupport'|'structuralPointLoad'|'structuralDistributedLoad'|'structuralPlate'|'structuralMoment'|'structuralMaterial'|'structuralRectangleSection'|'structuralGenericSupport'|'nodesWrapper'|'structuralMemberResult'|'structuralNodeResult'|'dataDisplay2DPlot'} ParamEleNodesTypes
+ * @typedef {'inputNumber'|'variableRange'|'sumNumbers'|'multiplyNumbers'|'divideNumbers'|'roundNumber'|'powerNumber'|'rootNumber'|'sin'|'cos'|'tan'|'asin'|'acos'|'atan'|'deg2rad'|'structuralNode'|'structuralMember'|'structuralFixedSupport'|'structuralPinSupport'|'structuralGenericSupport'|'structuralPointLoad'|'structuralDistributedLoad'|'structuralPlate'|'structuralMoment'|'structuralPressure'|'structuralMaterial'|'structuralRectangleSection'|'structuralGenericSupport'|'nodesWrapper'|'structuralMemberResult'|'structuralNodeResult'|'dataDisplay2DPlot'} ParamEleNodesTypes
  */
 
 /**
@@ -217,7 +217,7 @@ exports.unused = {};
  */
 
 /**
- * @typedef {"none"|"member"|"plate"|"point_load"|"distributed_load"|"moment"|"support"|"delete"} ParamEleDrawingTool
+ * @typedef {"none"|"member"|"plate"|"point_load"|"distributed_load"|"pressure"|"moment"|"support"|"delete"} ParamEleDrawingTool
  */
 
 /**
@@ -235,6 +235,8 @@ exports.unused = {};
  * @property {{x: number, y: number, z: number}} force Point load components
  * @property {{x: number, y: number, z: number}} distributed Distributed load components
  * @property {{x: number, y: number, z: number}} moment Moment components
+ * @property {{x: number, y: number, z: number}} pressure Pressure components (on plates)
+ * @property {"global"|"local"} pressure_axes Axes of the pressure components: global, or the plate's local axes
  * @property {number} thickness Plate thickness
  * @property {"FFFFFF"|"FFFFFR"} restraint_code Support type
  */
@@ -255,7 +257,9 @@ exports.unused = {};
  * @property {string} key
  * @property {string} [label] Label of the field, or label_copy to translate it
  * @property {string} [label_copy]
- * @property {"restraint"} [kind] Fields that are not numbers
+ * @property {"restraint"|"axes"} [kind] Fields that are not numbers, picked from `options`
+ * @property {{value: string, copy: string}[]} [options] Values to pick from, with the copy key of their label
+ * @property {number|string} [default] Value shown when the element has none
  * @property {string[]} handles Inputs of the box that take this value
  * @property {number|string} value
  * @property {{node_id: string, label: string, editable: boolean, shared_with: {type: string, count: number}[]}|null} source

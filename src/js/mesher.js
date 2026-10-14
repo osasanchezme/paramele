@@ -730,5 +730,57 @@ function triangulatePolygon(points) {
   }
 }
 
-const mesher = { meshStructure, removeMesh, triangulatePolygon };
+/**
+ * Local axes of a plate (as in SkyCiv: x along the first edge turned rotZ degrees about the normal, z the normal by the order
+ * of the nodes, y = z cross x), points spread over it, at the centers of a grid of cells along its axes, and points along
+ * its edges (its corners included), about a cell apart
+ * @param {{x: number, y: number, z: number}[]} points Corners of the plate, in order
+ * @param {number} [rot_z] rotZ of the plate, in degrees
+ * @param {number} [divisions] Cells along the longest side
+ * @returns {{axes: {x: object, y: object, z: object}, centroid: object, points: {x: number, y: number, z: number}[],
+ *  edge_points: {x: number, y: number, z: number}[]}|null}
+ */
+function getPlateSurfacePoints(points, rot_z = 0, divisions = 5) {
+  if (points.length < 3) return null;
+  let normal = { x: 0, y: 0, z: 0 };
+  points.forEach((a, i) => {
+    const b = points[(i + 1) % points.length];
+    normal = add(normal, { x: (a.y - b.y) * (a.z + b.z), y: (a.z - b.z) * (a.x + b.x), z: (a.x - b.x) * (a.y + b.y) });
+  });
+  const first_edge = sub(points[1], points[0]);
+  if (norm(normal) === 0 || norm(first_edge) === 0) return null;
+  normal = normalize(normal);
+  const edge_x = normalize(sub(first_edge, scale(normal, dot(first_edge, normal))));
+  const edge_y = cross(normal, edge_x);
+  const angle = ((Number(rot_z) || 0) * Math.PI) / 180;
+  const axis_x = add(scale(edge_x, Math.cos(angle)), scale(edge_y, Math.sin(angle)));
+  const axis_y = cross(normal, axis_x);
+  const centroid = scale(points.reduce(add, { x: 0, y: 0, z: 0 }), 1 / points.length);
+  const polygon = points.map((point) => [dot(sub(point, points[0]), axis_x), dot(sub(point, points[0]), axis_y)]);
+  const us = polygon.map(([u]) => u);
+  const vs = polygon.map(([, v]) => v);
+  const [u_min, u_max, v_min, v_max] = [Math.min(...us), Math.max(...us), Math.min(...vs), Math.max(...vs)];
+  const cell = Math.max(u_max - u_min, v_max - v_min) / divisions;
+  const u_cells = Math.max(1, Math.round((u_max - u_min) / cell));
+  const v_cells = Math.max(1, Math.round((v_max - v_min) / cell));
+  const surface_points = [];
+  for (let i = 0; i < u_cells; i++) {
+    for (let j = 0; j < v_cells; j++) {
+      const u = u_min + ((i + 0.5) * (u_max - u_min)) / u_cells;
+      const v = v_min + ((j + 0.5) * (v_max - v_min)) / v_cells;
+      if (isInsidePolygon([u, v], polygon)) surface_points.push(add(add(points[0], scale(axis_x, u)), scale(axis_y, v)));
+    }
+  }
+  // A thin or odd shape may leave every cell center outside
+  if (surface_points.length === 0) surface_points.push(centroid);
+  const edge_points = [];
+  points.forEach((a, i) => {
+    const edge = sub(points[(i + 1) % points.length], a);
+    const segments = Math.max(1, Math.round(norm(edge) / cell));
+    for (let k = 0; k < segments; k++) edge_points.push(add(a, scale(edge, k / segments)));
+  });
+  return { axes: { x: axis_x, y: axis_y, z: normal }, centroid, points: surface_points, edge_points };
+}
+
+const mesher = { meshStructure, removeMesh, triangulatePolygon, getPlateSurfacePoints };
 export default mesher;

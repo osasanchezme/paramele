@@ -5,7 +5,18 @@ import mesher from "./mesher";
 import settings_template from "../settings_template.json";
 import modelLinks from "./modelLinks";
 
-const STRUCTURAL_RESULT_TYPES = new Set(["node", "member", "support", "point_load", "distributed_load", "plate", "moment", "section", "material"]);
+const STRUCTURAL_RESULT_TYPES = new Set([
+  "node",
+  "member",
+  "support",
+  "point_load",
+  "distributed_load",
+  "pressure",
+  "plate",
+  "moment",
+  "section",
+  "material",
+]);
 const ACCUMULATED_LIST_TYPES = new Set(["member_list", "node_list"]);
 
 /**
@@ -314,7 +325,11 @@ function calculateModel(model, is_from_main_model) {
     if (is_from_main_model && iterate_sliders && model_combination !== null && max_range_node.data.iterating) {
       // Wrapper nodes add their own structural nodes, so the new IDs are read from the structure
       const node_ids = Object.keys(getState("structure")["nodes"]).filter((node_id) => !previous_node_ids.has(node_id));
-      combinations.push({ node_label: max_range_node.data.custom_label || max_range_node.id, value: model_combination[max_range_node.id]["slider-value"], node_ids });
+      combinations.push({
+        node_label: max_range_node.data.custom_label || max_range_node.id,
+        value: model_combination[max_range_node.id]["slider-value"],
+        node_ids,
+      });
     }
   });
 

@@ -6,7 +6,7 @@ import utils from "../utils";
 // and the explorer. The elements of each box come from the origins the logic runner records, which are only for the main model
 
 // Elements that are drawn in the renderer (sections and materials are not)
-const DRAWN_KEYS = ["nodes", "members", "plates", "supports", "point_loads", "distributed_loads", "moments"];
+const DRAWN_KEYS = ["nodes", "members", "plates", "supports", "point_loads", "distributed_loads", "pressures", "moments"];
 
 const listeners = { elements: new Set(), highlight: new Set(), show_view: new Set() };
 // Changes every time the elements are calculated again, for components that only read them when they render

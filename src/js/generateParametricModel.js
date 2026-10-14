@@ -20,6 +20,7 @@ class ParameleInterface {
       distributed_loads: { coords: { x: this.x_orig + 21 * this.master_spacing, y: this.y_orig }, nodes_list: [], maps: {} },
       point_loads: { coords: { x: this.x_orig + 24 * this.master_spacing, y: this.y_orig }, nodes_list: [], maps: {} },
       moments: { coords: { x: this.x_orig + 27 * this.master_spacing, y: this.y_orig }, nodes_list: [], maps: {} },
+      pressures: { coords: { x: this.x_orig + 30 * this.master_spacing, y: this.y_orig }, nodes_list: [], maps: {} },
     };
   }
   edges = [];
@@ -205,7 +206,7 @@ const generateParametricModel = (s3d_model, callback) => {
 
   let paramele_interface = new ParameleInterface(x_orig, y_orig, master_spacing);
 
-  let { nodes, members, plates, supports, distributed_loads, point_loads, moments, sections, materials } = s3d_model;
+  let { nodes, members, plates, supports, distributed_loads, point_loads, moments, sections, materials, pressures = {} } = s3d_model;
   // Process the nodes by faces
   let nodes_faces = paramele_interface.findParameters(nodes, { x: {}, y: {}, z: {} });
   let nodes_dependencies = [];
@@ -363,6 +364,24 @@ const generateParametricModel = (s3d_model, callback) => {
     elements_group_name: "moments",
     elements_node_type: "structuralMoment",
     elements_node_spacing: 1.5,
+  });
+
+  // Process the pressures by magnitude and axes
+  paramele_interface.spaceNodesGroup("parameters");
+  let pressures_with_axes = Object.fromEntries(
+    Object.entries(pressures).map(([pressure_id, pressure]) => [pressure_id, { ...pressure, axes: pressure.axes || "global" }])
+  );
+  let pressures_magnitudes = paramele_interface.findParameters(pressures_with_axes, {
+    x_mag: {},
+    y_mag: {},
+    z_mag: {},
+    axes: { type: "string", target_handle: "axes-string-global" },
+  });
+  let pressures_dependencies = [{ key: "plate_id", group_name: "plates", target_handle: "plate_id-id", source_handle: "plate_out-id" }];
+  paramele_interface.addNodesAndEdgesFromParameters(pressures_with_axes, pressures_magnitudes, pressures_dependencies, {
+    elements_group_name: "pressures",
+    elements_node_type: "structuralPressure",
+    elements_node_spacing: 2,
   });
 
   console.log(paramele_interface.log);

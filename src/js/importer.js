@@ -17,7 +17,18 @@ const IMPORT_FILE_TYPES = {
 };
 
 /** S3D element groups counted in the import summary */
-const S3D_SUMMARY_KEYS = ["nodes", "members", "plates", "supports", "point_loads", "distributed_loads", "moments", "sections", "materials"];
+const S3D_SUMMARY_KEYS = [
+  "nodes",
+  "members",
+  "plates",
+  "supports",
+  "point_loads",
+  "distributed_loads",
+  "pressures",
+  "moments",
+  "sections",
+  "materials",
+];
 
 /**
  * @param {string} file_name

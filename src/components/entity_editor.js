@@ -3,10 +3,6 @@ import { useState } from "react";
 import { TbLink, TbLinkOff, TbSchema, TbX } from "react-icons/tb";
 import utils from "../utils";
 
-const RESTRAINTS = [
-  { code: "FFFFFF", copy: "fixed" },
-  { code: "FFFFFR", copy: "pinned" },
-];
 // Plain names of the structural boxes, the box names are more technical (e.g. "Generic Support")
 const TYPE_COPIES = {
   structuralNode: "nodes",
@@ -15,6 +11,7 @@ const TYPE_COPIES = {
   structuralPointLoad: "point_loads",
   structuralMoment: "moments",
   structuralDistributedLoad: "distributed_loads",
+  structuralPressure: "pressures",
   structuralGenericSupport: "supports",
   structuralFixedSupport: "supports",
   structuralPinSupport: "supports",
@@ -182,24 +179,25 @@ function EntityEditor({ entity, position, container_size, model_locked, onChange
         ) : (
           entity.fields.length === 0 && <Text className="entity-editor-muted">{localGetCopy("editor_no_fields")}</Text>
         )}
-        <HStack spacing={2} className="entity-editor-values">
+        <HStack spacing={2} rowGap={2} flexWrap="wrap" className="entity-editor-values">
           {entity.fields.map((field) => {
             let label = getFieldLabel(field);
             let is_disabled = model_locked || (field.source && !field.source.editable);
-            if (field.kind === "restraint")
+            if (field.options)
               return (
-                <HStack key={field.key} spacing={1} flex="1">
+                // On a row of its own, the number inputs next to it would be too narrow
+                <HStack key={field.key} spacing={1} flex="1" flexBasis="100%">
                   <Text className="entity-editor-label">{label}</Text>
                   <ButtonGroup size="xs" isAttached variant="outline" flex="1">
-                    {RESTRAINTS.map(({ code, copy }) => (
+                    {field.options.map(({ value, copy }) => (
                       <Button
-                        key={code}
+                        key={value}
                         flex="1"
-                        aria-pressed={field.value === code}
-                        bg={field.value === code ? "brand.50" : "white"}
-                        color={field.value === code ? "brand.600" : "gray.700"}
+                        aria-pressed={field.value === value}
+                        bg={field.value === value ? "brand.50" : "white"}
+                        color={field.value === value ? "brand.600" : "gray.700"}
                         isDisabled={is_disabled}
-                        onClick={() => field.value !== code && onChange(field.key, code)}
+                        onClick={() => field.value !== value && onChange(field.key, value)}
                       >
                         {localGetCopy(copy)}
                       </Button>

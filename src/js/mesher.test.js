@@ -379,3 +379,35 @@ test("a concave polygon is triangulated inside its own outline", () => {
   }, 0);
   expect(area).toBeCloseTo(3);
 });
+
+test("pressures are drawn over the plate, with the plate's local axes", () => {
+  // L-shaped wall in the XZ plane, its nodes in this order make its normal -Y
+  const points = [
+    [0, 0],
+    [4, 0],
+    [4, 1],
+    [1, 1],
+    [1, 3],
+    [0, 3],
+  ].map(([u, v]) => ({ x: u, y: 0, z: v }));
+  const surface = mesher.getPlateSurfacePoints(points);
+  ["x", "y", "z"].forEach((axis, i) => {
+    expect(surface.axes.x[axis]).toBeCloseTo([1, 0, 0][i]);
+    expect(surface.axes.z[axis]).toBeCloseTo([0, -1, 0][i]);
+    expect(surface.axes.y[axis]).toBeCloseTo([0, 0, 1][i]);
+  });
+  expect(surface.points.length).toBeGreaterThan(3);
+  // Inside the L, none in its notch
+  surface.points.forEach(({ x, y, z }) => {
+    expect(y).toBeCloseTo(0);
+    expect(x > 0 && x < 4 && z > 0 && z < 3).toBe(true);
+    expect(x > 1 && z > 1).toBe(false);
+  });
+  // Along the edges, corners included: the 4 m side is cut in 5, as the cells (6 points with its ends)
+  expect(surface.edge_points.length).toBeGreaterThan(points.length);
+  points.forEach((corner) => expect(surface.edge_points.some((p) => p.x === corner.x && p.z === corner.z)).toBe(true));
+  expect(surface.edge_points.filter((p) => p.z === 0).length).toBe(6);
+  // rotZ turns the local x axis about the normal
+  const turned = mesher.getPlateSurfacePoints(points, 90);
+  expect(turned.axes.x.z).toBeCloseTo(1);
+});

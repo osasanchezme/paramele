@@ -57,7 +57,10 @@
         "displacement": "desplazamiento",
         "local-displacement": "desplazamiento local",
         "direction_code": "dirección",
-        "restraint_code": "fijación"
+        "restraint_code": "fijación",
+        "plate_id": "placa",
+        "axes": "ejes",
+        "pressure": "presión"
     },
     "types": {
         "id": "ID",
@@ -91,6 +94,7 @@
         "structuralDistributedLoad": "Carga distribuida",
         "structuralPlate": "Placa",
         "structuralMoment": "Momento",
+        "structuralPressure": "Presión",
         "structuralMaterial": "Material",
         "structuralRectangleSection": "Secc. Rectangular",
         "structuralCircularSection": "Secc. Circular",
@@ -481,6 +485,7 @@
         "summary_point_loads": "cargas puntuales",
         "summary_distributed_loads": "cargas distribuidas",
         "summary_moments": "momentos",
+        "summary_pressures": "presiones",
         "summary_sections": "secciones",
         "summary_materials": "materiales",
         "skipped_title": "Algunas entidades del archivo no se importaron",
@@ -509,6 +514,7 @@
         "support": "Agregar apoyos",
         "point_load": "Agregar cargas puntuales",
         "distributed_load": "Agregar cargas distribuidas",
+        "pressure": "Agregar presiones en placas",
         "moment": "Agregar momentos",
         "delete": "Eliminar elementos",
         "undo": "Deshacer el último dibujo",
@@ -530,12 +536,14 @@
         "hint_support": "Haz clic en un nodo para agregar el apoyo (de nuevo para quitarlo), o en un rombo oscuro para editar uno.",
         "hint_point_load": "Haz clic en un nodo para agregar la carga puntual, o en un rombo rojo para editar una.",
         "hint_distributed_load": "Haz clic en el punto medio de una barra para agregar una carga uniforme, o en un rombo naranja para editar una.",
+        "hint_pressure": "Haz clic en el punto medio de una placa para agregar una presión uniforme sobre ella, o en un rombo morado para editar una.",
         "hint_moment": "Haz clic en un nodo para agregar el momento, o en un rombo verde para editar uno.",
         "hint_delete": "Haz clic en un nodo, barra, placa, apoyo o carga para eliminarlo junto con lo que depende de él.",
         "hint_locked": "Desbloquea el modelo para dibujar.",
         "supports": "Apoyo",
         "point_loads": "Carga puntual",
         "distributed_loads": "Carga distribuida",
+        "pressures": "Presión",
         "moments": "Momento",
         "editor_close": "Cerrar",
         "editor_computed": "Calculado por",
@@ -553,6 +561,11 @@
         "nodes": "Nodo",
         "members": "Barra",
         "plates": "Placa",
-        "support_type": "Tipo"
+        "support_type": "Tipo",
+        "axes": "Ejes",
+        "axes_global": "Globales",
+        "axes_local": "Locales",
+        "axes_global_tooltip": "Componentes según los ejes globales X, Y, Z",
+        "axes_local_tooltip": "Componentes según los ejes locales de la placa (x a lo largo de su primer borde, z normal a ella)"
     }
 }
