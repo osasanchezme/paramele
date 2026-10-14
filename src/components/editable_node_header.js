@@ -39,10 +39,11 @@ function EditableNodeHeader({ node_label, id, identifier_icon, node_type }) {
   useEffect(() => {
     if (is_editing) label_input_ref.current.focus();
   });
+  // The header controls have the nodrag class, so pressing them does not select or drag the node
   let edit_button =
     edit_visible && !is_editing ? (
       <Tooltip className="clear-tooltip" label={utils.getDisplayCopy("tooltips", "edit")}>
-        <IconButton className="node-label-edit-button" onClick={handleClickOnEdit} variant="ghost" aria-label="Edit Node Label" icon={<MdEdit />} />
+        <IconButton className="node-label-edit-button nodrag" onClick={handleClickOnEdit} variant="ghost" aria-label="Edit Node Label" icon={<MdEdit />} />
       </Tooltip>
     ) : (
       ""
@@ -53,7 +54,7 @@ function EditableNodeHeader({ node_label, id, identifier_icon, node_type }) {
     favorites.getFavoritableParameter(node_type) && !is_editing && (edit_visible || is_favorite) ? (
       <Tooltip className="clear-tooltip" label={utils.getDisplayCopy("tooltips", is_favorite ? "remove_favorite" : "add_favorite")}>
         <IconButton
-          className={`node-label-edit-button node-favorite-button${is_favorite ? " active" : ""}`}
+          className={`node-label-edit-button nodrag node-favorite-button${is_favorite ? " active" : ""}`}
           onClick={() => toggleFavorite(id)}
           variant="ghost"
           aria-label={utils.getDisplayCopy("tooltips", is_favorite ? "remove_favorite" : "add_favorite")}
@@ -72,7 +73,7 @@ function EditableNodeHeader({ node_label, id, identifier_icon, node_type }) {
       <Input
         ref={label_input_ref}
         onKeyUp={handleKeyUp}
-        className="editable-node-label"
+        className="editable-node-label nodrag"
         variant="unstyled"
         size="xs"
         defaultValue={node_label}
@@ -90,7 +91,7 @@ function EditableNodeHeader({ node_label, id, identifier_icon, node_type }) {
             </HStack>
           }
         >
-          <IconButton className="node-label-edit-button" onClick={handleClickOnSave} variant="ghost" aria-label="Save Label" icon={<MdCheck />} />
+          <IconButton className="node-label-edit-button nodrag" onClick={handleClickOnSave} variant="ghost" aria-label="Save Label" icon={<MdCheck />} />
         </Tooltip>
       );
       cancel_button = (
@@ -104,7 +105,7 @@ function EditableNodeHeader({ node_label, id, identifier_icon, node_type }) {
           }
         >
           <IconButton
-            className="node-label-edit-button"
+            className="node-label-edit-button nodrag"
             onClick={handleClickOnCancel}
             variant="ghost"
             aria-label="Discard Label"

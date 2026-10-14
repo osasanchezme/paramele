@@ -12,7 +12,6 @@ import PropertiesPanel from "./components/properties_panel";
 import ParametersPanel from "./components/parameters_panel";
 import favorites from "./js/favorites";
 import theme from "./theme";
-import SelectionBox from "./components/selection_box";
 import Navigator from "./components/navigator";
 import GlobalSettings from "./components/global_settings";
 import Authentication from "./components/authentication";
@@ -34,6 +33,7 @@ import SharingManager from "./components/sharing_manager";
 import StatusBar from "./components/status_bar";
 import ViewSwitch from "./components/view_switch";
 import boxes from "./js/boxes";
+import modelLinks from "./js/modelLinks";
 import { onCompactLayoutChange } from "./js/breakpoints";
 import { hasModelInURL } from "./js/urlParams";
 
@@ -58,8 +58,6 @@ class ParamEle extends React.Component {
     this.getStateUpdateFromClickEvent = this.getStateUpdateFromClickEvent.bind(this);
     this.handleMouseClick = this.handleMouseClick.bind(this);
     this.handleKeyPress = this.handleKeyPress.bind(this);
-    this.handleMouseDown = this.handleMouseDown.bind(this);
-    this.handleMouseUp = this.handleMouseUp.bind(this);
     this.updateComponentsWidth = this.updateComponentsWidth.bind(this);
     this.updateNodesFromLocalState = this.updateNodesFromLocalState.bind(this);
     window.ParamEle.updateNodesFromLocalState = this.updateNodesFromLocalState.bind(this);
@@ -131,9 +129,22 @@ class ParamEle extends React.Component {
     this.removeCompactLayoutListener = onCompactLayoutChange((is_compact) =>
       this.setState({ is_compact, compact_panel_open: false }, () => requestAnimationFrame(() => requestAnimationFrame(fitView)))
     );
+    this.removeShowViewListener = modelLinks.onShowView(this.showView.bind(this));
   }
   componentWillUnmount() {
     this.removeCompactLayoutListener();
+    this.removeShowViewListener();
+  }
+  /**
+   * Brings the editor or the renderer into view to show a box or an element from somewhere else
+   * @param {"nodes"|"renderer"} view
+   */
+  showView(view) {
+    let { side_by_side, show_nodes } = this.state.settings.general;
+    let is_split = side_by_side && !this.state.is_compact;
+    if (!is_split && show_nodes !== (view === "nodes")) this.setViewMode(view);
+    // On compact screens the explorer floats over the views
+    if (this.state.is_compact && this.state.compact_panel_open) this.setState({ compact_panel_open: false });
   }
   changeGeneralSettingValue(key, value) {
     let curr_settings = this.state.settings;
@@ -375,10 +386,6 @@ class ParamEle extends React.Component {
             break;
         }
         break;
-      case "selecting_nodes":
-        event.preventDefault();
-        this.setState({ mouse_x: event.clientX, mouse_y: event.clientY });
-        break;
       default:
         break;
     }
@@ -487,8 +494,10 @@ class ParamEle extends React.Component {
       this.changeAppMode("wait_action");
       return;
     }
+    // With a modifier held a click on the pane selects (handled by React Flow), it does not add a box
+    let is_selection_click = event.shiftKey || event.ctrlKey || event.metaKey;
     if (event.target.className === "react-flow__pane") {
-      if (!event.ctrlKey) {
+      if (!is_selection_click) {
         switch (this.state.mode) {
           case "wait_action":
             deselectAllNodesAndHandles();
@@ -504,30 +513,6 @@ class ParamEle extends React.Component {
             break;
         }
       }
-    }
-  }
-  handleMouseUp(event) {
-    if (this.state.mode === "selecting_nodes") {
-      state.highlightSelectedNodes(
-        this.state.selection_left,
-        this.state.selection_top,
-        this.state.mouse_x,
-        this.state.mouse_y,
-        this.state.rel_orig_x,
-        this.state.rel_orig_y
-      );
-      this.changeAppMode("wait_action");
-    }
-  }
-  /**
-   *
-   * @param {MouseEvent} event
-   */
-  handleMouseDown(event) {
-    if (event.target.className === "react-flow__pane" && event.ctrlKey) {
-      let bounding_rect = event.target.getBoundingClientRect();
-      this.changeAppMode("selecting_nodes");
-      this.setState({ selection_top: event.clientY, selection_left: event.clientX, rel_orig_x: bounding_rect.left, rel_orig_y: bounding_rect.top });
     }
   }
   render() {
@@ -567,8 +552,6 @@ class ParamEle extends React.Component {
                   onKeyDown={this.handleKeyPress}
                   onMouseMove={this.handleMouseMove}
                   onClick={this.handleMouseClick}
-                  onMouseDown={this.handleMouseDown}
-                  onMouseUp={this.handleMouseUp}
                 >
                   <LoadingDimmer />
                   <FileDropZone
@@ -633,6 +616,7 @@ class ParamEle extends React.Component {
                     nodes_library={nodes_library}
                     is_model_locked={this.state.model_locked}
                     app_mode={this.state.mode}
+                    changeAppMode={this.changeAppMode}
                   ></VisualEditor>
                   {(general.side_by_side || general.show_nodes) && <Navigator layout={layout}></Navigator>}
                   <ResizeBorder
@@ -648,13 +632,6 @@ class ParamEle extends React.Component {
                     layout={layout}
                     model_locked={this.state.model_locked}
                   ></Renderer>
-                  <SelectionBox
-                    visible={this.state.mode === "selecting_nodes"}
-                    x={this.state.selection_left}
-                    y={this.state.selection_top}
-                    mouse_x={this.state.mouse_x}
-                    mouse_y={this.state.mouse_y}
-                  ></SelectionBox>
                   <GlobalSettings user={this.state.user}></GlobalSettings>
                   <Authentication
                     user={this.state.user}

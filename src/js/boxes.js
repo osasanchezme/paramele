@@ -10,11 +10,17 @@ import {
   deselectAllHandles,
   getEdgeObject,
   getSelectedHandles,
+  getSelectedIds,
   removeNodesAndEdgesFromModel,
 } from "../components/VisualEditor";
 import { cloneDeep } from "lodash";
 const { notify, closeAllNotifications } = notification;
 
+/**
+ * Starts grouping the selected boxes into a wrapper box, the user then picks its input and output handles
+ * @param {(success: boolean) => void} finish_callback
+ * @returns {boolean} Whether the selection can be grouped and the handles are being picked
+ */
 function groupBoxes(finish_callback) {
   // Get the selected model
   let { selected_nodes, selected_edges, selected_node_ids, selected_edge_ids, connected_nodes } = getSelectedModel();
@@ -22,7 +28,7 @@ function groupBoxes(finish_callback) {
   // Check if there are nodes selected
   if (selected_nodes.length === 0) {
     notify("warning", "no_nodes_selected", null, true);
-    return;
+    return false;
   }
 
   // Check if there are variableRange nodes selected
@@ -33,7 +39,7 @@ function groupBoxes(finish_callback) {
       is_valid_selection = false;
     }
   });
-  if (!is_valid_selection) return;
+  if (!is_valid_selection) return false;
 
   // Check if the model is closed
   selected_node_ids.forEach((node_id) => {
@@ -64,6 +70,7 @@ function groupBoxes(finish_callback) {
     "select_input_handles",
     finish_callback
   );
+  return true;
 }
 
 function groupBoxesStepTwo(data_to_keep, finish_callback) {
@@ -92,11 +99,12 @@ function groupBoxesStepThree(data_to_keep, finish_callback) {
 function editInternalLogic() {
   /** @type {{nodes: Array<Node>, edges: Array<Edge>}} */
   let { nodes } = getState("model");
+  let { node_ids } = getSelectedIds();
   let selected_nodes = [];
   let selected_node_ids = [];
   let selected_node_location = [];
   nodes.forEach((node, i) => {
-    if (node.data.aux.selected) {
+    if (node_ids.has(node.id)) {
       selected_nodes.push(node);
       selected_node_ids.push(node.id);
       selected_node_location.push(i);
@@ -163,20 +171,21 @@ function deleteBoxes() {
 function getSelectedModel() {
   /** @type {{nodes: Array<Node>, edges: Array<Edge>}} */
   let { nodes, edges } = getState("model");
+  let { node_ids, edge_ids } = getSelectedIds();
   let selected_nodes = [];
   let selected_edges = [];
   let selected_node_ids = [];
   let selected_edge_ids = [];
   let connected_nodes = [];
   nodes.forEach((node) => {
-    if (node.data.aux.selected) {
+    if (node_ids.has(node.id)) {
       selected_nodes.push(node);
       selected_node_ids.push(node.id);
     }
   });
   // Get the connected edges to the selected nodes
   edges.forEach((edge) => {
-    if (selected_node_ids.includes(edge.source) || selected_node_ids.includes(edge.target) || edge.selected) {
+    if (selected_node_ids.includes(edge.source) || selected_node_ids.includes(edge.target) || edge_ids.has(edge.id)) {
       connected_nodes.push(edge.source);
       connected_nodes.push(edge.target);
       selected_edges.push(edge);
@@ -188,6 +197,9 @@ function getSelectedModel() {
 
   return { selected_nodes, selected_edges, selected_node_ids, selected_edge_ids, connected_nodes };
 }
+
+// Box types that can be changed into each other
+const CHANGEABLE_TYPES = ["inputNumber", "variableRange"];
 
 function changeNodesType(new_node_type) {
   /** @type {{nodes: Array<Node>, edges: Array<Edge>}} */
@@ -209,7 +221,7 @@ function changeNodesType(new_node_type) {
   const handles_map = {
     "slider-value": "value-value",
   };
-  const supported_types = ["inputNumber", "variableRange"];
+  const supported_types = CHANGEABLE_TYPES;
   let selected_are_supported = selected_nodes.reduce((prev, curr) => {
     if (prev && supported_types.includes(curr.type)) return true;
     return false;
@@ -222,6 +234,8 @@ function changeNodesType(new_node_type) {
   nodes.forEach((node) => {
     if (selected_node_ids.includes(node.id)) {
       node.type = new_node_type;
+      // Still selected, so other actions can follow on them
+      node.selected = true;
       Object.entries(handles_map).forEach(([handle_1_id, handle_2_id]) => {
         let old_data;
         let old_key;
@@ -286,6 +300,6 @@ function duplicateNodes(first_point, second_point) {
   addEdgesArrayToTheEditor(new_edges);
 }
 
-const boxes = { groupBoxes, editInternalLogic, deleteBoxes, changeNodesType, duplicateNodes };
+const boxes = { groupBoxes, editInternalLogic, deleteBoxes, changeNodesType, duplicateNodes, CHANGEABLE_TYPES };
 
 export default boxes;

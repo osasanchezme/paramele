@@ -305,13 +305,54 @@ function pickCandidate(candidates, project, cursor) {
 }
 
 /**
+ * Traces that highlight structural elements: points for nodes and what sits on a node, lines along members and around plates
+ * @param {{structure_key: string, element_id: string}[]} highlight
+ * @param {object} structure
+ */
+function getHighlightTraces(highlight, structure) {
+  let points = { x: [], y: [], z: [] };
+  let lines = { x: [], y: [], z: [] };
+  const pushPoint = (node_id) => {
+    let node = structure.nodes[node_id];
+    if (!node) return;
+    ["x", "y", "z"].forEach((axis) => points[axis].push(node[axis]));
+  };
+  // Lines are separated by a gap (null), so all of them fit in one trace
+  const pushLine = (node_ids) => {
+    let nodes = node_ids.map((node_id) => structure.nodes[node_id]);
+    if (nodes.some((node) => !node)) return;
+    ["x", "y", "z"].forEach((axis) => lines[axis].push(...nodes.map((node) => node[axis]), null));
+  };
+  const pushMember = (member_id) => {
+    let member = structure.members[member_id];
+    if (member) pushLine([member.node_A, member.node_B]);
+  };
+  highlight.forEach(({ structure_key, element_id }) => {
+    let element = structure[structure_key]?.[element_id];
+    if (!element) return;
+    if (structure_key === "nodes") pushPoint(element_id);
+    else if (structure_key === "members") pushMember(element_id);
+    else if (structure_key === "distributed_loads") pushMember(element.member);
+    else if (structure_key === "plates" && Array.isArray(element.nodes)) pushLine([...element.nodes, element.nodes[0]]);
+    else if (element.node !== undefined) pushPoint(element.node);
+  });
+  let traces = [];
+  if (lines.x.length > 0)
+    traces.push({ ...lines, type: "scatter3d", mode: "lines", hoverinfo: "skip", opacity: 0.55, line: { color: SELECTED_COLOR, width: 12 } });
+  if (points.x.length > 0)
+    traces.push({ ...points, type: "scatter3d", mode: "markers", hoverinfo: "skip", marker: { color: SELECTED_COLOR, size: 14, opacity: 0.45 } });
+  return traces;
+}
+
+/**
  * Traces of the drawing tools, drawn on top of the structure: snap points, picked points and the element being edited
  * @param {import("./types").ParamEleDrawingState} drawing_state
  * @param {object} structure
  */
 function getOverlayTraces(drawing_state, structure) {
-  let { tool, points, selected_target } = drawing_state;
+  let { tool, points, selected_target, highlight } = drawing_state;
   let traces = [];
+  if (highlight?.length > 0) traces.push(...getHighlightTraces(highlight, structure));
   if (isPointTool(tool)) traces.push(...getGridTraces(drawing_state, structure), ...getNormalLineTraces(drawing_state, structure));
   // The points picked so far. The preview up to the cursor is drawn over the plot, so hovering does not replot
   if (points.length > 0) {

@@ -91,6 +91,45 @@
   box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.06) 0px 2px 4px -1px;
 }
 
-.reactflow-node.selected {
+.react-flow .react-flow__node.selected > .reactflow-node {
   border-color: var(--chakra-colors-brand-500);
+  box-shadow: 0 0 0 2px var(--chakra-colors-brand-400), rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.06) 0px 2px 4px -1px;
+}
+
+/* Selection box drawn with Shift + drag */
+.react-flow .react-flow__selection {
+  background: rgba(140, 156, 58, 0.1);
+  border: 1px dashed var(--chakra-colors-brand-500);
+}
+
+/* Dragging any selected node already moves the whole selection, the rectangle around it would only block the clicks
+   on the selected nodes */
+.react-flow .react-flow__nodesselection-rect {
+  display: none;
+}
+/* Floating toolbar with the actions for the selected boxes */
+.selection-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px 4px 3px 10px;
+  background: #fff;
+  border: 1px solid var(--chakra-colors-gray-200);
+  border-radius: var(--chakra-radii-md);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  white-space: nowrap;
+}
+
+.selection-toolbar-count {
+  margin-right: 4px;
+  font-family: var(--chakra-fonts-mono);
+  font-size: 11px;
+  color: var(--chakra-colors-gray-600);
+}
+
+.selection-toolbar-divider {
+  width: 1px;
+  height: 20px;
+  margin: 0 3px;
+  background: var(--chakra-colors-gray-200);
 }

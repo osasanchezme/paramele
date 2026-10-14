@@ -401,11 +401,8 @@ function GenericInOutNode({ data, id, node_label, target_ids = [], source_ids = 
   }
   let node_width = Math.max(max_length * 5 + 45, node_label.length * 8 + 20, 100, editable_ids.length > 0 ? 150 : 0, plot_width + 20, table_width);
   let node_height = 20 * (Math.max(target_ids.length, source_ids.length) + 2) + 26 * editable_ids.length + plot_height + table_height;
-  // Define the class name
-  let class_name = "reactflow-node";
-  if (data.aux.selected) class_name += " selected";
   return (
-    <div className={class_name} style={{ height: node_height, width: node_width }}>
+    <div className="reactflow-node" style={{ height: node_height, width: node_width }}>
       <EditableNodeHeader id={id} node_label={node_label} identifier_icon={data.iterating ? MdLoop : null} node_type={node_type}></EditableNodeHeader>
       <div className="node-body">
         {target_handles}

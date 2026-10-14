@@ -567,6 +567,15 @@ div.entity-editor {
   color: var(--chakra-colors-orange-600);
 }
 
+.entity-editor-show-box {
+  flex-shrink: 0;
+  color: var(--chakra-colors-gray-600) !important;
+}
+
+.entity-editor-show-box:hover {
+  color: var(--chakra-colors-brand-600) !important;
+}
+
 .entity-editor-shared {
   color: var(--chakra-colors-orange-700);
 }

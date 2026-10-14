@@ -8,7 +8,10 @@ function repairModel(model) {
   model.nodes.forEach((node) => {
     if (!node.data) node.data = {};
     node.data.aux = utils.getDefaultAuxData();
+    // Models open with nothing selected
+    delete node.selected;
   });
+  (model.edges || []).forEach((edge) => delete edge.selected);
   // Favorite parameters of nodes that are not in the model anymore are dropped
   let node_ids = new Set(model.nodes.map(({ id }) => id));
   model.favorites = (model.favorites || []).filter(({ node_id }) => node_ids.has(node_id));

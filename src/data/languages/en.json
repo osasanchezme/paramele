@@ -163,7 +163,7 @@
         "group": "Group",
         "edit_logic": "Edit logic",
         "change_type": "Change type",
-        "duplicate": "Duplicar",
+        "duplicate": "Duplicate",
         "structure": "Structure",
         "mesh": "Mesh plates",
         "remove_mesh": "Remove mesh",
@@ -226,7 +226,9 @@
     "properties_panel": {
         "title": "EXPLORER",
         "copy_json": "Copy structure",
-        "collapse_all": "Collapse all"
+        "collapse_all": "Collapse all",
+        "highlight": "Highlight in the 3D view",
+        "show_box": "Show in the editor"
     },
     "notifications":{
         "drawing_duplicate_member_title": "Member already exists",
@@ -444,7 +446,7 @@
         "select": "Select..."
     },
     "status_bar": {
-        "wait_action": "Click anywhere on the graphical editor to add a box",
+        "wait_action": "Click anywhere on the graphical editor to add a box, Shift + drag to select boxes",
         "selecting_nodes": "Select the boxes, to finish release the mouse button",
         "selecting_handles": "Click on the input or output handles",
         "change_node_type": "Select the new type for the selected boxes",
@@ -490,6 +492,14 @@
         "unsupported_drop_desc": "Drop a ParamEle or SkyCiv JSON, a DXF or a SAP2000 ($2k) file",
         "close": "Close"
     },
+    "selection_toolbar": {
+        "one_box": "1 box",
+        "boxes": "{count} boxes",
+        "change_to": "Change to {type}",
+        "group_no_ranges": "Range boxes cannot be grouped",
+        "model_locked": "The model is locked",
+        "highlight": "Show in 3D"
+    },
     "drawing": {
         "none": "Navigate",
         "member": "Draw members",
@@ -534,6 +544,10 @@
         "editor_unlinked_many": "have no parameter yet. Changing them creates one.",
         "editor_shared": "Shared: changing it also updates",
         "editor_not_shared": "(used only here)",
+        "editor_show_box": "Show the box of this element",
+        "editor_from_group": "Comes from the group box",
+        "editor_edit_in_group": "Edit it inside the group.",
+        "editor_show_source": "Show {box} in the editor",
         "nodes": "Node",
         "members": "Member",
         "plates": "Plate",

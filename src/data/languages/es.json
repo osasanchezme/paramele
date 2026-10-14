@@ -210,7 +210,9 @@
     "properties_panel": {
         "title": "EXPLORADOR",
         "copy_json": "Copiar estructura",
-        "collapse_all": "Contraer todo"
+        "collapse_all": "Contraer todo",
+        "highlight": "Resaltar en la vista 3D",
+        "show_box": "Ver en el editor"
     },
     "notifications": {
         "drawing_duplicate_member_title": "La barra ya existe",
@@ -430,7 +432,7 @@
         "select": "Selecciona..."
     },
     "status_bar": {
-        "wait_action": "Haz click en cualquier lugar del editor gráfico para agregar una caja",
+        "wait_action": "Haz click en cualquier lugar del editor gráfico para agregar una caja, Shift + arrastrar para seleccionar cajas",
         "selecting_nodes": "Selecciona las cajas, para terminar suelta el botón del mouse",
         "selecting_handles": "Haz click en los puntos de entrada o salida de entrada",
         "change_node_type": "Selecciona el nuevo tipo de caja para la selección",
@@ -492,6 +494,14 @@
         "unsupported_drop_desc": "Suelta un JSON de ParamEle o SkyCiv, un DXF o un archivo de SAP2000 ($2k)",
         "close": "Cerrar"
     },
+    "selection_toolbar": {
+        "one_box": "1 caja",
+        "boxes": "{count} cajas",
+        "change_to": "Cambiar a {type}",
+        "group_no_ranges": "Las cajas de rango no se pueden agrupar",
+        "model_locked": "El modelo está bloqueado",
+        "highlight": "Ver en 3D"
+    },
     "drawing": {
         "none": "Navegar",
         "member": "Dibujar barras",
@@ -536,6 +546,10 @@
         "editor_unlinked_many": "aún no tienen parámetro. Cambiarlos crea uno.",
         "editor_shared": "Compartido: cambiarlo también actualiza",
         "editor_not_shared": "(solo se usa aquí)",
+        "editor_show_box": "Ver la caja de este elemento",
+        "editor_from_group": "Viene de la caja agrupada",
+        "editor_edit_in_group": "Edítalo dentro del grupo.",
+        "editor_show_source": "Ver {box} en el editor",
         "nodes": "Nodo",
         "members": "Barra",
         "plates": "Placa",

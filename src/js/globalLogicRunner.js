@@ -3,6 +3,7 @@ import getState from "../getState";
 import utils from "../utils";
 import mesher from "./mesher";
 import settings_template from "../settings_template.json";
+import modelLinks from "./modelLinks";
 
 const STRUCTURAL_RESULT_TYPES = new Set(["node", "member", "support", "point_load", "distributed_load", "plate", "moment", "section", "material"]);
 const ACCUMULATED_LIST_TYPES = new Set(["member_list", "node_list"]);
@@ -21,6 +22,32 @@ function clearAccumulatedLists(model) {
   });
 }
 
+/**
+ * IDs of the elements in the structure, by structure key
+ * @returns {Object<string, Set<string>>}
+ */
+function getStructureIds() {
+  let ids = {};
+  Object.entries(getState("structure")).forEach(([structure_key, elements]) => (ids[structure_key] = new Set(Object.keys(elements))));
+  return ids;
+}
+
+/**
+ * Records that the elements a group box added to the structure come from it
+ * @param {object} group_origins Box of each element, by structure key and ID
+ * @param {Object<string, Set<string>>} ids_before From getStructureIds before the box ran
+ * @param {string} node_id
+ */
+function addGroupOrigins(group_origins, ids_before, node_id) {
+  Object.entries(getStructureIds()).forEach(([structure_key, ids]) => {
+    ids.forEach((element_id) => {
+      if (ids_before[structure_key]?.has(element_id)) return;
+      if (!group_origins[structure_key]) group_origins[structure_key] = {};
+      group_origins[structure_key][element_id] = node_id;
+    });
+  });
+}
+
 function run(model) {
   if (model == undefined) {
     console.log("There are places not passing the model to the logic runner");
@@ -29,9 +56,12 @@ function run(model) {
   // Restart the structure
   state.setState(utils.getEmptyStructuralModel(), "structure");
   clearAccumulatedLists(model);
-  let { nodes, origins, combinations } = calculateModel(model, true);
+  let { nodes, origins, group_origins, combinations } = calculateModel(model, true);
   // Lets the drawing tools find the box behind an element clicked in the renderer
   state.setGlobalVariable("structure_origins", origins);
+  // Group boxes are kept apart, their elements are edited inside them
+  state.setGlobalVariable("structure_group_origins", group_origins);
+  modelLinks.notifyElementsChange();
   // Lets the renderer frame and label each possibility
   state.setGlobalVariable("structure_combinations", combinations);
   meshPlates();
@@ -87,6 +117,8 @@ function calculateModel(model, is_from_main_model) {
   let range_nodes = [];
   // Box that created each structural element, by structure key and ID (only for the main model, wrappers create their own)
   let origins = {};
+  // Group box that added each element of its inner model (only for the main model)
+  let group_origins = {};
   // Structural nodes created by each possibility when all of them are calculated (only for the main model)
   let combinations = [];
   const library = utils.getNodesLibrary();
@@ -167,6 +199,17 @@ function calculateModel(model, is_from_main_model) {
       structure_id_state[structure_key] = { used_ids, next_id };
     });
 
+    // Group boxes add their elements to the stored structure, which the local copy and the free IDs have to include
+    const syncStructure = () => {
+      structure = getState("structure");
+      Object.entries(structure).forEach(([structure_key, elements]) => {
+        const id_state = structure_id_state[structure_key];
+        if (!id_state) return;
+        Object.keys(elements).forEach((id) => id_state.used_ids.add(Number(id)));
+        while (id_state.used_ids.has(id_state.next_id)) id_state.next_id += 1;
+      });
+    };
+
     const getNextStructuralId = (structure_key) => {
       const id_state = structure_id_state[structure_key];
       const new_id = id_state.next_id;
@@ -206,7 +249,11 @@ function calculateModel(model, is_from_main_model) {
         node.args[arg_key] = processed_args;
       });
       // Execute
+      let is_group = nodes_type[node_id] === "nodesWrapper";
+      let ids_before = is_from_main_model && is_group ? getStructureIds() : null;
       let result = library.execution[nodes_type[node_id]](node.args, nodes_data[node_id]);
+      if (is_group) syncStructure();
+      if (ids_before) addGroupOrigins(group_origins, ids_before, node_id);
       let result_input = {};
       Object.entries(result).forEach(([res_id, res_val]) => {
         let is_push = false;
@@ -271,7 +318,7 @@ function calculateModel(model, is_from_main_model) {
     }
   });
 
-  return { nodes, origins, combinations };
+  return { nodes, origins, group_origins, combinations };
 }
 
 const logic_runner = { run, calculateModel };

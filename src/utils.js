@@ -312,7 +312,6 @@ function getFormattedDate(timestamp) {
 function getDefaultAuxData() {
   return {
     selected_handles: [],
-    selected: false,
   };
 }
 
