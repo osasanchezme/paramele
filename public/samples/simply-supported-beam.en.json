@@ -1,0 +1,492 @@
+{
+  "model": {
+    "nodes": [
+      {
+        "id": "node-1",
+        "type": "inputNumber",
+        "position": {
+          "x": 0,
+          "y": 0
+        },
+        "data": {
+          "value-value": "0",
+          "custom_label": "Origin (0)"
+        }
+      },
+      {
+        "id": "node-2",
+        "type": "inputNumber",
+        "position": {
+          "x": 0,
+          "y": 85
+        },
+        "data": {
+          "value-value": "6",
+          "custom_label": "Span L [m]"
+        }
+      },
+      {
+        "id": "node-3",
+        "type": "inputNumber",
+        "position": {
+          "x": 0,
+          "y": 170
+        },
+        "data": {
+          "value-value": "-20",
+          "custom_label": "Load w [kN/m]"
+        }
+      },
+      {
+        "id": "node-4",
+        "type": "structuralNode",
+        "position": {
+          "x": 210,
+          "y": 0
+        },
+        "data": {
+          "custom_label": "Node A"
+        }
+      },
+      {
+        "id": "node-5",
+        "type": "structuralNode",
+        "position": {
+          "x": 210,
+          "y": 120
+        },
+        "data": {
+          "custom_label": "Node B"
+        }
+      },
+      {
+        "id": "node-6",
+        "type": "structuralMaterial",
+        "position": {
+          "x": 210,
+          "y": 300
+        },
+        "data": {
+          "custom_label": "Concrete"
+        }
+      },
+      {
+        "id": "node-7",
+        "type": "inputNumber",
+        "position": {
+          "x": 0,
+          "y": 300
+        },
+        "data": {
+          "value-value": "24870",
+          "custom_label": "Concrete E [MPa]"
+        }
+      },
+      {
+        "id": "node-8",
+        "type": "inputNumber",
+        "position": {
+          "x": 0,
+          "y": 385
+        },
+        "data": {
+          "value-value": "2400",
+          "custom_label": "Density [kg/m³]"
+        }
+      },
+      {
+        "id": "node-9",
+        "type": "inputNumber",
+        "position": {
+          "x": 0,
+          "y": 470
+        },
+        "data": {
+          "value-value": "0.2",
+          "custom_label": "Poisson's ratio"
+        }
+      },
+      {
+        "id": "node-10",
+        "type": "inputNumber",
+        "position": {
+          "x": 210,
+          "y": 460
+        },
+        "data": {
+          "value-value": "300",
+          "custom_label": "Width b [mm]"
+        }
+      },
+      {
+        "id": "node-11",
+        "type": "inputNumber",
+        "position": {
+          "x": 210,
+          "y": 545
+        },
+        "data": {
+          "value-value": "500",
+          "custom_label": "Depth h [mm]"
+        }
+      },
+      {
+        "id": "node-12",
+        "type": "structuralRectangleSection",
+        "position": {
+          "x": 420,
+          "y": 300
+        },
+        "data": {
+          "custom_label": "Beam section"
+        }
+      },
+      {
+        "id": "node-13",
+        "type": "inputString",
+        "position": {
+          "x": 420,
+          "y": 0
+        },
+        "data": {
+          "value-string": "FFFFRR",
+          "custom_label": "Pin code"
+        }
+      },
+      {
+        "id": "node-14",
+        "type": "inputString",
+        "position": {
+          "x": 420,
+          "y": 85
+        },
+        "data": {
+          "value-string": "RFFFRR",
+          "custom_label": "Roller code"
+        }
+      },
+      {
+        "id": "node-15",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 630,
+          "y": 0
+        },
+        "data": {
+          "custom_label": "Support A (pin)"
+        }
+      },
+      {
+        "id": "node-16",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 630,
+          "y": 120
+        },
+        "data": {
+          "custom_label": "Support B (roller)"
+        }
+      },
+      {
+        "id": "node-17",
+        "type": "structuralMember",
+        "position": {
+          "x": 630,
+          "y": 260
+        },
+        "data": {
+          "custom_label": "Beam"
+        }
+      },
+      {
+        "id": "node-18",
+        "type": "structuralDistributedLoad",
+        "position": {
+          "x": 840,
+          "y": 160
+        },
+        "data": {
+          "custom_label": "Distributed load"
+        }
+      },
+      {
+        "id": "node-19",
+        "type": "structuralMemberResult",
+        "position": {
+          "x": 1050,
+          "y": 0
+        },
+        "data": {
+          "custom_label": "Bending moment",
+          "result-value": "moment",
+          "direction-value": "z",
+          "result_type-value": "full"
+        }
+      },
+      {
+        "id": "node-20",
+        "type": "dataDisplay2DPlot",
+        "position": {
+          "x": 1310,
+          "y": 0
+        },
+        "data": {
+          "custom_label": "Bending moment"
+        }
+      },
+      {
+        "id": "node-21",
+        "type": "structuralMemberResult",
+        "position": {
+          "x": 1050,
+          "y": 590
+        },
+        "data": {
+          "custom_label": "Deflection",
+          "result-value": "displacement",
+          "direction-value": "z",
+          "result_type-value": "full"
+        }
+      },
+      {
+        "id": "node-22",
+        "type": "dataDisplay2DPlot",
+        "position": {
+          "x": 1310,
+          "y": 590
+        },
+        "data": {
+          "custom_label": "Deflection"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-node-1-value-value-node-4-x-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-4",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-4-y-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-4",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-4-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-4",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-2-value-value-node-5-x-value",
+        "source": "node-2",
+        "sourceHandle": "value-value",
+        "target": "node-5",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-5-y-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-5",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-5-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-5",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-7-value-value-node-6-elasticity_modulus-value-20000",
+        "source": "node-7",
+        "sourceHandle": "value-value",
+        "target": "node-6",
+        "targetHandle": "elasticity_modulus-value-20000"
+      },
+      {
+        "id": "e-node-8-value-value-node-6-density-value",
+        "source": "node-8",
+        "sourceHandle": "value-value",
+        "target": "node-6",
+        "targetHandle": "density-value"
+      },
+      {
+        "id": "e-node-9-value-value-node-6-poissons_ratio-value-0.3",
+        "source": "node-9",
+        "sourceHandle": "value-value",
+        "target": "node-6",
+        "targetHandle": "poissons_ratio-value-0.3"
+      },
+      {
+        "id": "e-node-6-material_out-id-node-12-material_id-id-1",
+        "source": "node-6",
+        "sourceHandle": "material_out-id",
+        "target": "node-12",
+        "targetHandle": "material_id-id-1"
+      },
+      {
+        "id": "e-node-10-value-value-node-12-base-value-1",
+        "source": "node-10",
+        "sourceHandle": "value-value",
+        "target": "node-12",
+        "targetHandle": "base-value-1"
+      },
+      {
+        "id": "e-node-11-value-value-node-12-height-value-1",
+        "source": "node-11",
+        "sourceHandle": "value-value",
+        "target": "node-12",
+        "targetHandle": "height-value-1"
+      },
+      {
+        "id": "e-node-4-node_out-id-node-15-node-id",
+        "source": "node-4",
+        "sourceHandle": "node_out-id",
+        "target": "node-15",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-13-value-string-node-15-restraint_code-string-FFFFFF",
+        "source": "node-13",
+        "sourceHandle": "value-string",
+        "target": "node-15",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-5-node_out-id-node-16-node-id",
+        "source": "node-5",
+        "sourceHandle": "node_out-id",
+        "target": "node-16",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-14-value-string-node-16-restraint_code-string-FFFFFF",
+        "source": "node-14",
+        "sourceHandle": "value-string",
+        "target": "node-16",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-4-node_out-id-node-17-node_A-id",
+        "source": "node-4",
+        "sourceHandle": "node_out-id",
+        "target": "node-17",
+        "targetHandle": "node_A-id"
+      },
+      {
+        "id": "e-node-5-node_out-id-node-17-node_B-id",
+        "source": "node-5",
+        "sourceHandle": "node_out-id",
+        "target": "node-17",
+        "targetHandle": "node_B-id"
+      },
+      {
+        "id": "e-node-12-section_out-id-node-17-section_id-id-1",
+        "source": "node-12",
+        "sourceHandle": "section_out-id",
+        "target": "node-17",
+        "targetHandle": "section_id-id-1"
+      },
+      {
+        "id": "e-node-17-member_out-id-node-18-member-id",
+        "source": "node-17",
+        "sourceHandle": "member_out-id",
+        "target": "node-18",
+        "targetHandle": "member-id"
+      },
+      {
+        "id": "e-node-3-value-value-node-18-z_mag_A-value",
+        "source": "node-3",
+        "sourceHandle": "value-value",
+        "target": "node-18",
+        "targetHandle": "z_mag_A-value"
+      },
+      {
+        "id": "e-node-3-value-value-node-18-z_mag_B-value",
+        "source": "node-3",
+        "sourceHandle": "value-value",
+        "target": "node-18",
+        "targetHandle": "z_mag_B-value"
+      },
+      {
+        "id": "e-node-17-member_out-id-node-19-members-ids",
+        "source": "node-17",
+        "sourceHandle": "member_out-id",
+        "target": "node-19",
+        "targetHandle": "members-ids"
+      },
+      {
+        "id": "e-node-19-plotable_out-plotly_data-node-20-plotable-plotly_data",
+        "source": "node-19",
+        "sourceHandle": "plotable_out-plotly_data",
+        "target": "node-20",
+        "targetHandle": "plotable-plotly_data"
+      },
+      {
+        "id": "e-node-17-member_out-id-node-21-members-ids",
+        "source": "node-17",
+        "sourceHandle": "member_out-id",
+        "target": "node-21",
+        "targetHandle": "members-ids"
+      },
+      {
+        "id": "e-node-21-plotable_out-plotly_data-node-22-plotable-plotly_data",
+        "source": "node-21",
+        "sourceHandle": "plotable_out-plotly_data",
+        "target": "node-22",
+        "targetHandle": "plotable-plotly_data"
+      }
+    ],
+    "favorites": [
+      {
+        "node_id": "node-2",
+        "data_key": "value-value",
+        "min": 2,
+        "max": 12,
+        "step": 0.5
+      },
+      {
+        "node_id": "node-3",
+        "data_key": "value-value",
+        "min": -60,
+        "max": 0,
+        "step": 1
+      },
+      {
+        "node_id": "node-11",
+        "data_key": "value-value",
+        "min": 250,
+        "max": 900,
+        "step": 50
+      }
+    ]
+  },
+  "settings": {
+    "general": {
+      "auto_update": true,
+      "mini_map": false,
+      "show_nodes": true,
+      "side_by_side": true,
+      "show_properties_panel": false,
+      "show_parameters_panel": true
+    },
+    "layout": {
+      "renderer_width": 45,
+      "editor_width": 55,
+      "panel_width": 0,
+      "renderer_right": 55
+    },
+    "global": {
+      "sliders_mode": "sliders_single",
+      "spacing_between_combinations": 1,
+      "solver_engine": "pynite_wasm"
+    }
+  }
+}

@@ -186,7 +186,8 @@
         "last_saved": "Last saved",
         "show_panel": "Show panel",
         "hide_panel": "Hide panel",
-        "menu": "Menu"
+        "menu": "Menu",
+        "samples": "Samples"
     },
     "commands_bar":{
         "placeholder": "Node name..."
@@ -336,7 +337,11 @@
         "mesh_removed_title": "Mesh removed",
         "mesh_removed_desc": "The plates are not meshed anymore.",
         "meshing_for_solve_title": "Meshing the plates",
-        "meshing_for_solve_desc": "PyNite needs meshed plates, they were meshed with size {size}."
+        "meshing_for_solve_desc": "PyNite needs meshed plates, they were meshed with size {size}.",
+        "sample_not_found_title": "Sample not found",
+        "sample_not_found_desc": "The sample in the link does not exist. Pick one from File > Samples.",
+        "sample_load_failed_title": "Could not open the sample",
+        "sample_load_failed_desc": "Check your connection and try again."
     },
     "navigator":{
         "model": "Main model"
@@ -417,7 +422,8 @@
         "loading_results": "Loading results",
         "logging_in": "Logging in",
         "logging_out": "Logging out",
-        "generating_parametric_model": "Generating parametric model"
+        "generating_parametric_model": "Generating parametric model",
+        "loading_sample": "Loading sample"
     },
     "version_history": {
         "title": "Version history",
@@ -565,5 +571,18 @@
         "axes_local": "Local",
         "axes_global_tooltip": "Components along the global axes X, Y, Z",
         "axes_local_tooltip": "Components along the plate's local axes (x along its first edge, z normal to it)"
+    },
+    "samples": {
+        "title": "Sample models",
+        "subtitle": "Open one to see how it is built and play with its parameters. No account needed.",
+        "open": "Open sample",
+        "cancel": "Cancel",
+        "replace_warning": "Opening a sample replaces the model in the editor. Unsaved changes will be lost.",
+        "loading": "Loading samples...",
+        "load_error": "The samples could not be loaded. Check your connection and try again.",
+        "retry": "Try again",
+        "tutorial": "Tutorial",
+        "boxes": "boxes",
+        "selected": "Selected"
     }
 }

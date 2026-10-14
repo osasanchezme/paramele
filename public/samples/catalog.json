@@ -1,0 +1,85 @@
+{
+  "samples": [
+    {
+      "id": "simply-supported-beam",
+      "title": {
+        "es": "Viga simplemente apoyada",
+        "en": "Simply supported beam"
+      },
+      "description": {
+        "es": "Una luz con carga uniforme, articulación y rodillo. Cambia la luz, la carga o la altura y compara con 5wL⁴/384EI.",
+        "en": "One span with a uniform load, a pin and a roller. Change the span, the load or the depth and check it against 5wL⁴/384EI."
+      },
+      "tags": {
+        "es": [
+          "Viga",
+          "Básico"
+        ],
+        "en": [
+          "Beam",
+          "Basic"
+        ]
+      },
+      "boxes": 22,
+      "thumbnail": "simply-supported-beam.webp",
+      "tutorial": {
+        "es": "https://paramele.com/blog/viga-simplemente-apoyada",
+        "en": "https://paramele.com/en/blog/simply-supported-beam"
+      }
+    },
+    {
+      "id": "portal-frame",
+      "title": {
+        "es": "Pórtico de un piso",
+        "en": "Single storey frame"
+      },
+      "description": {
+        "es": "Dos columnas empotradas y una viga, con carga de gravedad y carga lateral. Mira cómo cambian los momentos al variar la altura.",
+        "en": "Two fixed-base columns and a beam, with gravity and lateral loads. See how the moments change as the height varies."
+      },
+      "tags": {
+        "es": [
+          "Pórtico",
+          "Básico"
+        ],
+        "en": [
+          "Frame",
+          "Basic"
+        ]
+      },
+      "boxes": 29,
+      "thumbnail": "portal-frame.webp",
+      "tutorial": {
+        "es": "https://paramele.com/blog/portico-de-un-piso",
+        "en": "https://paramele.com/en/blog/single-storey-frame"
+      }
+    },
+    {
+      "id": "multi-span-beam",
+      "title": {
+        "es": "Viga continua de tres vanos",
+        "en": "Three-span continuous beam"
+      },
+      "description": {
+        "es": "Una viga sobre cuatro apoyos. Las posiciones salen de multiplicar la luz, así que un solo valor controla toda la geometría.",
+        "en": "A beam over four supports. Their positions multiply the span, so a single value drives the whole geometry."
+      },
+      "tags": {
+        "es": [
+          "Viga",
+          "Matemáticas"
+        ],
+        "en": [
+          "Beam",
+          "Math"
+        ]
+      },
+      "boxes": 34,
+      "thumbnail": "multi-span-beam.webp",
+      "tutorial": {
+        "es": "https://paramele.com/blog/viga-continua-de-tres-vanos",
+        "en": "https://paramele.com/en/blog/three-span-continuous-beam"
+      }
+    }
+  ]
+}

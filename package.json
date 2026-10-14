@@ -32,7 +32,8 @@
     "test": "react-scripts test",
     "test:rules": "firebase emulators:exec --only firestore,storage --project demo-paramele \"node --test rules-tests/rules.test.js\"",
     "eject": "react-scripts eject",
-    "theme": "chakra-cli tokens src/theme.js"
+    "theme": "chakra-cli tokens src/theme.js",
+    "samples": "node scripts/build_samples.mjs"
   },
   "eslintConfig": {
     "extends": [

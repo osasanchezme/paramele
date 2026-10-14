@@ -30,12 +30,14 @@ import { notify } from "./components/notification";
 import { getInitialState } from "./initial_state";
 import { AppModeContext, FavoritesContext, GlobalLoadingProvider, UserDataContext } from "./Context";
 import SharingManager from "./components/sharing_manager";
+import SampleGallery from "./components/sample_gallery";
+import samples from "./js/samples";
 import StatusBar from "./components/status_bar";
 import ViewSwitch from "./components/view_switch";
 import boxes from "./js/boxes";
 import modelLinks from "./js/modelLinks";
 import { onCompactLayoutChange } from "./js/breakpoints";
-import { hasModelInURL } from "./js/urlParams";
+import { getURLParams, hasModelInURL } from "./js/urlParams";
 
 setInitialState();
 const library = createNodesLibrary();
@@ -79,6 +81,8 @@ class ParamEle extends React.Component {
     this.closeFileManager = this.closeFileManager.bind(this);
     this.openSharingManager = this.openSharingManager.bind(this);
     this.closeSharingManager = this.closeSharingManager.bind(this);
+    this.openSampleGallery = this.openSampleGallery.bind(this);
+    this.closeSampleGallery = this.closeSampleGallery.bind(this);
     this.setNodes = this.setNodes.bind(this);
     this.setEdges = this.setEdges.bind(this);
     this.getContactInformation = this.getContactInformation.bind(this);
@@ -96,7 +100,7 @@ class ParamEle extends React.Component {
         utils.setUser(null);
       }
       if (!is_params_available) {
-        utils.hideLoadingDimmer();
+        this.openStartupSample();
         return;
       }
       // The loading dimmer stays open until the model is downloaded, so the empty startup model is never shown
@@ -121,6 +125,20 @@ class ParamEle extends React.Component {
         },
         onOpenFailed
       );
+    });
+  }
+  /**
+   * Opens the sample in the URL (?sample=<id>) the first time the app is ready, the loading dimmer stays until it is open
+   */
+  openStartupSample() {
+    let { sample } = getURLParams();
+    if (!sample || this.is_startup_sample_opened) {
+      utils.hideLoadingDimmer();
+      return;
+    }
+    this.is_startup_sample_opened = true;
+    samples.openSample(sample, this.setFileData, this.setModelLock).then(({ success }) => {
+      if (!success) file.openSampleModel();
     });
   }
   componentDidMount() {
@@ -292,6 +310,12 @@ class ParamEle extends React.Component {
   }
   closeSharingManager() {
     this.setState({ is_sharing_manager_open: false });
+  }
+  openSampleGallery() {
+    this.setState({ is_sample_gallery_open: true });
+  }
+  closeSampleGallery() {
+    this.setState({ is_sample_gallery_open: false });
   }
   /**
    * Opens a generic confirmation dialog before executing an action
@@ -577,6 +601,7 @@ class ParamEle extends React.Component {
                     changeAppMode={this.changeAppMode}
                     openConfirmationDialog={this.openConfirmationDialog}
                     openSharingManager={this.openSharingManager}
+                    openSampleGallery={this.openSampleGallery}
                     show_properties_panel={show_properties_panel}
                     togglePropertiesPanel={this.togglePropertiesPanel}
                     show_parameters_panel={general.show_parameters_panel}
@@ -656,6 +681,12 @@ class ParamEle extends React.Component {
                     setFileData={this.setFileData}
                     user={this.state.user}
                   ></SharingManager>
+                  <SampleGallery
+                    isOpen={this.state.is_sample_gallery_open}
+                    onClose={this.closeSampleGallery}
+                    setFileData={this.setFileData}
+                    setModelLock={this.setModelLock}
+                  ></SampleGallery>
                   <VersionManager
                     isOpen={this.state.is_version_manager_open}
                     onClose={this.closeVersionManager}

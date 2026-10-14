@@ -186,7 +186,8 @@
         "hide_panel": "Ocultar panel",
         "menu": "Menú",
         "show_parameters_panel": "Mostrar parámetros favoritos",
-        "hide_parameters_panel": "Ocultar parámetros favoritos"
+        "hide_parameters_panel": "Ocultar parámetros favoritos",
+        "samples": "Ejemplos"
     },
     "commands_bar": {
         "placeholder": "Nombre nodo..."
@@ -322,7 +323,11 @@
         "mesh_removed_title": "Malla eliminada",
         "mesh_removed_desc": "Las placas ya no están malladas.",
         "meshing_for_solve_title": "Mallando las placas",
-        "meshing_for_solve_desc": "PyNite necesita placas malladas, se mallaron con tamaño {size}."
+        "meshing_for_solve_desc": "PyNite necesita placas malladas, se mallaron con tamaño {size}.",
+        "sample_not_found_title": "Ejemplo no encontrado",
+        "sample_not_found_desc": "El ejemplo del enlace no existe. Elige uno en Archivo > Ejemplos.",
+        "sample_load_failed_title": "No se pudo abrir el ejemplo",
+        "sample_load_failed_desc": "Revisa tu conexión e inténtalo de nuevo."
     },
     "navigator": {
         "model": "Modelo principal"
@@ -403,7 +408,8 @@
         "loading_results": "Cargando resultados",
         "logging_in": "Iniciando sesión",
         "logging_out": "Cerrando sesión",
-        "generating_parametric_model": "Generando modelo paramétrico"
+        "generating_parametric_model": "Generando modelo paramétrico",
+        "loading_sample": "Cargando ejemplo"
     },
     "version_history": {
         "title": "Historial de versiones",
@@ -567,5 +573,18 @@
         "axes_local": "Locales",
         "axes_global_tooltip": "Componentes según los ejes globales X, Y, Z",
         "axes_local_tooltip": "Componentes según los ejes locales de la placa (x a lo largo de su primer borde, z normal a ella)"
+    },
+    "samples": {
+        "title": "Modelos de ejemplo",
+        "subtitle": "Abre uno para ver cómo está construido y jugar con sus parámetros. No necesitas una cuenta.",
+        "open": "Abrir ejemplo",
+        "cancel": "Cancelar",
+        "replace_warning": "Abrir un ejemplo reemplaza el modelo del editor. Los cambios sin guardar se perderán.",
+        "loading": "Cargando ejemplos...",
+        "load_error": "No se pudieron cargar los ejemplos. Revisa tu conexión e inténtalo de nuevo.",
+        "retry": "Reintentar",
+        "tutorial": "Tutorial",
+        "boxes": "cajas",
+        "selected": "Seleccionado"
     }
 }

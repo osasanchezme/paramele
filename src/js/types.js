@@ -284,3 +284,20 @@ exports.unused = {};
  * @property {string[]} meshed_plate_ids
  * @property {{plate_id: string, reason: string}[]} skipped
  */
+
+/**
+ * Sample model served by the hosting (public/samples, built by scripts/build_samples.mjs). Its file is <id>.<language>.json
+ * @typedef {Object} ParamEleSample
+ * @property {string} id
+ * @property {{es: string, en: string}} title
+ * @property {{es: string, en: string}} description
+ * @property {{es: string[], en: string[]}} tags
+ * @property {number} boxes Number of boxes in the model
+ * @property {string} thumbnail File name of its picture, next to the model files
+ * @property {{es: string, en: string}} [tutorial] URL of the tutorial that builds it
+ */
+
+/**
+ * @typedef {Object} ParamEleSampleCatalog
+ * @property {ParamEleSample[]} samples
+ */

@@ -49,6 +49,7 @@ function NavBar({
   changeAppMode,
   openConfirmationDialog,
   openSharingManager,
+  openSampleGallery,
   show_properties_panel,
   togglePropertiesPanel,
   show_parameters_panel,
@@ -81,17 +82,7 @@ function NavBar({
                 [
                   {
                     run: (close_dialog_callback) => {
-                      setFileData({
-                        file_name: null,
-                        is_saved: false,
-                        last_saved: null,
-                        model_id: null,
-                        file_path: null,
-                        current_version: null,
-                        file_owner_path: null,
-                        file_shared_with_me: null,
-                        file_shared_data: null,
-                      });
+                      setFileData(file.getEmptyFileData());
                       file.newFile();
                       close_dialog_callback();
                     },
@@ -109,6 +100,11 @@ function NavBar({
             callback: () => {
               openFileManager("open");
             },
+          },
+          {
+            name: localGetCopy("samples"),
+            icon: "MdCollectionsBookmark",
+            callback: openSampleGallery,
           },
           {
             name: localGetCopy("save"),
@@ -135,17 +131,7 @@ function NavBar({
                 [
                   {
                     run: (close_dialog_callback) => {
-                      setFileData({
-                        file_name: null,
-                        is_saved: false,
-                        last_saved: null,
-                        model_id: null,
-                        file_path: null,
-                        current_version: null,
-                        file_owner_path: null,
-                        file_shared_with_me: null,
-                        file_shared_data: null,
-                      });
+                      setFileData(file.getEmptyFileData());
                       file.uploadJSONFile();
                       close_dialog_callback();
                     },

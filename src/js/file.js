@@ -210,11 +210,29 @@ const getFileDataAndOpenModel = (file_path, file_name, setFileData, setModelLock
   });
 };
 
+/**
+ * File data of a model that is not saved yet
+ * @returns {import("./types").ParamEleFileData}
+ */
+const getEmptyFileData = () => ({
+  file_name: null,
+  is_saved: false,
+  last_saved: null,
+  model_id: null,
+  file_path: null,
+  current_version: null,
+  file_owner_path: null,
+  file_shared_with_me: null,
+  file_shared_data: null,
+});
+
+// URL params that point to the model in the editor: a saved model (path and name) or a sample
+const MODEL_URL_PARAMS = ["path", "name", "sample"];
+
 const setURLParams = (fileManagerPath, file_name) => {
   // Set query parameters based on user action
   const queryParams = new URLSearchParams(window.location.search);
-  queryParams.delete("path");
-  queryParams.delete("name");
+  MODEL_URL_PARAMS.forEach((param_key) => queryParams.delete(param_key));
   queryParams.append("path", fileManagerPath);
   queryParams.append("name", file_name);
 
@@ -232,17 +250,25 @@ const appendParamsToCurrentURL = (queryParams) => {
 };
 
 /**
- * Clears all the URL params except the language
+ * Clears the URL params that point to a model, keeps the rest (the language)
  */
 const clearURLParams = () => {
   const queryParams = new URLSearchParams(window.location.search);
-  let important_params = ["path", "name"];
-  important_params.forEach((param_key) => {
-    queryParams.delete(param_key);
-  });
+  MODEL_URL_PARAMS.forEach((param_key) => queryParams.delete(param_key));
 
   // Update URL with new query parameters
   appendParamsToCurrentURL(queryParams);
+};
+
+/**
+ * Points the URL to a sample, so reloading or sharing the link opens it again
+ * @param {string} sample_id
+ */
+const setSampleURLParam = (sample_id) => {
+  const queryParams = new URLSearchParams(window.location.search);
+  MODEL_URL_PARAMS.forEach((param_key) => queryParams.delete(param_key));
+  queryParams.append("sample", sample_id);
+  window.history.replaceState({}, "", `${window.location.pathname}?${queryParams.toString()}`);
 };
 
 const reloadToBlank = () => {
@@ -266,5 +292,7 @@ const file = {
   getURLParams,
   reloadToBlank,
   setURLParams,
+  setSampleURLParam,
+  getEmptyFileData,
 };
 export default file;
