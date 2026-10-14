@@ -43,8 +43,6 @@ function getInitialState() {
     mode: "wait_action",
     rel_orig_x: 0,
     rel_orig_y: 0,
-    selection_top: 0,
-    selection_left: 0,
     user: null,
     file_name: null,
     is_saved: false,

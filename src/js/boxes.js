@@ -10,6 +10,7 @@ import {
   deselectAllHandles,
   getEdgeObject,
   getSelectedHandles,
+  getSelectedIds,
   removeNodesAndEdgesFromModel,
 } from "../components/VisualEditor";
 import { cloneDeep } from "lodash";
@@ -92,11 +93,12 @@ function groupBoxesStepThree(data_to_keep, finish_callback) {
 function editInternalLogic() {
   /** @type {{nodes: Array<Node>, edges: Array<Edge>}} */
   let { nodes } = getState("model");
+  let { node_ids } = getSelectedIds();
   let selected_nodes = [];
   let selected_node_ids = [];
   let selected_node_location = [];
   nodes.forEach((node, i) => {
-    if (node.data.aux.selected) {
+    if (node_ids.has(node.id)) {
       selected_nodes.push(node);
       selected_node_ids.push(node.id);
       selected_node_location.push(i);
@@ -163,20 +165,21 @@ function deleteBoxes() {
 function getSelectedModel() {
   /** @type {{nodes: Array<Node>, edges: Array<Edge>}} */
   let { nodes, edges } = getState("model");
+  let { node_ids, edge_ids } = getSelectedIds();
   let selected_nodes = [];
   let selected_edges = [];
   let selected_node_ids = [];
   let selected_edge_ids = [];
   let connected_nodes = [];
   nodes.forEach((node) => {
-    if (node.data.aux.selected) {
+    if (node_ids.has(node.id)) {
       selected_nodes.push(node);
       selected_node_ids.push(node.id);
     }
   });
   // Get the connected edges to the selected nodes
   edges.forEach((edge) => {
-    if (selected_node_ids.includes(edge.source) || selected_node_ids.includes(edge.target) || edge.selected) {
+    if (selected_node_ids.includes(edge.source) || selected_node_ids.includes(edge.target) || edge_ids.has(edge.id)) {
       connected_nodes.push(edge.source);
       connected_nodes.push(edge.target);
       selected_edges.push(edge);

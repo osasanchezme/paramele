@@ -1,4 +1,4 @@
-import ReactFlow, { MiniMap, Controls, addEdge, applyEdgeChanges, applyNodeChanges, updateEdge } from "reactflow";
+import ReactFlow, { MiniMap, Controls, SelectionMode, addEdge, applyEdgeChanges, applyNodeChanges, updateEdge } from "reactflow";
 import logic_runner from "../js/globalLogicRunner";
 import { onSettingsChange, setGlobalVariable, storeRfInstance, updateStateFromFlow } from "../state";
 import getState from "../getState";
@@ -8,11 +8,41 @@ import "reactflow/dist/style.css";
 
 let rf_instance;
 
+const is_mac = typeof navigator !== "undefined" && navigator.userAgent.includes("Mac");
+// Shift + drag draws the selection box. On Windows Ctrl + drag also does (it was the only way before), on Mac
+// Ctrl + click is a right click, so it cannot be used there
+const SELECTION_KEY_CODE = is_mac ? "Shift" : ["Shift", "Control"];
+// Holding it while drawing the box adds to the current selection, as React Flow does when clicking nodes
+const isMultiSelectionKeyPressed = (event) => (is_mac ? event.metaKey : event.ctrlKey);
+// While the duplicate positions are picked, clicking the pane must not drop the selection to duplicate
+const MODES_WITH_FROZEN_SELECTION = ["duplicate_point_1", "duplicate_point_2"];
+
+/**
+ * Ids of the nodes and edges selected before an additive selection box started, kept selected while it is drawn
+ * @type {{node_ids: Set<string>, edge_ids: Set<string>} | null}
+ */
+let kept_selection = null;
+
+/**
+ * Drops the selection changes that must not be applied: all of them while the selection is frozen, and the ones
+ * unselecting the elements kept by an additive selection box
+ * @param {Array<Object>} changes React Flow node or edge changes
+ * @param {Set<string>} [kept_ids]
+ * @param {boolean} is_selection_frozen
+ */
+function filterSelectionChanges(changes, kept_ids, is_selection_frozen) {
+  return changes.filter((change) => {
+    if (change.type !== "select") return true;
+    if (is_selection_frozen) return false;
+    return change.selected || !kept_ids?.has(change.id);
+  });
+}
+
 function getShowMiniMap() {
   return getState("settings")["global"].mini_map;
 }
 
-function VisualEditor({ width, nodes_library, is_model_locked, nodes, edges, setNodes, setEdges, app_mode }) {
+function VisualEditor({ width, nodes_library, is_model_locked, nodes, edges, setNodes, setEdges, app_mode, changeAppMode }) {
   const [show_mini_map, setShowMiniMap] = useState(getShowMiniMap);
   useEffect(() => onSettingsChange(() => setShowMiniMap(getShowMiniMap())), []);
   // Whenever the model lock status changes the data on each node on that regard updates accordingly
@@ -32,7 +62,10 @@ function VisualEditor({ width, nodes_library, is_model_locked, nodes, edges, set
     logic_runner.run({ edges, nodes });
   };
 
+  const is_selection_frozen = MODES_WITH_FROZEN_SELECTION.includes(app_mode);
   const onNodesChange = (changes) => {
+    changes = filterSelectionChanges(changes, kept_selection?.node_ids, is_selection_frozen);
+    if (changes.length === 0) return;
     setNodes((nds) => applyNodeChanges(changes, nds));
     if (changes.length > 0) {
       // Only run the updater when data changes or a new noe is added
@@ -43,6 +76,8 @@ function VisualEditor({ width, nodes_library, is_model_locked, nodes, edges, set
     }
   };
   const onEdgesChange = (changes) => {
+    changes = filterSelectionChanges(changes, kept_selection?.edge_ids, is_selection_frozen);
+    if (changes.length === 0) return;
     setEdges((eds) => applyEdgeChanges(changes, eds));
     updateStateFromFlow();
   };
@@ -54,6 +89,23 @@ function VisualEditor({ width, nodes_library, is_model_locked, nodes, edges, set
     setEdges((eds) => addEdge(connection, eds));
     updateStateFromFlow();
   };
+  // Runs before React Flow starts the selection box (and unselects everything) on the same mouse down
+  const onMouseDownCapture = (event) => {
+    kept_selection = null;
+    let is_selection_box = event.shiftKey || (!is_mac && event.ctrlKey);
+    if (!event.target.classList.contains("react-flow__pane") || !is_selection_box || !isMultiSelectionKeyPressed(event)) return;
+    kept_selection = {
+      node_ids: new Set(rf_instance.getNodes().filter(({ selected }) => selected).map(({ id }) => id)),
+      edge_ids: new Set(rf_instance.getEdges().filter(({ selected }) => selected).map(({ id }) => id)),
+    };
+  };
+  const onSelectionStart = () => {
+    if (app_mode === "wait_action") changeAppMode("selecting_nodes");
+  };
+  const onSelectionEnd = () => {
+    kept_selection = null;
+    if (app_mode === "selecting_nodes") changeAppMode("wait_action");
+  };
   let mini_map;
   if (show_mini_map) {
     mini_map = <MiniMap />;
@@ -61,7 +113,7 @@ function VisualEditor({ width, nodes_library, is_model_locked, nodes, edges, set
   let global_style = {};
   global_style = { width: String(width) + "%", right: "0%" };
   return (
-    <div className="editor-container" style={global_style}>
+    <div className="editor-container" style={global_style} onMouseDownCapture={onMouseDownCapture}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -74,7 +126,11 @@ function VisualEditor({ width, nodes_library, is_model_locked, nodes, edges, set
         // Lower than React Flow's default (0.5), so the whole graph can fit on small screens
         minZoom={0.1}
         onInit={saveRfInstance}
-        selectionKeyCode={null}
+        selectionKeyCode={SELECTION_KEY_CODE}
+        // A node is selected when the box touches it, not only when it is fully inside
+        selectionMode={SelectionMode.Partial}
+        onSelectionStart={onSelectionStart}
+        onSelectionEnd={onSelectionEnd}
         deleteKeyCode={null}
         className={`mode-${app_mode}`}
       >
@@ -198,11 +254,23 @@ function getSelectedHandles() {
 function deselectAllNodesAndHandles() {
   rf_instance.setNodes((nds) =>
     nds.map((node) => {
-      if (node.data.aux.selected) node.data.aux.selected = false;
+      node.selected = false;
       node.data.aux.selected_handles = [];
       return node;
     })
   );
+  if (rf_instance.getEdges().some(({ selected }) => selected)) {
+    rf_instance.setEdges((eds) => eds.map((edge) => ({ ...edge, selected: false })));
+  }
+}
+
+/**
+ * Ids of the nodes and edges selected in the editor
+ * @returns {{node_ids: Set<string>, edge_ids: Set<string>}}
+ */
+function getSelectedIds() {
+  const getIds = (elements) => new Set(elements.filter(({ selected }) => selected).map(({ id }) => id));
+  return { node_ids: getIds(rf_instance.getNodes()), edge_ids: getIds(rf_instance.getEdges()) };
 }
 
 function deselectAllHandles() {
@@ -238,6 +306,7 @@ export {
   getSelectedHandles,
   deselectAllHandles,
   deselectAllNodesAndHandles,
+  getSelectedIds,
   removeNodesAndEdgesFromModel,
   getZoom,
   setZoom,

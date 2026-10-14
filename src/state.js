@@ -200,36 +200,6 @@ function copyStructureToClipboard() {
     });
 }
 
-function highlightSelectedNodes(x_i, y_i, x_f, y_f, rel_orig_x, rel_orig_y) {
-  // Swap the start and end if the selection was made from right to left or bottom to top
-  if (x_i > x_f) {
-    let old_x_i = x_i;
-    x_i = x_f;
-    x_f = old_x_i;
-  }
-  if (y_i > y_f) {
-    let old_y_i = y_i;
-    y_i = y_f;
-    y_f = old_y_i;
-  }
-  x_i -= rel_orig_x;
-  x_f -= rel_orig_x;
-  y_i -= rel_orig_y;
-  y_f -= rel_orig_y;
-  let rf_instance = getRfInstance();
-  let point_i = rf_instance.project({ x: x_i, y: y_i });
-  let point_f = rf_instance.project({ x: x_f, y: y_f });
-  rf_instance.setNodes((nds) =>
-    nds.map((node) => {
-      let { x, y } = node.position;
-      if (x >= point_i.x && x <= point_f.x && y >= point_i.y && y <= point_f.y) {
-        node.data.aux.selected = node.data.aux.selected ? false : true;
-      }
-      return node;
-    })
-  );
-}
-
 function setModelToEditor(model) {
   let rf_instance = getRfInstance();
   let { nodes, edges } = model;
@@ -253,7 +223,6 @@ const state = {
   updateCurrentModel,
   zoomToCoordinate,
   copyStructureToClipboard,
-  highlightSelectedNodes,
   removeNodesAndEdgesFromModel,
   setModelToEditor,
   resetView,

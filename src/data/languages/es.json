@@ -410,7 +410,7 @@
         "select": "Selecciona..."
     },
     "status_bar": {
-        "wait_action": "Haz click en cualquier lugar del editor gráfico para agregar una caja",
+        "wait_action": "Haz click en cualquier lugar del editor gráfico para agregar una caja, Shift + arrastrar para seleccionar cajas",
         "selecting_nodes": "Selecciona las cajas, para terminar suelta el botón del mouse",
         "selecting_handles": "Haz click en los puntos de entrada o salida de entrada",
         "change_node_type": "Selecciona el nuevo tipo de caja para la selección",

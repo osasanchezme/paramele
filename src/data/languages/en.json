@@ -161,7 +161,7 @@
         "group": "Group",
         "edit_logic": "Edit logic",
         "change_type": "Change type",
-        "duplicate": "Duplicar",
+        "duplicate": "Duplicate",
         "structure": "Structure",
         "solve": "Solve",
         "settings": "Settings",
@@ -424,7 +424,7 @@
         "select": "Select..."
     },
     "status_bar": {
-        "wait_action": "Click anywhere on the graphical editor to add a box",
+        "wait_action": "Click anywhere on the graphical editor to add a box, Shift + drag to select boxes",
         "selecting_nodes": "Select the boxes, to finish release the mouse button",
         "selecting_handles": "Click on the input or output handles",
         "change_node_type": "Select the new type for the selected boxes",
