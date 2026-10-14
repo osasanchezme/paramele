@@ -66,6 +66,7 @@ function getInitialState() {
     is_file_manager_open: false,
     file_manager_mode: "open",
     is_sharing_manager_open: false,
+    is_sample_gallery_open: false,
     local_people_directory: {}
   };
 }
