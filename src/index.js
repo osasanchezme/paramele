@@ -33,6 +33,7 @@ import SharingManager from "./components/sharing_manager";
 import StatusBar from "./components/status_bar";
 import ViewSwitch from "./components/view_switch";
 import boxes from "./js/boxes";
+import modelLinks from "./js/modelLinks";
 import { onCompactLayoutChange } from "./js/breakpoints";
 import { hasModelInURL } from "./js/urlParams";
 
@@ -128,9 +129,22 @@ class ParamEle extends React.Component {
     this.removeCompactLayoutListener = onCompactLayoutChange((is_compact) =>
       this.setState({ is_compact, compact_panel_open: false }, () => requestAnimationFrame(() => requestAnimationFrame(fitView)))
     );
+    this.removeShowViewListener = modelLinks.onShowView(this.showView.bind(this));
   }
   componentWillUnmount() {
     this.removeCompactLayoutListener();
+    this.removeShowViewListener();
+  }
+  /**
+   * Brings the editor or the renderer into view to show a box or an element from somewhere else
+   * @param {"nodes"|"renderer"} view
+   */
+  showView(view) {
+    let { side_by_side, show_nodes } = this.state.settings.general;
+    let is_split = side_by_side && !this.state.is_compact;
+    if (!is_split && show_nodes !== (view === "nodes")) this.setViewMode(view);
+    // On compact screens the explorer floats over the views
+    if (this.state.is_compact && this.state.compact_panel_open) this.setState({ compact_panel_open: false });
   }
   changeGeneralSettingValue(key, value) {
     let curr_settings = this.state.settings;

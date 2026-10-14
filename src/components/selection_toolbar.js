@@ -1,8 +1,9 @@
 import { Box, Button, ButtonGroup, Text, Tooltip } from "@chakra-ui/react";
-import { Fragment, useCallback, useRef, useState } from "react";
+import { Fragment, useCallback, useRef, useState, useSyncExternalStore } from "react";
 import { NodeToolbar, getNodesBounds, useStore } from "reactflow";
-import { TbArrowsExchange, TbCopy, TbEdit, TbPackage, TbTrash } from "react-icons/tb";
+import { Tb3DCubeSphere, TbArrowsExchange, TbCopy, TbEdit, TbPackage, TbTrash } from "react-icons/tb";
 import boxes from "../js/boxes";
+import modelLinks from "../js/modelLinks";
 import utils from "../utils";
 
 // Gap between the toolbar and the selection
@@ -90,12 +91,16 @@ function SelectionToolbar({ app_mode, changeAppMode, is_model_locked }) {
   const types = new Set(selected.map(([, type]) => type));
   const [size, content_ref] = useElementSize();
   const transform = useToolbarTransform(node_ids, size);
+  // The elements of the boxes are known after the model is evaluated, which does not change the selection
+  useSyncExternalStore(modelLinks.onElementsChange, modelLinks.getElementsVersion);
   // Hidden while the selection box is drawn and while another action is in progress
   if (selected.length === 0 || app_mode !== "wait_action") return null;
 
   const [single_type] = types.size === 1 ? types : [];
   const is_wrapper = selected.length === 1 && single_type === "nodesWrapper";
   const has_ranges = types.has("variableRange");
+  // The renderer only shows the elements of the main model
+  const boxes_with_elements = modelLinks.isEditingMainModel() ? node_ids.filter(modelLinks.hasElements) : [];
   const target_types = boxes.CHANGEABLE_TYPES.includes(single_type) ? boxes.CHANGEABLE_TYPES.filter((type) => type !== single_type) : [];
 
   const group = () => {
@@ -108,6 +113,12 @@ function SelectionToolbar({ app_mode, changeAppMode, is_model_locked }) {
   // While the model is locked only the actions that do not edit it are available
   const locked_hint = is_model_locked ? localGetCopy("model_locked") : null;
   const actions = [
+    boxes_with_elements.length > 0 && {
+      key: "highlight",
+      icon: Tb3DCubeSphere,
+      label: localGetCopy("highlight"),
+      onClick: () => modelLinks.highlightBoxes(boxes_with_elements),
+    },
     {
       key: "group",
       icon: TbPackage,

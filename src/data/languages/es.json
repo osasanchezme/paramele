@@ -200,7 +200,9 @@
     "properties_panel": {
         "title": "EXPLORADOR",
         "copy_json": "Copiar estructura",
-        "collapse_all": "Contraer todo"
+        "collapse_all": "Contraer todo",
+        "highlight": "Resaltar en la vista 3D",
+        "show_box": "Ver en el editor"
     },
     "notifications": {
         "drawing_duplicate_member_title": "La barra ya existe",
@@ -476,7 +478,8 @@
         "boxes": "{count} cajas",
         "change_to": "Cambiar a {type}",
         "group_no_ranges": "Las cajas de rango no se pueden agrupar",
-        "model_locked": "El modelo está bloqueado"
+        "model_locked": "El modelo está bloqueado",
+        "highlight": "Ver en 3D"
     },
     "drawing": {
         "none": "Navegar",
@@ -522,6 +525,10 @@
         "editor_unlinked_many": "aún no tienen parámetro. Cambiarlos crea uno.",
         "editor_shared": "Compartido: cambiarlo también actualiza",
         "editor_not_shared": "(solo se usa aquí)",
+        "editor_show_box": "Ver la caja de este elemento",
+        "editor_from_group": "Viene de la caja agrupada",
+        "editor_edit_in_group": "Edítalo dentro del grupo.",
+        "editor_show_source": "Ver {box} en el editor",
         "nodes": "Nodo",
         "members": "Barra",
         "plates": "Placa",

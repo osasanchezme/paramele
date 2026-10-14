@@ -1,6 +1,6 @@
 import { Button, ButtonGroup, HStack, IconButton, Input, Text, Tooltip } from "@chakra-ui/react";
 import { useState } from "react";
-import { TbLink, TbLinkOff, TbX } from "react-icons/tb";
+import { TbLink, TbLinkOff, TbSchema, TbX } from "react-icons/tb";
 import utils from "../utils";
 
 const RESTRAINTS = [
@@ -78,18 +78,34 @@ function getFieldLabel(field) {
 }
 
 /**
- * Parameter box behind a field, and what else changes with it
- * @param {{field: import("../js/types").ParamEleDrawingEntityField, onDetach: Function, isDisabled: boolean}} props
+ * Button to go to a box in the editor
+ * @param {{label: string, onClick: Function}} props
  */
-function FieldSource({ field, onDetach, isDisabled }) {
+function ShowBoxButton({ label, onClick }) {
+  return (
+    <Tooltip label={label} placement="top" openDelay={300}>
+      <IconButton className="small-ghost-button entity-editor-show-box" variant="ghost" aria-label={label} icon={<TbSchema />} onClick={onClick} />
+    </Tooltip>
+  );
+}
+
+/**
+ * Parameter box behind a field, and what else changes with it
+ * @param {{field: import("../js/types").ParamEleDrawingEntityField, onDetach: Function, onShowBox: Function, isDisabled: boolean}} props
+ */
+function FieldSource({ field, onDetach, onShowBox, isDisabled }) {
   let { source } = field;
   let label = getFieldLabel(field);
+  let show_box = <ShowBoxButton label={localGetCopy("editor_show_source").replace("{box}", source.label)} onClick={onShowBox} />;
   if (!source.editable)
     return (
       <div className="entity-editor-source">
-        <Text>
-          <b>{label}</b> {localGetCopy("editor_computed")} <span className="entity-editor-param">{source.label}</span>
-        </Text>
+        <HStack spacing={1}>
+          <Text flex="1">
+            <b>{label}</b> {localGetCopy("editor_computed")} <span className="entity-editor-param">{source.label}</span>
+          </Text>
+          {show_box}
+        </HStack>
       </div>
     );
   let shared_count = source.shared_with.reduce((total, { count }) => total + count, 0);
@@ -109,6 +125,7 @@ function FieldSource({ field, onDetach, isDisabled }) {
             </Button>
           </Tooltip>
         )}
+        {show_box}
       </HStack>
       {shared_count > 0 && (
         <Text className="entity-editor-shared">
@@ -128,10 +145,13 @@ function FieldSource({ field, onDetach, isDisabled }) {
  * @param {boolean} props.model_locked
  * @param {function(string, number|string): void} props.onChange
  * @param {function(string): void} props.onDetach
+ * @param {function(string): void} props.onShowBox Goes to a box in the editor
  * @param {Function} props.onClose
  */
-function EntityEditor({ entity, position, container_size, model_locked, onChange, onDetach, onClose }) {
-  let title = `${getTypeLabel(entity.type)} ${entity.element_id ?? ""}`;
+function EntityEditor({ entity, position, container_size, model_locked, onChange, onDetach, onShowBox, onClose }) {
+  // The box of an element from a group is the group, so the element is named by its kind
+  let type_label = entity.group ? localGetCopy(entity.structure_key) : getTypeLabel(entity.type);
+  let title = `${type_label} ${entity.element_id ?? ""}`;
   // The card opens towards the side of the renderer with more room
   let is_right = position.x > container_size.width / 2;
   let is_bottom = position.y > container_size.height / 2;
@@ -148,10 +168,20 @@ function EntityEditor({ entity, position, container_size, model_locked, onChange
         <Text flex="1" noOfLines={1}>
           {title}
         </Text>
+        <ShowBoxButton label={localGetCopy("editor_show_box")} onClick={() => onShowBox(entity.node_id)} />
         <IconButton className="small-ghost-button" variant="ghost" aria-label={localGetCopy("editor_close")} icon={<TbX />} onClick={onClose} />
       </HStack>
       <div className="entity-editor-body">
-        {entity.fields.length === 0 && <Text className="entity-editor-muted">{localGetCopy("editor_no_fields")}</Text>}
+        {entity.group ? (
+          <div className="entity-editor-source">
+            <Text>
+              {localGetCopy("editor_from_group")} <span className="entity-editor-param">{entity.group.label}</span>
+            </Text>
+            <Text className="entity-editor-muted">{localGetCopy("editor_edit_in_group")}</Text>
+          </div>
+        ) : (
+          entity.fields.length === 0 && <Text className="entity-editor-muted">{localGetCopy("editor_no_fields")}</Text>
+        )}
         <HStack spacing={2} className="entity-editor-values">
           {entity.fields.map((field) => {
             let label = getFieldLabel(field);
@@ -186,7 +216,13 @@ function EntityEditor({ entity, position, container_size, model_locked, onChange
           })}
         </HStack>
         {linked_fields.map((field) => (
-          <FieldSource key={field.key} field={field} onDetach={() => onDetach(field.key)} isDisabled={model_locked} />
+          <FieldSource
+            key={field.key}
+            field={field}
+            onDetach={() => onDetach(field.key)}
+            onShowBox={() => onShowBox(field.source.node_id)}
+            isDisabled={model_locked}
+          />
         ))}
         {unlinked_labels.length > 0 && (
           <Text className="entity-editor-muted">

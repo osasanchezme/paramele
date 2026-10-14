@@ -231,6 +231,7 @@ exports.unused = {};
  * @property {ParamEleDrawingPoint|null} hover_point Grid point or node under the cursor, for the member and plate tools
  * @property {{kind: string, id: string, x: number, y: number, z: number}|null} hover_target Element under the cursor, for the other tools
  * @property {{kind: string, id: string, x: number, y: number, z: number}|null} selected_target Element being edited in place
+ * @property {{structure_key: string, element_id: string}[]} highlight Elements of the boxes highlighted from the editor or the explorer
  * @property {{x: number, y: number, z: number}} force Point load components
  * @property {{x: number, y: number, z: number}} distributed Distributed load components
  * @property {{x: number, y: number, z: number}} moment Moment components
@@ -246,6 +247,7 @@ exports.unused = {};
  * @property {string} structure_key e.g. "point_loads"
  * @property {string|undefined} element_id Structural ID of the element
  * @property {ParamEleDrawingEntityField[]} fields
+ * @property {{node_id: string, label: string}} [group] Group box the element comes from, then it is not editable here
  */
 
 /**

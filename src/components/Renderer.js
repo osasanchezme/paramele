@@ -2,6 +2,7 @@ import Plot from "./Plot";
 import renderer from "../js/renderer";
 import drawingLayer from "../js/drawingLayer";
 import drawing from "../js/drawing";
+import modelLinks from "../js/modelLinks";
 import getState from "../getState";
 import DrawingToolbar from "./drawing_toolbar";
 import EntityEditor from "./entity_editor";
@@ -22,7 +23,7 @@ const TOOL_EDIT_KINDS = { point_load: "point_loads", moment: "moments", support:
 // Moving less than this between pressing and releasing is a click, more is rotating the view
 const CLICK_TOLERANCE = 5;
 // Parts of the drawing state that Plotly draws. The hover feedback is drawn over the plot instead, replotting on every hover makes rotating slow
-const PLOTTED_KEYS = ["tool", "plane", "offset", "spacing", "points", "selected_target"];
+const PLOTTED_KEYS = ["tool", "plane", "offset", "spacing", "points", "selected_target", "highlight"];
 const HOVER_COLORS = { delete: "#E53E3E", default: "#DD6B20" };
 
 /** @returns {import("../js/types").ParamEleDrawingState} */
@@ -36,6 +37,7 @@ function getInitialDrawingState() {
     hover_point: null,
     hover_target: null,
     selected_target: null,
+    highlight: [],
     force: { x: 0, y: 0, z: -10 },
     distributed: { x: 0, y: 0, z: -5 },
     moment: { x: 0, y: 0, z: 10 },
@@ -115,6 +117,7 @@ class Renderer extends React.Component {
     this.plot_element.addEventListener("pointerup", this.handlePointerUp, true);
     this.plot_element.addEventListener("pointerleave", this.handlePointerLeave);
     this.removeUndoListener = drawing.onUndoChange(() => this.setState({ can_undo: drawing.canUndo() }));
+    this.removeHighlightListener = modelLinks.onHighlight((node_ids) => this.highlightBoxes(node_ids));
   }
   componentWillUnmount() {
     window.removeEventListener("keydown", this.handleKeyDown);
@@ -123,11 +126,13 @@ class Renderer extends React.Component {
     this.plot_element.removeEventListener("pointerup", this.handlePointerUp, true);
     this.plot_element.removeEventListener("pointerleave", this.handlePointerLeave);
     this.removeUndoListener();
+    this.removeHighlightListener();
   }
   updateRenderer() {
     this.updateBaseData();
     if (this.scene_ranges || this.drawing_state.tool !== "none") this.updateSceneRanges();
     this.refreshEditor();
+    this.refreshHighlight();
     this.updatePlotData();
   }
   /**
@@ -136,7 +141,31 @@ class Renderer extends React.Component {
   resetView() {
     this.scene_ranges = null;
     this.closeEditor();
+    this.clearHighlight();
     this.updateSceneRanges();
+  }
+  /**
+   * Highlights the elements of some boxes, picked in the editor or in the explorer. It replaces the element being edited
+   * @param {string[]} node_ids
+   */
+  highlightBoxes(node_ids) {
+    this.highlighted_boxes = node_ids;
+    if (this.state.editor) this.setState({ editor: null });
+    this.setDrawingState({ selected_target: null, highlight: this.getHighlight() });
+  }
+  getHighlight() {
+    return (this.highlighted_boxes || []).flatMap((node_id) => modelLinks.getBoxElements(node_id));
+  }
+  /**
+   * The highlighted boxes may create other elements after the model changes
+   */
+  refreshHighlight() {
+    if (this.highlighted_boxes) this.drawing_state = { ...this.drawing_state, highlight: this.getHighlight() };
+  }
+  clearHighlight() {
+    if (!this.highlighted_boxes) return;
+    this.highlighted_boxes = null;
+    this.setDrawingState({ highlight: [] });
   }
   /**
    * Opens the card to edit an element in place
@@ -145,19 +174,21 @@ class Renderer extends React.Component {
    */
   openEditor(candidate, position) {
     let node_id = drawing.getElementNodeId(candidate.kind, candidate.id);
-    if (!node_id) {
+    // Elements of a group box are only shown with the box they come from
+    let entity = node_id ? drawing.getEntity(node_id) : modelLinks.getGroupEntity(candidate.kind, candidate.id);
+    if (!entity) {
       notify("warning", "drawing_not_editable", null, true);
       return;
     }
-    let entity = drawing.getEntity(node_id);
     // Edits must not move the view away from the card, so it is fixed from what is shown now
     let full_scene = this.plot_element._fullLayout?.scene;
     if (!this.scene_ranges && full_scene) {
       this.scene_ranges = { x: [...full_scene.xaxis.range], y: [...full_scene.yaxis.range], z: [...full_scene.zaxis.range] };
       this.updateSceneRanges();
     }
-    this.setState({ editor: { node_id, kind: candidate.kind, position, entity } });
-    this.setDrawingState({ selected_target: candidate });
+    this.highlighted_boxes = null;
+    this.setState({ editor: { node_id: entity.node_id, kind: candidate.kind, position, entity } });
+    this.setDrawingState({ selected_target: candidate, highlight: [] });
   }
   closeEditor() {
     if (!this.state.editor) return;
@@ -170,7 +201,7 @@ class Renderer extends React.Component {
   refreshEditor() {
     let { editor } = this.state;
     if (!editor) return;
-    let entity = drawing.getEntity(editor.node_id);
+    let entity = editor.entity.group ? modelLinks.getGroupEntity(editor.kind, editor.entity.element_id) : drawing.getEntity(editor.node_id);
     if (!entity) return this.closeEditor();
     // Keeps the highlight and the card on the element if it moved
     let position = editor.position;
@@ -351,7 +382,10 @@ class Renderer extends React.Component {
     if (!down || !this.isInteractive() || Math.hypot(event.clientX - down.x, event.clientY - down.y) > CLICK_TOLERANCE) return;
     let candidate = this.pick(event);
     if (candidate) this.handlePick(candidate, this.getPlotPosition(event));
-    else if (this.drawing_state.tool === "none") this.closeEditor();
+    else if (this.drawing_state.tool === "none") {
+      this.closeEditor();
+      this.clearHighlight();
+    }
   }
   /**
    * Acts on the element clicked with the active tool
@@ -420,6 +454,7 @@ class Renderer extends React.Component {
     let { tool, points } = this.drawing_state;
     let key = event.key.toLowerCase();
     if (key === "escape" && this.state.editor) return this.closeEditor();
+    if (key === "escape" && this.highlighted_boxes) return this.clearHighlight();
     if ((event.ctrlKey || event.metaKey) && key === "z") {
       if (!drawing.canUndo()) return;
       event.preventDefault();
@@ -520,6 +555,7 @@ class Renderer extends React.Component {
             model_locked={this.props.model_locked}
             onChange={(field_key, value) => drawing.updateEntityField(this.state.editor.node_id, field_key, value)}
             onDetach={(field_key) => drawing.detachEntityField(this.state.editor.node_id, field_key)}
+            onShowBox={modelLinks.focusBox}
             onClose={() => this.closeEditor()}
           />
         )}

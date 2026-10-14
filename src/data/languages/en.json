@@ -216,7 +216,9 @@
     "properties_panel": {
         "title": "EXPLORER",
         "copy_json": "Copy structure",
-        "collapse_all": "Collapse all"
+        "collapse_all": "Collapse all",
+        "highlight": "Highlight in the 3D view",
+        "show_box": "Show in the editor"
     },
     "notifications":{
         "drawing_duplicate_member_title": "Member already exists",
@@ -474,7 +476,8 @@
         "boxes": "{count} boxes",
         "change_to": "Change to {type}",
         "group_no_ranges": "Range boxes cannot be grouped",
-        "model_locked": "The model is locked"
+        "model_locked": "The model is locked",
+        "highlight": "Show in 3D"
     },
     "drawing": {
         "none": "Navigate",
@@ -520,6 +523,10 @@
         "editor_unlinked_many": "have no parameter yet. Changing them creates one.",
         "editor_shared": "Shared: changing it also updates",
         "editor_not_shared": "(used only here)",
+        "editor_show_box": "Show the box of this element",
+        "editor_from_group": "Comes from the group box",
+        "editor_edit_in_group": "Edit it inside the group.",
+        "editor_show_source": "Show {box} in the editor",
         "nodes": "Node",
         "members": "Member",
         "plates": "Plate",

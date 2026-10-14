@@ -14,11 +14,13 @@ import {
   GridItem,
 } from "@chakra-ui/react";
 import { MdCopyAll, MdStar, MdStarBorder, MdUnfoldLess } from "react-icons/md";
+import { Tb3DCubeSphere, TbSchema } from "react-icons/tb";
 import utils from "../utils";
 import state from "../state";
-import { memo, useContext, useState } from "react";
+import { memo, useContext, useState, useSyncExternalStore } from "react";
 import ObjectInspector from "./object_inspector";
 import favorites from "../js/favorites";
+import modelLinks from "../js/modelLinks";
 import { FavoritesContext } from "../Context";
 
 // Collapsed panels are kept mounted by default, which renders every node of the model even when nothing is expanded
@@ -27,6 +29,7 @@ const UNMOUNT_ON_EXIT = { unmountOnExit: true };
 function PropertiesPanel({ visible, width, is_floating, data }) {
   const [expanded_index, setExpandedIndex] = useState([]);
   const { favorite_node_ids, toggleFavorite } = useContext(FavoritesContext);
+  useSyncExternalStore(modelLinks.onElementsChange, modelLinks.getElementsVersion);
   if (!visible) return "";
   let top_keys = [];
   let grouped_nodes = {};
@@ -71,6 +74,18 @@ function PropertiesPanel({ visible, width, is_floating, data }) {
                     </Box>
                     <AccordionIcon />
                   </AccordionButton>
+                  {modelLinks.hasElements(node.id) && (
+                    <PanelIconButton
+                      label={utils.getDisplayCopy("properties_panel", "highlight")}
+                      icon={<Tb3DCubeSphere />}
+                      onClick={() => modelLinks.highlightBoxes([node.id])}
+                    />
+                  )}
+                  <PanelIconButton
+                    label={utils.getDisplayCopy("properties_panel", "show_box")}
+                    icon={<TbSchema />}
+                    onClick={() => modelLinks.focusBox(node.id)}
+                  />
                   {favorites.getFavoritableParameter(node.type) ? (
                     <FavoriteToggle is_favorite={favorite_node_ids.has(node.id)} onToggle={() => toggleFavorite(node.id)} />
                   ) : null}
@@ -156,6 +171,14 @@ function PropertiesPanel({ visible, width, is_floating, data }) {
         {top_keys}
       </Accordion>
     </div>
+  );
+}
+
+function PanelIconButton({ label, icon, onClick }) {
+  return (
+    <Tooltip className="clear-tooltip" label={label}>
+      <IconButton className="small-ghost-button" onClick={onClick} variant="ghost" aria-label={label} icon={icon} />
+    </Tooltip>
   );
 }
 
