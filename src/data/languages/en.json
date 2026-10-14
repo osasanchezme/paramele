@@ -469,6 +469,13 @@
         "unsupported_drop_desc": "Drop a ParamEle or SkyCiv JSON, a DXF or a SAP2000 ($2k) file",
         "close": "Close"
     },
+    "selection_toolbar": {
+        "one_box": "1 box",
+        "boxes": "{count} boxes",
+        "change_to": "Change to {type}",
+        "group_no_ranges": "Range boxes cannot be grouped",
+        "model_locked": "The model is locked"
+    },
     "drawing": {
         "none": "Navigate",
         "member": "Draw members",

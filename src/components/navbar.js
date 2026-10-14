@@ -162,11 +162,12 @@ function NavBar({
             icon: "MdGroupWork",
             callback: () => {
               changeAppMode("selecting_handles");
-              boxes.groupBoxes((success) => {
+              let is_grouping = boxes.groupBoxes((success) => {
                 if (success) {
                   changeAppMode("wait_action");
                 }
               });
+              if (!is_grouping) changeAppMode("wait_action");
             },
           },
           { name: localGetCopy("edit_logic"), icon: "MdEdit", callback: boxes.editInternalLogic },

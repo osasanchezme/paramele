@@ -471,6 +471,13 @@
         "unsupported_drop_desc": "Suelta un JSON de ParamEle o SkyCiv, un DXF o un archivo de SAP2000 ($2k)",
         "close": "Cerrar"
     },
+    "selection_toolbar": {
+        "one_box": "1 caja",
+        "boxes": "{count} cajas",
+        "change_to": "Cambiar a {type}",
+        "group_no_ranges": "Las cajas de rango no se pueden agrupar",
+        "model_locked": "El modelo está bloqueado"
+    },
     "drawing": {
         "none": "Navegar",
         "member": "Dibujar barras",

@@ -4,6 +4,7 @@ import { onSettingsChange, setGlobalVariable, storeRfInstance, updateStateFromFl
 import getState from "../getState";
 import { useEffect, useState } from "react";
 import utils from "../utils";
+import SelectionToolbar from "./selection_toolbar";
 import "reactflow/dist/style.css";
 
 let rf_instance;
@@ -136,6 +137,7 @@ function VisualEditor({ width, nodes_library, is_model_locked, nodes, edges, set
       >
         {mini_map}
         <Controls />
+        <SelectionToolbar app_mode={app_mode} changeAppMode={changeAppMode} is_model_locked={is_model_locked} />
       </ReactFlow>
     </div>
   );
