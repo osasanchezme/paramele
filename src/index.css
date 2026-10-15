@@ -135,50 +135,13 @@ div.properties-panel.floating {
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
 }
 
-/* Floating panel with the favorite parameters, dragged by its header */
-div.parameters-panel {
-  position: fixed;
+/* Favorite parameters, in the dock next to the sections panel */
+div.dock-panel.parameters-panel {
   width: 300px;
-  max-height: min(60vh, calc(var(--app-height) - 50px - 25px - 24px));
-  display: flex;
-  flex-direction: column;
-  background: #fff;
-  border: 1px solid var(--chakra-colors-gray-300);
-  border-radius: var(--chakra-radii-md);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
-  /* Above the renderer (10); same level as the commands bar, which comes later in the document so it stays on top */
-  z-index: 11;
-  font-size: var(--chakra-fontSizes-xs);
 }
 
-/* On compact screens it is docked at the bottom */
-div.parameters-panel.compact {
-  left: 8px;
-  right: 8px;
-  bottom: 33px;
-  width: auto;
-  max-height: 45vh;
-}
-
-.parameters-panel-header {
-  background-color: var(--chakra-colors-gray-300);
-  border-radius: var(--chakra-radii-md) var(--chakra-radii-md) 0 0;
-  padding: 2px 4px 2px 6px;
-  font-weight: 600;
-  user-select: none;
-  touch-action: none;
-}
-
-.parameters-panel-header.draggable {
-  cursor: grab;
-}
-
-.parameters-panel-header.draggable:active {
-  cursor: grabbing;
-}
-
-.parameters-panel-drag-icon {
-  color: var(--chakra-colors-gray-600);
+.parameters-panel-star {
+  color: var(--chakra-colors-yellow-500);
   flex-shrink: 0;
 }
 
@@ -187,20 +150,8 @@ div.parameters-panel.compact {
   font-weight: 400;
 }
 
-.parameters-panel-body {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  padding: 6px 8px 8px;
-}
-
-.parameters-panel-list {
-  overflow-y: auto;
-  min-height: 0;
-}
-
 .parameters-panel-row {
-  padding: 4px 0 6px;
+  padding: 4px 2px 6px;
   border-bottom: 1px solid var(--chakra-colors-gray-100);
 }
 
@@ -234,12 +185,11 @@ div.parameters-panel.compact {
 }
 
 .parameters-panel-empty {
-  padding: 8px 2px 2px;
+  padding: 4px 2px 2px;
 }
 
 .parameters-search {
   position: relative;
-  margin-bottom: 4px;
 }
 
 .parameters-search-results {
@@ -253,6 +203,7 @@ div.parameters-panel.compact {
   border: 1px solid var(--chakra-colors-gray-200);
   border-radius: var(--chakra-radii-base);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  /* Over the body of the panel, which comes later */
   z-index: 1;
 }
 
@@ -274,65 +225,6 @@ div.parameters-panel.compact {
 .parameters-search-value {
   color: var(--chakra-colors-gray-500);
   max-width: 40%;
-}
-
-/* Minimized, the panel is a small pill that stays where the panel was */
-div.parameters-panel.minimized {
-  width: auto;
-  background: transparent;
-  border: none;
-  box-shadow: none;
-}
-
-div.parameters-panel.minimized.compact {
-  right: auto;
-}
-
-.parameters-panel-pill {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  height: 32px;
-  padding: 0 12px;
-  background: #fff;
-  border: 1px solid var(--chakra-colors-gray-300);
-  border-radius: var(--chakra-radii-full);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
-  font-weight: 600;
-  white-space: nowrap;
-  user-select: none;
-  touch-action: none;
-  cursor: pointer;
-}
-
-.parameters-panel-pill:hover {
-  background: var(--chakra-colors-gray-50);
-}
-
-.parameters-panel-pill:focus-visible {
-  outline: 2px solid var(--chakra-colors-brand-500);
-  outline-offset: 2px;
-}
-
-.parameters-panel-pill-star {
-  color: var(--chakra-colors-yellow-500);
-}
-
-.nav-bar-badge {
-  position: absolute;
-  top: 2px;
-  right: 2px;
-  min-width: 16px;
-  height: 16px;
-  padding: 0 4px;
-  border-radius: var(--chakra-radii-full);
-  background: var(--chakra-colors-yellow-500);
-  color: #fff;
-  font-size: 10px;
-  font-weight: 700;
-  line-height: 16px;
-  text-align: center;
-  pointer-events: none;
 }
 
 .favorite-toggle.active,
@@ -590,17 +482,27 @@ div.entity-editor {
   font-size: 11px;
 }
 
-/* Sections and materials of the renderer */
-
-div.sections-panel {
-  position: absolute;
-  right: 8px;
-  bottom: 10px;
-  /* Above the plot (10) and the hover feedback, under the card of the element being edited */
+/* Panels pinned at the bottom right of the renderer. They wrap upwards when the renderer is too narrow for both */
+div.panel-dock {
+  position: fixed;
+  bottom: calc(25px + 10px);
+  /* Above the renderer (10); same level as the commands bar, which comes later in the document so it stays on top */
   z-index: 11;
+  display: flex;
+  /* Filled from the bottom right corner, so the first panel keeps it and the next ones go left, then up */
+  flex-direction: row-reverse;
+  flex-wrap: wrap-reverse;
+  /* The cross axis goes upwards with wrap-reverse, so this keeps them on the bottom */
+  align-items: flex-start;
+  gap: 8px;
+  pointer-events: none;
+}
+
+div.dock-panel {
+  pointer-events: auto;
   width: 280px;
-  max-width: calc(100% - 16px);
-  max-height: calc(100% - 120px);
+  max-width: 100%;
+  max-height: calc(var(--app-height) - 50px - 25px - 120px);
   display: flex;
   flex-direction: column;
   background: rgba(255, 255, 255, 0.97);
@@ -610,27 +512,39 @@ div.sections-panel {
   font-size: var(--chakra-fontSizes-xs);
 }
 
-div.sections-panel.closed {
+div.dock-panel.closed {
   width: auto;
   padding: 2px;
 }
 
-.sections-panel-header {
+/* The sections panel keeps the corner */
+div.dock-panel.sections-panel {
+  order: -1;
+}
+
+.dock-panel-header {
   padding: 4px 4px 4px 6px;
   border-bottom: 1px solid var(--chakra-colors-gray-100);
 }
 
-.sections-panel-body {
+.dock-panel-toolbar {
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--chakra-colors-gray-100);
+}
+
+.dock-panel-body {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   padding: 4px;
 }
 
-.sections-panel-footer {
+.dock-panel-footer {
   padding: 4px 6px 6px;
   border-top: 1px solid var(--chakra-colors-gray-100);
 }
+
+/* Sections and materials of the renderer */
 
 .library-row {
   border-radius: var(--chakra-radii-sm);

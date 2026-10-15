@@ -1,4 +1,4 @@
-import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import {
   Box,
   HStack,
@@ -20,44 +20,19 @@ import {
   Tooltip,
   VStack,
 } from "@chakra-ui/react";
-import { MdDragIndicator, MdRemove, MdSearch, MdSettings, MdStar } from "react-icons/md";
+import { MdSearch, MdSettings, MdStar } from "react-icons/md";
 import throttle from "lodash/throttle";
 import utils from "../utils";
 import state from "../state";
 import favorites from "../js/favorites";
 import { FavoritesContext } from "../Context";
+import dockPanel from "./dock_panel";
 
-const POSITION_STORAGE_KEY = "paramele.parameters_panel.position";
-const MINIMIZED_STORAGE_KEY = "paramele.parameters_panel.minimized";
-const DRAG_THRESHOLD = 4;
 // Evaluating the model on every slider tick is too slow on large models
 const SLIDER_COMMIT_INTERVAL = 150;
-const STATUS_BAR_HEIGHT = 25;
-const NAV_BAR_HEIGHT = 50;
 
 function localGetCopy(copy_key) {
   return utils.getDisplayCopy("parameters_panel", copy_key);
-}
-
-function readStoredItem(key) {
-  try {
-    return JSON.parse(window.localStorage.getItem(key));
-  } catch (error) {
-    return null;
-  }
-}
-
-function storeItem(key, value) {
-  try {
-    window.localStorage.setItem(key, JSON.stringify(value));
-  } catch (error) {}
-}
-
-// Keeps the panel inside the window when it shrinks or the panel was dragged too far
-function clampPosition({ left, bottom }, panel_width, panel_height) {
-  let max_left = Math.max(0, window.innerWidth - panel_width);
-  let max_bottom = Math.max(STATUS_BAR_HEIGHT, window.innerHeight - NAV_BAR_HEIGHT - panel_height);
-  return { left: Math.min(Math.max(0, left), max_left), bottom: Math.min(Math.max(STATUS_BAR_HEIGHT, bottom), max_bottom) };
 }
 
 function formatNumber(value) {
@@ -71,139 +46,48 @@ function isValidNumberText(text) {
 }
 
 /**
- * Floating panel with the favorite parameters of the current model, to change them without looking for their nodes.
- * It can be minimized into a small pill that stays where the panel was.
+ * Favorite parameters of the current model in the dock, to change them without looking for their nodes
  * @param {object} props
- * @param {boolean} props.visible
  * @param {import("../js/types").ParamEleFavoriteParameter[]} props.favorite_list Favorites stored in the current model
  * @param {object[]} props.nodes ReactFlow nodes of the current model
  * @param {boolean} props.model_locked
- * @param {boolean} props.is_compact On compact screens the panel is docked at the bottom and cannot be dragged
- * @param {string} props.default_left CSS left of the panel until the user drags it
+ * @param {boolean} props.is_open Kept in the general settings, so a model can be shared with its parameters at hand
+ * @param {function(): void} props.onToggle
  */
-function ParametersPanel({ visible, favorite_list, nodes, model_locked, is_compact, default_left }) {
-  const [position, setPosition] = useState(() => readStoredItem(POSITION_STORAGE_KEY));
-  const [is_minimized, setIsMinimized] = useState(() => readStoredItem(MINIMIZED_STORAGE_KEY) === true);
-  const [rendered_size, setRenderedSize] = useState(null);
-  const panel_ref = useRef(null);
-  const drag_ref = useRef(null);
-  // The panel is kept inside the window with its rendered size, e.g. when the pill expands near an edge.
-  // Only the rendered position moves, so the pill goes back to where the user left it when minimized again
-  useLayoutEffect(() => {
-    if (!visible || !panel_ref.current) return;
-    let { width, height } = panel_ref.current.getBoundingClientRect();
-    if (!rendered_size || rendered_size.width !== width || rendered_size.height !== height) setRenderedSize({ width, height });
-  });
-  if (!visible) return null;
-
+function ParametersPanel({ favorite_list, nodes, model_locked, is_open, onToggle }) {
   const rows = favorites.getFavoritesWithNodes(favorite_list, nodes);
-
-  function setMinimized(minimized) {
-    setIsMinimized(minimized);
-    storeItem(MINIMIZED_STORAGE_KEY, minimized);
-  }
-  function handlePointerDown(event) {
-    if (event.button !== 0 || (event.target.closest("button") && !event.target.closest(".parameters-panel-pill"))) return;
-    let rect = panel_ref.current.getBoundingClientRect();
-    drag_ref.current = {
-      start_x: event.clientX,
-      start_y: event.clientY,
-      start_left: rect.left,
-      start_bottom: window.innerHeight - rect.bottom,
-      width: rect.width,
-      height: rect.height,
-      moved: false,
-    };
-    event.currentTarget.setPointerCapture(event.pointerId);
-  }
-  function handlePointerMove(event) {
-    let drag = drag_ref.current;
-    if (!drag || is_compact) return;
-    let delta_x = event.clientX - drag.start_x;
-    let delta_y = event.clientY - drag.start_y;
-    // A few pixels of jitter still count as a click on the pill
-    if (!drag.moved && Math.hypot(delta_x, delta_y) < DRAG_THRESHOLD) return;
-    drag.moved = true;
-    setPosition(clampPosition({ left: drag.start_left + delta_x, bottom: drag.start_bottom - delta_y }, drag.width, drag.height));
-  }
-  function handlePointerUp(event) {
-    let drag = drag_ref.current;
-    if (!drag) return;
-    drag_ref.current = null;
-    event.currentTarget.releasePointerCapture(event.pointerId);
-    if (drag.moved) {
-      if (position) storeItem(POSITION_STORAGE_KEY, position);
-    } else if (is_minimized) {
-      setMinimized(false);
-    }
-  }
-  const drag_handlers = { onPointerDown: handlePointerDown, onPointerMove: handlePointerMove, onPointerUp: handlePointerUp };
-
-  let style;
-  if (!is_compact) {
-    style = position
-      ? clampPosition(position, rendered_size?.width || 0, rendered_size?.height || 0)
-      : { left: default_left, bottom: STATUS_BAR_HEIGHT + 12 };
-  }
-  if (is_minimized) {
-    return (
-      <div ref={panel_ref} className={`parameters-panel minimized${is_compact ? " compact" : ""}`} style={style}>
-        <Tooltip className="clear-tooltip" label={localGetCopy("expand")} openDelay={400}>
-          <button
-            type="button"
-            className={`parameters-panel-pill${is_compact ? "" : " draggable"}`}
-            aria-label={localGetCopy("expand")}
-            // Keyboard users expand it with Enter or Space; pointer clicks are handled with the drag
-            onKeyDown={(event) => {
-              if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                setMinimized(false);
-              }
-              event.stopPropagation();
-            }}
-            {...drag_handlers}
-          >
-            <MdStar className="parameters-panel-pill-star" />
-            <span>{localGetCopy("pill_label")}</span>
-            <span className="parameters-panel-count">{rows.length}</span>
-          </button>
-        </Tooltip>
-      </div>
-    );
-  }
+  const count = <Text className="parameters-panel-count">{rows.length}</Text>;
   return (
-    <div ref={panel_ref} className={`parameters-panel${is_compact ? " compact" : ""}`} style={style}>
-      <div className={`parameters-panel-header${is_compact ? "" : " draggable"}`} {...drag_handlers}>
-        <HStack spacing={1}>
-          {!is_compact && <MdDragIndicator className="parameters-panel-drag-icon" />}
-          <Text flex="1" noOfLines={1}>
-            {localGetCopy("title")}
-          </Text>
-          <Text className="parameters-panel-count">{rows.length}</Text>
-          <Tooltip className="clear-tooltip" label={localGetCopy("minimize")}>
-            <IconButton
-              className="small-ghost-button"
-              variant="ghost"
-              aria-label={localGetCopy("minimize")}
-              icon={<MdRemove />}
-              onClick={() => setMinimized(true)}
-            />
-          </Tooltip>
-        </HStack>
-      </div>
-      <div className="parameters-panel-body">
-        <ParameterSearch favorite_list={favorite_list} nodes={nodes} />
-        {rows.length === 0 ? (
-          <Text className="parameters-panel-empty">{localGetCopy("empty")}</Text>
-        ) : (
-          <VStack spacing={0} align="stretch" className="parameters-panel-list">
-            {rows.map(({ favorite, node, kind }) => (
-              <FavoriteRow key={favorite.node_id} favorite={favorite} node={node} kind={kind} model_locked={model_locked} />
-            ))}
-          </VStack>
-        )}
-      </div>
-    </div>
+    <dockPanel.DockPanel
+      className="parameters-panel"
+      is_open={is_open}
+      onOpen={onToggle}
+      onClose={onToggle}
+      summary={
+        <>
+          <MdStar className="parameters-panel-star" />
+          <Text>{localGetCopy("panel_title")}</Text>
+          {count}
+        </>
+      }
+      header={
+        <>
+          <MdStar className="parameters-panel-star" />
+          <Text fontWeight={600}>{localGetCopy("title")}</Text>
+          {count}
+        </>
+      }
+      close_label={localGetCopy("close_panel")}
+      toolbar={<ParameterSearch favorite_list={favorite_list} nodes={nodes} />}
+    >
+      {rows.length === 0 ? (
+        <Text className="parameters-panel-empty">{localGetCopy("empty")}</Text>
+      ) : (
+        rows.map(({ favorite, node, kind }) => (
+          <FavoriteRow key={favorite.node_id} favorite={favorite} node={node} kind={kind} model_locked={model_locked} />
+        ))
+      )}
+    </dockPanel.DockPanel>
   );
 }
 
@@ -439,7 +323,7 @@ function RangeSettings({ favorite }) {
     }
   }
   return (
-    // Fixed, because the panel itself is fixed: the popover is positioned and kept inside the viewport, not the page
+    // Fixed, because the dock is fixed: the popover is positioned and kept inside the viewport, not the page
     <Popover placement="top-end" strategy="fixed" isLazy>
       <Tooltip className="clear-tooltip" label={localGetCopy("slider_limits")}>
         <Box display="inline-flex">

@@ -151,8 +151,6 @@
         "open_settings": "Open settings"
     },
     "nav_bar":{
-        "show_parameters_panel": "Show favorite parameters",
-        "hide_parameters_panel": "Hide favorite parameters",
         "file": "File",
         "new": "New",
         "open": "Open",
@@ -213,10 +211,9 @@
         "no_permissions": "You don't have permissions to perform this action. Ask the admins to grant permissions."
     },
     "parameters_panel": {
-        "minimize": "Minimize",
-        "pill_label": "Favorite parameters",
-        "title": "FAVORITE PARAMETERS",
-        "expand": "Expand",
+        "panel_title": "Parameters",
+        "title": "Favorite parameters",
+        "close_panel": "Close",
         "empty": "Add parameters with the star on a box or in the explorer, or search them above.",
         "search_placeholder": "Search parameters to add",
         "no_candidates": "Every parameter is already a favorite",

@@ -185,8 +185,6 @@
         "show_panel": "Mostrar panel",
         "hide_panel": "Ocultar panel",
         "menu": "Menú",
-        "show_parameters_panel": "Mostrar parámetros favoritos",
-        "hide_parameters_panel": "Ocultar parámetros favoritos",
         "samples": "Ejemplos"
     },
     "commands_bar": {
@@ -452,10 +450,9 @@
         "duplicate_point_2": "Selecciona el punto de destino para pegar"
     },
     "parameters_panel": {
-        "minimize": "Minimizar",
-        "pill_label": "Parámetros favoritos",
-        "title": "PARÁMETROS FAVORITOS",
-        "expand": "Expandir",
+        "panel_title": "Parámetros",
+        "title": "Parámetros favoritos",
+        "close_panel": "Cerrar",
         "empty": "Agrega parámetros con la estrella de una caja o del explorador, o búscalos arriba.",
         "search_placeholder": "Buscar parámetros para agregar",
         "no_candidates": "Todos los parámetros ya son favoritos",

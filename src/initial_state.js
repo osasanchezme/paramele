@@ -55,6 +55,8 @@ function getInitialState() {
     model_locked: false,
     is_compact: isCompactLayout(),
     compact_panel_open: false,
+    // Element of the dock at the bottom right of the renderer, where the renderer puts its sections panel
+    panel_dock: null,
     current_version: null,
     is_version_manager_open: false,
     is_confirmation_open: false,

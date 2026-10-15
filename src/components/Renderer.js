@@ -13,6 +13,7 @@ import drawingDimensions from "./drawing_dimensions";
 import { notify } from "./notification";
 import AxisIndicator from "./axis_indicator";
 import React from "react";
+import { createPortal } from "react-dom";
 
 const TOOL_SHORTCUTS = {
   m: "member",
@@ -690,15 +691,18 @@ class Renderer extends React.Component {
             onClose={() => this.closeEditor()}
           />
         )}
-        {this.isShown() && (
-          <SectionsPanel
-            model_locked={this.props.model_locked}
-            drawing_state={this.state.drawing_state}
-            setDrawingState={this.setDrawingState}
-            highlighted={this.state.highlighted_item}
-            onHighlight={(item) => this.highlightItem(item)}
-          />
-        )}
+        {this.isShown() &&
+          this.props.panel_dock &&
+          createPortal(
+            <SectionsPanel
+              model_locked={this.props.model_locked}
+              drawing_state={this.state.drawing_state}
+              setDrawingState={this.setDrawingState}
+              highlighted={this.state.highlighted_item}
+              onHighlight={(item) => this.highlightItem(item)}
+            />,
+            this.props.panel_dock
+          )}
         <AxisIndicator ref={this.axis_indicator} />
       </div>
     );

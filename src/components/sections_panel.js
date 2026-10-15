@@ -1,10 +1,11 @@
 import { Box, Button, HStack, IconButton, Input, Text, Tooltip } from "@chakra-ui/react";
 import { useState } from "react";
-import { TbChevronDown, TbPaint, TbPlus, TbSchema, TbX } from "react-icons/tb";
+import { TbPaint, TbPlus, TbSchema } from "react-icons/tb";
 import drawing from "../js/drawing";
 import modelLinks from "../js/modelLinks";
 import sectionsLibrary from "../js/sectionsLibrary";
 import utils from "../utils";
+import dockPanel from "./dock_panel";
 import { CommitNumberInput } from "./entity_editor";
 import sectionPicker from "./section_picker";
 
@@ -16,22 +17,6 @@ const UNIT_LABELS = { mpa: "MPa", kpa: "kPa", gpa: "GPa", "kg/m3": "kg/m³", psi
 
 function localGetCopy(copy_key) {
   return utils.getDisplayCopy("sections", copy_key);
-}
-
-function readIsOpen() {
-  try {
-    return window.localStorage.getItem(STORAGE_KEY) === "true";
-  } catch (error) {
-    return false;
-  }
-}
-
-function storeIsOpen(is_open) {
-  try {
-    window.localStorage.setItem(STORAGE_KEY, String(is_open));
-  } catch (error) {
-    // Only a convenience, the panel starts closed
-  }
 }
 
 function getUnitLabel(unit) {
@@ -248,14 +233,13 @@ function MaterialRow({ material, is_expanded, is_highlighted, is_painting, onTog
  */
 function SectionsPanel({ model_locked, drawing_state, setDrawingState, highlighted, onHighlight }) {
   const library = sectionPicker.useLibrary();
-  const [is_open, setIsOpen] = useState(readIsOpen);
+  const [is_open, setIsOpen] = dockPanel.useStoredOpen(STORAGE_KEY);
   const [tab, setTab] = useState("sections");
   const [expanded, setExpanded] = useState(null);
   const [is_creating, setIsCreating] = useState(false);
 
   const open = (value) => {
     setIsOpen(value);
-    storeIsOpen(value);
     if (!value) onHighlight(null);
   };
   const toggle = (kind, key) => {
@@ -280,91 +264,83 @@ function SectionsPanel({ model_locked, drawing_state, setDrawingState, highlight
     return node_id;
   };
 
-  if (!is_open) {
-    const swatches = library.sections.filter(({ member_ids }) => member_ids.length > 0).slice(0, MAX_SWATCHES);
-    return (
-      <div className="sections-panel closed" onClick={(event) => event.stopPropagation()}>
-        <Button size="xs" variant="ghost" onClick={() => open(true)} rightIcon={<TbChevronDown style={{ transform: "rotate(180deg)" }} />}>
-          <HStack spacing={1}>
-            <Text>{localGetCopy("panel_title")}</Text>
-            {swatches.map(({ key, color }) => (
-              <sectionPicker.Swatch key={key} color={color} />
-            ))}
-          </HStack>
-        </Button>
-      </div>
-    );
-  }
-
+  const swatches = library.sections.filter(({ member_ids }) => member_ids.length > 0).slice(0, MAX_SWATCHES);
+  const summary = (
+    <>
+      <Text>{localGetCopy("panel_title")}</Text>
+      {swatches.map(({ key, color }) => (
+        <sectionPicker.Swatch key={key} color={color} />
+      ))}
+    </>
+  );
+  const header = ["sections", "materials"].map((tab_key) => (
+    <Button
+      key={tab_key}
+      size="xs"
+      variant="ghost"
+      aria-pressed={tab === tab_key}
+      color={tab === tab_key ? "brand.600" : "gray.600"}
+      bg={tab === tab_key ? "brand.50" : undefined}
+      onClick={() => {
+        setTab(tab_key);
+        setExpanded(null);
+        setIsCreating(false);
+        onHighlight(null);
+      }}
+    >
+      {localGetCopy(tab_key)} ({tab_key === "sections" ? library.sections.filter(({ editable }) => editable).length : library.materials.length})
+    </Button>
+  ));
+  const footer = is_creating ? (
+    tab === "sections" ? (
+      <sectionPicker.NewSectionForm materials={library.materials} onCreate={create} onCancel={() => setIsCreating(false)} />
+    ) : (
+      <sectionPicker.NewMaterialForm onCreate={create} onCancel={() => setIsCreating(false)} />
+    )
+  ) : (
+    <Button size="xs" variant="ghost" colorScheme="brand" leftIcon={<TbPlus />} onClick={() => setIsCreating(true)} isDisabled={model_locked}>
+      {localGetCopy(tab === "sections" ? "new_section" : "new_material")}
+    </Button>
+  );
   const items = tab === "sections" ? library.sections : library.materials;
   return (
-    <div className="sections-panel" onClick={(event) => event.stopPropagation()} onPointerDown={(event) => event.stopPropagation()}>
-      <HStack className="sections-panel-header" spacing={1}>
-        {["sections", "materials"].map((tab_key) => (
-          <Button
-            key={tab_key}
-            size="xs"
-            variant="ghost"
-            aria-pressed={tab === tab_key}
-            color={tab === tab_key ? "brand.600" : "gray.600"}
-            bg={tab === tab_key ? "brand.50" : undefined}
-            onClick={() => {
-              setTab(tab_key);
-              setExpanded(null);
-              setIsCreating(false);
-              onHighlight(null);
-            }}
-          >
-            {localGetCopy(tab_key)} ({tab_key === "sections" ? library.sections.filter(({ editable }) => editable).length : library.materials.length})
-          </Button>
-        ))}
-        <Box flex="1" />
-        <SmallIconButton label={localGetCopy("close_panel")} icon={<TbX />} onClick={() => open(false)} />
-      </HStack>
-      <div className="sections-panel-body">
-        {items.length === 0 && (
-          <Text className="library-muted library-note">{localGetCopy(tab === "sections" ? "no_sections" : "no_materials")}</Text>
-        )}
-        {tab === "sections"
-          ? library.sections.map((section) => (
-              <SectionRow
-                key={section.key}
-                section={section}
-                is_expanded={expanded === section.key}
-                is_highlighted={highlighted?.kind === "section" && highlighted.key === section.key}
-                is_painting={isPainting("section", section.node_id)}
-                onToggle={() => toggle("section", section.key)}
-                onPaint={() => paint("section", section.node_id)}
-                model_locked={model_locked}
-              />
-            ))
-          : library.materials.map((material) => (
-              <MaterialRow
-                key={material.key}
-                material={material}
-                is_expanded={expanded === material.key}
-                is_highlighted={highlighted?.kind === "material" && highlighted.key === material.key}
-                is_painting={isPainting("material", material.node_id)}
-                onToggle={() => toggle("material", material.key)}
-                onPaint={() => paint("material", material.node_id)}
-                model_locked={model_locked}
-              />
-            ))}
-      </div>
-      <div className="sections-panel-footer">
-        {is_creating ? (
-          tab === "sections" ? (
-            <sectionPicker.NewSectionForm materials={library.materials} onCreate={create} onCancel={() => setIsCreating(false)} />
-          ) : (
-            <sectionPicker.NewMaterialForm onCreate={create} onCancel={() => setIsCreating(false)} />
-          )
-        ) : (
-          <Button size="xs" variant="ghost" colorScheme="brand" leftIcon={<TbPlus />} onClick={() => setIsCreating(true)} isDisabled={model_locked}>
-            {localGetCopy(tab === "sections" ? "new_section" : "new_material")}
-          </Button>
-        )}
-      </div>
-    </div>
+    <dockPanel.DockPanel
+      className="sections-panel"
+      is_open={is_open}
+      onOpen={() => open(true)}
+      onClose={() => open(false)}
+      summary={summary}
+      header={header}
+      close_label={localGetCopy("close_panel")}
+      footer={footer}
+    >
+      {items.length === 0 && <Text className="library-muted library-note">{localGetCopy(tab === "sections" ? "no_sections" : "no_materials")}</Text>}
+      {tab === "sections"
+        ? library.sections.map((section) => (
+            <SectionRow
+              key={section.key}
+              section={section}
+              is_expanded={expanded === section.key}
+              is_highlighted={highlighted?.kind === "section" && highlighted.key === section.key}
+              is_painting={isPainting("section", section.node_id)}
+              onToggle={() => toggle("section", section.key)}
+              onPaint={() => paint("section", section.node_id)}
+              model_locked={model_locked}
+            />
+          ))
+        : library.materials.map((material) => (
+            <MaterialRow
+              key={material.key}
+              material={material}
+              is_expanded={expanded === material.key}
+              is_highlighted={highlighted?.kind === "material" && highlighted.key === material.key}
+              is_painting={isPainting("material", material.node_id)}
+              onToggle={() => toggle("material", material.key)}
+              onPaint={() => paint("material", material.node_id)}
+              model_locked={model_locked}
+            />
+          ))}
+    </dockPanel.DockPanel>
   );
 }
 
