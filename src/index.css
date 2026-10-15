@@ -347,6 +347,10 @@ div.dock-panel.visibility-panel.closed {
   color: var(--chakra-colors-gray-700);
 }
 
+.visibility-panel-note {
+  color: var(--chakra-colors-gray-500);
+}
+
 .visibility-panel-number {
   width: 72px;
   flex-shrink: 0;

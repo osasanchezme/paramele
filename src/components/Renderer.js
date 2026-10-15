@@ -741,7 +741,9 @@ class Renderer extends React.Component {
             />,
             this.props.panel_dock
           )}
-        {this.isShown() && this.props.panel_dock && createPortal(<VisibilityPanel />, this.props.panel_dock)}
+        {this.isShown() &&
+          this.props.panel_dock &&
+          createPortal(<VisibilityPanel is_showing_result={Boolean(this.getResultsView())} />, this.props.panel_dock)}
         {this.isShown() &&
           this.props.panel_dock &&
           this.state.results &&

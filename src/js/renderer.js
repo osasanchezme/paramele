@@ -14,6 +14,8 @@ const MESH_LINES_COLOR = "#5A6B7D";
 const PRESSURE_COLOR = "#805AD5";
 // The structure under the results drawn on it
 const UNDEFORMED_COLOR = "#A0AEC0";
+// View settings of solids that would hide the results drawn on the structure, so they are not drawn with a result
+const SETTINGS_HIDDEN_BY_RESULTS = ["show_sections", "show_plate_thickness"];
 
 function localGetCopy(node_name) {
   return utils.getDisplayCopy("renderer", node_name);
@@ -37,7 +39,6 @@ function getData(drawing_state, results_view) {
   // The loads stay as a reference under the results
   const faded = Boolean(results_view);
   const loads_opacity = faded ? 0.3 : 1;
-  // The solids would hide the results drawn on the structure
   const show_sections = Boolean(global_settings["show_sections"]) && !faded;
   const show_plate_thickness = Boolean(global_settings["show_plate_thickness"]) && !faded;
 
@@ -698,6 +699,6 @@ function createPressure(plate_nodes, rot_z, pressure_data, max_abs_mag, physical
   return { trace, handle: { x: centroid.x + tail.x, y: centroid.y + tail.y, z: centroid.z + tail.z } };
 }
 
-const renderer = { getData, getLayout, getConfig };
+const renderer = { SETTINGS_HIDDEN_BY_RESULTS, getData, getLayout, getConfig };
 
 export default renderer;

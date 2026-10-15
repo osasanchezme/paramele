@@ -140,7 +140,8 @@
         "show_plate_thickness": "Show the thickness of the plates",
         "visibility_panel": "Visibility",
         "visibility_more": "All the settings",
-        "close_visibility_panel": "Close"
+        "close_visibility_panel": "Close",
+        "visibility_hidden_by_results": "The sections and the plate thickness are not drawn while a result is shown."
     },
     "solver_status": {
         "server_checking": "Checking whether the local server is running...",

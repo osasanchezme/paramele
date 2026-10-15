@@ -5,6 +5,7 @@ import getState from "../getState";
 import state from "../state";
 import utils from "../utils";
 import settings_template from "../settings_template.json";
+import renderer from "../js/renderer";
 import dockPanel from "./dock_panel";
 import { CommitNumberInput } from "./entity_editor";
 
@@ -33,12 +34,12 @@ function changeSetting(key, value) {
   utils.updateRenderer();
 }
 
-function SettingField({ name, value }) {
+function SettingField({ name, value, isDisabled }) {
   let { type } = settings_template.global[name];
   let label = localGetCopy(name);
   if (type === "check") {
     return (
-      <Checkbox size="sm" isChecked={Boolean(value)} onChange={(event) => changeSetting(name, event.target.checked)}>
+      <Checkbox size="sm" isChecked={Boolean(value)} isDisabled={isDisabled} onChange={(event) => changeSetting(name, event.target.checked)}>
         <Text fontSize="xs">{label}</Text>
       </Checkbox>
     );
@@ -50,7 +51,7 @@ function SettingField({ name, value }) {
         {label}
       </Text>
       <Box className="visibility-panel-number">
-        <CommitNumberInput value={value} label={label} onCommit={(number) => changeSetting(name, number)} />
+        <CommitNumberInput value={value} label={label} isDisabled={isDisabled} onCommit={(number) => changeSetting(name, number)} />
       </Box>
     </HStack>
   );
@@ -59,8 +60,10 @@ function SettingField({ name, value }) {
 /**
  * Panel of the dock with the settings of what the renderer draws, at hand. They are the global settings of the View tab of the
  * settings modal
+ * @param {object} props
+ * @param {boolean} props.is_showing_result A result is drawn on the structure, which does not draw some of them
  */
-function VisibilityPanel() {
+function VisibilityPanel({ is_showing_result }) {
   const [is_open, setIsOpen] = dockPanel.useStoredOpen(STORAGE_KEY);
   const [settings, setSettings] = useState(getGlobalSettings);
   useEffect(() => state.onSettingsChange(() => setSettings(getGlobalSettings())), []);
@@ -87,8 +90,14 @@ function VisibilityPanel() {
     >
       <div className="visibility-panel-body">
         {VIEW_SETTINGS.map((name) => (
-          <SettingField key={name} name={name} value={settings[name]} />
+          <SettingField
+            key={name}
+            name={name}
+            value={settings[name]}
+            isDisabled={is_showing_result && renderer.SETTINGS_HIDDEN_BY_RESULTS.includes(name)}
+          />
         ))}
+        {is_showing_result && <Text className="visibility-panel-note">{localGetCopy("visibility_hidden_by_results")}</Text>}
       </div>
     </dockPanel.DockPanel>
   );

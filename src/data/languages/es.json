@@ -140,7 +140,8 @@
         "show_plate_thickness": "Mostrar el espesor de las placas",
         "visibility_panel": "Visualización",
         "visibility_more": "Toda la configuración",
-        "close_visibility_panel": "Cerrar"
+        "close_visibility_panel": "Cerrar",
+        "visibility_hidden_by_results": "Las secciones y el espesor de las placas no se dibujan mientras se muestra un resultado."
     },
     "solver_status": {
         "server_checking": "Verificando si el servidor local está activo...",
