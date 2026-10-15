@@ -31,7 +31,6 @@ function setInitialState() {
       structure_nodes_shift: 0,
       iterating_node_data: {},
     },
-    section_colors: [null, "#505050", "#42810A", "#DB7093", "#F4A53A", "#843D80", "#2A56CD", "#D26A34"],
     language,
     words_map: {},
     model_path: ["model"], // Path to the current editable model in the state
@@ -178,16 +177,6 @@ function resetView() {
   }, 200);
 }
 
-function getSectionColor(section_id) {
-  let section_color = window.ParamEle.state.section_colors[section_id];
-  if (typeof section_color === "undefined") defineSectionColor(section_id);
-  return window.ParamEle.state.section_colors[section_id];
-}
-
-function defineSectionColor(section_id) {
-  window.ParamEle.state.section_colors[Number(section_id)] = "#" + parseInt(Math.random() * 0xffffff).toString(16);
-}
-
 function copyStructureToClipboard() {
   let structure = repair.repairStructuralModel(getState("structure"), "skyciv");
   navigator.clipboard
@@ -217,7 +206,6 @@ const state = {
   updateSettingsFromLocalState,
   setGlobalVariable,
   getGlobalVariable,
-  getSectionColor,
   updateWordsMapFromLanguage,
   updateNodeData,
   updateCurrentModel,

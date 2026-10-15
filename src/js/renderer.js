@@ -5,6 +5,7 @@ import utils from "../utils";
 import drawingLayer from "./drawingLayer";
 import mesher from "./mesher";
 import resultsLayer from "./resultsLayer";
+import sectionsLibrary from "./sectionsLibrary";
 import supportGlyphs from "./supportGlyphs";
 
 const PLATE_COLOR = "#D2DDE8";
@@ -105,8 +106,9 @@ function getData(drawing_state, results_view) {
     text: [],
     hovertemplate: "%{text} <extra></extra>",
   };
+  const section_colors = sectionsLibrary.getSectionColors(structure).by_section_id;
   Object.entries(structure.members).forEach(([member_id, member_data]) => {
-    let section_color = state.getSectionColor(member_data.section_id);
+    let section_color = sectionsLibrary.getMemberColor(section_colors, member_data.section_id);
     let member_line = faded ? { width: 2, color: UNDEFORMED_COLOR } : { width: 3, color: section_color };
     let member = { x: [], y: [], z: [], type: "scatter3d", mode: "lines", hoverinfo: "none", line: member_line };
     // Node A

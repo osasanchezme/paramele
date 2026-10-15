@@ -54,6 +54,9 @@ class ParamEle extends React.Component {
     this.setViewMode = this.setViewMode.bind(this);
     this.togglePropertiesPanel = this.togglePropertiesPanel.bind(this);
     this.toggleParametersPanel = this.toggleParametersPanel.bind(this);
+    this.setPanelDock = (panel_dock) => {
+      if (panel_dock !== this.state.panel_dock) this.setState({ panel_dock });
+    };
     this.toggleFavorite = this.toggleFavorite.bind(this);
     this.changeAppMode = this.changeAppMode.bind(this);
     this.handleMouseMove = this.handleMouseMove.bind(this);
@@ -604,20 +607,23 @@ class ParamEle extends React.Component {
                     openSampleGallery={this.openSampleGallery}
                     show_properties_panel={show_properties_panel}
                     togglePropertiesPanel={this.togglePropertiesPanel}
-                    show_parameters_panel={general.show_parameters_panel}
-                    toggleParametersPanel={this.toggleParametersPanel}
-                    favorites_count={favorites.getFavoritesWithNodes(this.state.favorites, this.state.nodes).length}
                   ></NavBar>
                   <StatusBar app_mode={this.state.mode} changeAppMode={this.changeAppMode}></StatusBar>
                   <ViewSwitch settings={general} setViewMode={this.setViewMode} is_compact={is_compact}></ViewSwitch>
-                  <ParametersPanel
-                    visible={general.show_parameters_panel}
-                    favorite_list={this.state.favorites}
-                    nodes={this.state.nodes}
-                    model_locked={this.state.model_locked}
-                    is_compact={is_compact}
-                    default_left={show_properties_panel && !is_compact ? `calc(${layout.panel_width}% + 12px)` : "12px"}
-                  ></ParametersPanel>
+                  {/* Panels pinned at the bottom right of the renderer: the sections panel of the renderer and the favorite parameters */}
+                  <div
+                    className="panel-dock"
+                    ref={this.setPanelDock}
+                    style={{ right: `calc(${layout.renderer_right}% + 8px)`, maxWidth: `calc(${layout.renderer_width}% - 16px)` }}
+                  >
+                    <ParametersPanel
+                      favorite_list={this.state.favorites}
+                      nodes={this.state.nodes}
+                      model_locked={this.state.model_locked}
+                      is_open={general.show_parameters_panel}
+                      onToggle={this.toggleParametersPanel}
+                    ></ParametersPanel>
+                  </div>
                   {commands_bar}
                   {is_compact && show_properties_panel && <div className="panel-backdrop" onClick={this.togglePropertiesPanel}></div>}
                   <PropertiesPanel
@@ -656,6 +662,7 @@ class ParamEle extends React.Component {
                     settings={general}
                     layout={layout}
                     model_locked={this.state.model_locked}
+                    panel_dock={this.state.panel_dock}
                   ></Renderer>
                   <GlobalSettings user={this.state.user}></GlobalSettings>
                   <Authentication

@@ -13,7 +13,8 @@ const COLUMN_WIDTH = 300;
 const ROW_GAP = 24;
 const GRAPH_GAP = 400;
 const MAX_UNDO_STEPS = 50;
-const COLUMNS = ["parameters", "nodes", "elements", "loads"];
+// Sections and materials go last, so the boxes drawn before they existed keep their columns
+const COLUMNS = ["parameters", "nodes", "elements", "loads", "sections"];
 // Height of a box that React Flow has not measured yet
 const ESTIMATED_HEIGHTS = {
   inputNumber: 70,
@@ -26,6 +27,9 @@ const ESTIMATED_HEIGHTS = {
   structuralMoment: 150,
   structuralDistributedLoad: 330,
   structuralPressure: 170,
+  structuralRectangleSection: 110,
+  structuralCircularSection: 90,
+  structuralMaterial: 150,
 };
 // Boxes that cannot exist without the box they take an ID from
 const DEPENDENT_TYPES = new Set([
@@ -39,6 +43,9 @@ const DEPENDENT_TYPES = new Set([
   "structuralDistributedLoad",
   "structuralPressure",
 ]);
+// Inputs that take the section of a member and the material of a section or a plate
+const SECTION_HANDLE = "section_id-id-1";
+const MATERIAL_HANDLE = "material_id-id-1";
 const SUPPORT_TYPES = new Set(["structuralFixedSupport", "structuralPinSupport", "structuralGenericSupport"]);
 
 /** @type {{before: {nodes: object[], edges: object[]}, after_signature: string}[]} */
@@ -138,7 +145,7 @@ class DrawingTransaction {
   /**
    * Adds a box in the next free spot of its column
    * @param {import("./types").ParamEleNodesTypes} type
-   * @param {"parameters"|"nodes"|"elements"|"loads"} column
+   * @param {"parameters"|"nodes"|"elements"|"loads"|"sections"} column
    * @param {object} data
    * @param {object} [drawn_data] Extra data kept under data.drawn
    * @returns {string} ID of the new box
@@ -313,9 +320,10 @@ class DrawingTransaction {
  * Draws a member between two points
  * @param {import("./types").ParamEleDrawingPoint} point_A
  * @param {import("./types").ParamEleDrawingPoint} point_B
+ * @param {string|null} [section_node_id] Section box of the member, "default" for none, or null to take the one of the last drawn member
  * @returns {string|null} ID of the structural node box at the end, to continue drawing from it
  */
-function addMember(point_A, point_B) {
+function addMember(point_A, point_B, section_node_id = null) {
   let transaction = new DrawingTransaction();
   if (![point_A, point_B].every((point) => transaction.isEditablePoint(point))) {
     notify("warning", "drawing_not_editable", null, true);
@@ -335,9 +343,14 @@ function addMember(point_A, point_B) {
   let member = transaction.addBox("structuralMember", "elements");
   transaction.connect(node_A, "node_out-id", member, "node_A-id");
   transaction.connect(node_B, "node_out-id", member, "node_B-id");
-  // New members take the section of the last drawn member, or the most used one
+  if (section_node_id) {
+    if (transaction.getNode(section_node_id)) transaction.connect(section_node_id, "section_out-id", member, SECTION_HANDLE);
+    transaction.commit();
+    return node_B;
+  }
+  // Otherwise new members take the section of the last drawn member, or the most used one
   let section_edges = transaction.edges.filter(
-    ({ target, targetHandle }) => targetHandle === "section_id-id-1" && transaction.getNode(target)?.type === "structuralMember"
+    ({ target, targetHandle }) => targetHandle === SECTION_HANDLE && transaction.getNode(target)?.type === "structuralMember"
   );
   if (section_edges.length > 0) {
     let drawn_section_edges = section_edges.filter(({ target }) => transaction.getNode(target).data?.drawn);
@@ -348,7 +361,7 @@ function addMember(point_A, point_B) {
       let most_used = Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0];
       section_edge = section_edges.find(({ source }) => source === most_used);
     }
-    transaction.connect(section_edge.source, section_edge.sourceHandle, member, "section_id-id-1");
+    transaction.connect(section_edge.source, section_edge.sourceHandle, member, SECTION_HANDLE);
   }
   transaction.commit();
   return node_B;
@@ -582,6 +595,29 @@ const ENTITY_FIELDS = {
     },
   ],
   structuralPlate: [{ key: "thickness", label_copy: "thickness", handles: ["thickness-value"], param_key: "t", element_key: "thickness" }],
+  structuralRectangleSection: [
+    { key: "base", label: "b", handles: ["base-value-1"], param_key: "b", element_key: "base", default: 1 },
+    { key: "height", label: "h", handles: ["height-value-1"], param_key: "h", element_key: "height", default: 1 },
+  ],
+  structuralCircularSection: [{ key: "diameter", label: "D", handles: ["diameter-value-1"], param_key: "D", element_key: "diameter", default: 1 }],
+  structuralGenericSection: [
+    { key: "area", label: "A", handles: ["area-value-1"], param_key: "A", element_key: "area", default: 1 },
+    { key: "Iz", label: "Iz", handles: ["Iz-value-1"], param_key: "Iz", element_key: "Iz", default: 1 },
+    { key: "Iy", label: "Iy", handles: ["Iy-value-1"], param_key: "Iy", element_key: "Iy", default: 1 },
+    { key: "J", label: "J", handles: ["J-value-1"], param_key: "J", element_key: "J", default: 1 },
+  ],
+  structuralMaterial: [
+    {
+      key: "elasticity_modulus",
+      label: "E",
+      handles: ["elasticity_modulus-value-20000"],
+      param_key: "E",
+      element_key: "elasticity_modulus",
+      default: 20000,
+    },
+    { key: "poissons_ratio", label: "ν", handles: ["poissons_ratio-value-0.3"], param_key: "ν", element_key: "poissons_ratio", default: 0.3 },
+    { key: "density", label: "ρ", handles: ["density-value"], param_key: "ρ", element_key: "density" },
+  ],
   structuralGenericSupport: [
     {
       key: "restraint_code",
@@ -605,7 +641,24 @@ const ENTITY_STRUCTURE_KEYS = {
   structuralGenericSupport: "supports",
   structuralFixedSupport: "supports",
   structuralPinSupport: "supports",
+  structuralMember: "members",
+  structuralRectangleSection: "sections",
+  structuralCircularSection: "sections",
+  structuralGenericSection: "sections",
+  structuralMaterial: "materials",
 };
+// Inputs of each box that take another box (its section or its material), picked from a list in the renderer
+const SECTION_LINK = { key: "section", kind: "section", handle: SECTION_HANDLE, source_handle: "section_out-id" };
+const MATERIAL_LINK = { key: "material", kind: "material", handle: MATERIAL_HANDLE, source_handle: "material_out-id" };
+const ENTITY_LINKS = {
+  structuralMember: [SECTION_LINK],
+  structuralPlate: [MATERIAL_LINK],
+  structuralRectangleSection: [MATERIAL_LINK],
+  structuralCircularSection: [MATERIAL_LINK],
+  structuralGenericSection: [MATERIAL_LINK],
+};
+const SECTION_TYPES = ["structuralRectangleSection", "structuralCircularSection", "structuralGenericSection"];
+const LINK_SOURCE_TYPES = { section: SECTION_TYPES, material: ["structuralMaterial"] };
 const PARAMETER_HANDLES = { inputNumber: "value-value", inputString: "value-string" };
 
 /**
@@ -621,10 +674,10 @@ function getElementNodeId(structure_key, element_id) {
 /**
  * Editable inputs of a box with where each value comes from: a parameter box (maybe shared with other elements), a calculation, or nothing
  * @param {string} node_id
+ * @param {DrawingTransaction} [transaction] To read several boxes from the same copy of the model
  * @returns {import("./types").ParamEleDrawingEntity|null}
  */
-function getEntity(node_id) {
-  let transaction = new DrawingTransaction();
+function getEntity(node_id, transaction = new DrawingTransaction()) {
   let node = transaction.getNode(node_id);
   if (!node) return null;
   let structure_key = ENTITY_STRUCTURE_KEYS[node.type];
@@ -655,7 +708,57 @@ function getEntity(node_id) {
     }
     return { ...field, value: value === undefined ? field.default ?? 0 : value, source };
   });
-  return { node_id, type: node.type, structure_key, element_id, fields };
+  let links = (ENTITY_LINKS[node.type] || []).map((link) => {
+    let edge = transaction.getIncomingEdges(node_id, link.handle)[0];
+    let source_node = edge && transaction.getNode(edge.source);
+    // Something else than a section or material box (e.g. a number with an ID) feeds the input
+    let other_source = source_node && !LINK_SOURCE_TYPES[link.kind].includes(source_node.type);
+    return {
+      key: link.key,
+      kind: link.kind,
+      value: source_node && !other_source ? source_node.id : null,
+      other_source: other_source
+        ? { node_id: source_node.id, label: source_node.data.custom_label || utils.getDisplayCopy("nodes", source_node.type) }
+        : null,
+    };
+  });
+  return { node_id, type: node.type, structure_key, element_id, fields, links };
+}
+
+/**
+ * Connects a section or material box to an input of several boxes, replacing what fed it
+ * @param {string[]} target_node_ids
+ * @param {"section"|"material"} kind
+ * @param {string|null} source_node_id Section or material box, or null to leave the input empty (the default section or material)
+ * @returns {boolean} Whether anything changed
+ */
+function linkBoxes(target_node_ids, kind, source_node_id) {
+  let link = kind === "section" ? SECTION_LINK : MATERIAL_LINK;
+  let transaction = new DrawingTransaction();
+  if (source_node_id && !transaction.getNode(source_node_id)) return false;
+  let changed = false;
+  target_node_ids.forEach((target_node_id) => {
+    let target_node = transaction.getNode(target_node_id);
+    if (!target_node || !(ENTITY_LINKS[target_node.type] || []).some(({ key }) => key === link.key)) return;
+    let edges = transaction.getIncomingEdges(target_node_id, link.handle);
+    if (edges.length === 1 && edges[0].source === source_node_id && edges[0].sourceHandle === link.source_handle) return;
+    if (edges.length === 0 && !source_node_id) return;
+    transaction.edges = transaction.edges.filter((edge) => !edges.includes(edge));
+    if (source_node_id) transaction.connect(source_node_id, link.source_handle, target_node_id, link.handle);
+    changed = true;
+  });
+  if (changed) transaction.commit();
+  return changed;
+}
+
+/**
+ * Changes an entity link from the renderer
+ * @param {string} node_id
+ * @param {string} link_key "section" or "material"
+ * @param {string|null} source_node_id
+ */
+function updateEntityLink(node_id, link_key, source_node_id) {
+  linkBoxes([node_id], link_key, source_node_id);
 }
 
 /**
@@ -741,6 +844,10 @@ function onUndoChange(listener) {
 }
 
 const drawing = {
+  DrawingTransaction,
+  SECTION_TYPES,
+  linkBoxes,
+  updateEntityLink,
   addMember,
   addPlate,
   addPointLoad,

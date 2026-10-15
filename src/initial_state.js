@@ -4,7 +4,7 @@ import { isCompactLayout } from "./js/breakpoints";
 import { getStartupData } from "./js/urlParams";
 
 function getInitialState() {
-    // Get language from URL
+  // Get language from URL
   let url_params = new URLSearchParams(window.location.search);
   let language = url_params.get("lang");
   if (!["es", "en"].includes(language)) language = "es";
@@ -31,7 +31,6 @@ function getInitialState() {
       structure_nodes_shift: 0,
       iterating_node_data: {},
     },
-    section_colors: [null, "#505050", "#42810A", "#DB7093", "#F4A53A", "#843D80", "#2A56CD", "#D26A34"],
     language,
     words_map: {},
     model_path: ["model"], // Path to the current editable model in the state
@@ -56,6 +55,8 @@ function getInitialState() {
     model_locked: false,
     is_compact: isCompactLayout(),
     compact_panel_open: false,
+    // Element of the dock at the bottom right of the renderer, where the renderer puts its sections panel
+    panel_dock: null,
     current_version: null,
     is_version_manager_open: false,
     is_confirmation_open: false,
@@ -67,7 +68,7 @@ function getInitialState() {
     file_manager_mode: "open",
     is_sharing_manager_open: false,
     is_sample_gallery_open: false,
-    local_people_directory: {}
+    local_people_directory: {},
   };
 }
 

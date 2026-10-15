@@ -2,6 +2,7 @@ import { Button, ButtonGroup, HStack, IconButton, Input, Text, Tooltip } from "@
 import { useState } from "react";
 import { TbLink, TbLinkOff, TbSchema, TbX } from "react-icons/tb";
 import utils from "../utils";
+import sectionPicker from "./section_picker";
 
 // Plain names of the structural boxes, the box names are more technical (e.g. "Generic Support")
 const TYPE_COPIES = {
@@ -142,10 +143,12 @@ function FieldSource({ field, onDetach, onShowBox, isDisabled }) {
  * @param {boolean} props.model_locked
  * @param {function(string, number|string): void} props.onChange
  * @param {function(string): void} props.onDetach
+ * @param {function(string, string|null): void} props.onLinkChange Connects a section or material box (null for none) to an input
+ * @param {function("section"|"material", object): string} props.onCreateLink Creates a section or material for the element and returns its box
  * @param {function(string): void} props.onShowBox Goes to a box in the editor
  * @param {Function} props.onClose
  */
-function EntityEditor({ entity, position, container_size, model_locked, onChange, onDetach, onShowBox, onClose }) {
+function EntityEditor({ entity, position, container_size, model_locked, onChange, onDetach, onLinkChange, onCreateLink, onShowBox, onClose }) {
   // The box of an element from a group is the group, so the element is named by its kind
   let type_label = entity.group ? localGetCopy(entity.structure_key) : getTypeLabel(entity.type);
   let title = `${type_label} ${entity.element_id ?? ""}`;
@@ -177,8 +180,28 @@ function EntityEditor({ entity, position, container_size, model_locked, onChange
             <Text className="entity-editor-muted">{localGetCopy("editor_edit_in_group")}</Text>
           </div>
         ) : (
-          entity.fields.length === 0 && <Text className="entity-editor-muted">{localGetCopy("editor_no_fields")}</Text>
+          entity.fields.length === 0 && !entity.links?.length && <Text className="entity-editor-muted">{localGetCopy("editor_no_fields")}</Text>
         )}
+        {(entity.links || []).map((link) => (
+          <div key={link.key}>
+            <HStack spacing={1}>
+              <Text className="entity-editor-label">{utils.getDisplayCopy("sections", link.kind)}</Text>
+              <sectionPicker.LibraryPicker
+                kind={link.kind}
+                value={link.value}
+                onChange={(value) => onLinkChange(link.key, value)}
+                onCreate={(spec) => onCreateLink(link.kind, spec)}
+                isDisabled={model_locked}
+              />
+              {link.value && <ShowBoxButton label={utils.getDisplayCopy("sections", "show_box")} onClick={() => onShowBox(link.value)} />}
+            </HStack>
+            {link.other_source && (
+              <Text className="entity-editor-muted">
+                {utils.getDisplayCopy("sections", "other_source").replace("{box}", link.other_source.label)}
+              </Text>
+            )}
+          </div>
+        ))}
         <HStack spacing={2} rowGap={2} flexWrap="wrap" className="entity-editor-values">
           {entity.fields.map((field) => {
             let label = getFieldLabel(field);
@@ -232,4 +255,5 @@ function EntityEditor({ entity, position, container_size, model_locked, onChange
   );
 }
 
+export { CommitNumberInput };
 export default EntityEditor;
