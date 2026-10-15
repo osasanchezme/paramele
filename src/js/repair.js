@@ -110,6 +110,15 @@ function repairStructuralModel(structure, solver_engine) {
       })
     );
     structure = convertModel(structure, { section_length: "m" });
+    // PyNite takes consistent units: with forces in kN and lengths in m, the elasticity modulus goes in kN/m2 (kPa), not in MPa
+    let { material_strength, force } = structure.settings.units;
+    let consistent_strength = force === "kn" ? "kpa" : "pa";
+    structure.materials = Object.fromEntries(
+      Object.entries(structure.materials).map(([material_id, material]) => [
+        material_id,
+        { ...material, elasticity_modulus: units.convert(Number(material.elasticity_modulus), material_strength, consistent_strength) },
+      ])
+    );
   }
   // TODO - Move the CSI model conversion to here
 
