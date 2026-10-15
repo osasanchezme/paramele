@@ -10,7 +10,7 @@ import supportGlyphs from "./supportGlyphs";
 const PLATE_COLOR = "#D2DDE8";
 const MESH_LINES_COLOR = "#5A6B7D";
 const PRESSURE_COLOR = "#805AD5";
-// The structure under its deformed shape
+// The structure under the results drawn on it
 const UNDEFORMED_COLOR = "#A0AEC0";
 
 function localGetCopy(node_name) {
@@ -19,10 +19,10 @@ function localGetCopy(node_name) {
 
 /**
  * @param {import("./types").ParamEleDrawingState} [drawing_state] Adds what the drawing tools need: clickable elements, the work plane grid...
- * @param {{results: import("./types").ParamEleDisplacementResults, component: "sum"|"x"|"y"|"z", scale: number}|null} [deformed] Draws the
- *  deformed shape over the structure, which is faded
+ * @param {{results: import("./types").ParamEleResults, result: string, scale: number}|null} [results_view] Draws a result (the deformed
+ *  shape or a force diagram) over the structure, which is faded
  */
-function getData(drawing_state, deformed) {
+function getData(drawing_state, results_view) {
   let structure = getState("structure");
   const tool = drawing_state ? drawing_state.tool : "none";
   // Elements are named and carry their IDs, so a click in the renderer knows what was clicked
@@ -32,8 +32,9 @@ function getData(drawing_state, deformed) {
   const global_settings = getState("settings")["global"];
   const physical_load_size = global_settings["physical_load_size"];
   const show_proportional_loads = global_settings["show_proportional_loads"];
-  // The loads stay as a reference under the deformed shape
-  const loads_opacity = deformed ? 0.3 : 1;
+  // The loads stay as a reference under the results
+  const faded = Boolean(results_view);
+  const loads_opacity = faded ? 0.3 : 1;
 
   // Add axes
   let axes_length = 2;
@@ -106,7 +107,7 @@ function getData(drawing_state, deformed) {
   };
   Object.entries(structure.members).forEach(([member_id, member_data]) => {
     let section_color = state.getSectionColor(member_data.section_id);
-    let member_line = deformed ? { width: 2, color: UNDEFORMED_COLOR } : { width: 3, color: section_color };
+    let member_line = faded ? { width: 2, color: UNDEFORMED_COLOR } : { width: 3, color: section_color };
     let member = { x: [], y: [], z: [], type: "scatter3d", mode: "lines", hoverinfo: "none", line: member_line };
     // Node A
     let node_A = structure.nodes[member_data.node_A];
@@ -250,7 +251,7 @@ function getData(drawing_state, deformed) {
   Object.entries(structure.plates).forEach(([plate_id, plate_data]) => {
     if (!plate_data.nodes || !Array.isArray(plate_data.nodes)) return;
     if (quads_by_plate[plate_id]) {
-      plotly_data.push(getMeshedPlateTrace(structure.nodes, quads_by_plate[plate_id], Boolean(deformed)));
+      plotly_data.push(getMeshedPlateTrace(structure.nodes, quads_by_plate[plate_id], faded));
     } else {
       // Triangles of the plate's own polygon: Delaunay over the corners would fill a concave plate up to its convex hull
       let plate_nodes = plate_data.nodes.map((node_id) => structure.nodes[node_id]).filter(Boolean);
@@ -265,7 +266,7 @@ function getData(drawing_state, deformed) {
         type: "mesh3d",
         color: PLATE_COLOR,
         hoverinfo: "none",
-        opacity: deformed ? 0.15 : 0.5,
+        opacity: faded ? 0.15 : 0.5,
         flatshading: true,
         lighting: { ambient: 0.85, diffuse: 0.3, specular: 0, roughness: 1, fresnel: 0 },
       };
@@ -286,8 +287,8 @@ function getData(drawing_state, deformed) {
     selection_nodes_plates.customdata.push(plate_id);
   });
   plotly_data.push(selection_nodes_plates);
-  if (Object.keys(quads_by_plate).length > 0 && !deformed) plotly_data.push(getMeshLinesTrace(structure.nodes, Object.values(quads_by_plate).flat()));
-  if (deformed) plotly_data.push(...resultsLayer.getDeformedTraces(structure, deformed.results, deformed));
+  if (Object.keys(quads_by_plate).length > 0 && !faded) plotly_data.push(getMeshLinesTrace(structure.nodes, Object.values(quads_by_plate).flat()));
+  if (results_view) plotly_data.push(...resultsLayer.getResultTraces(structure, results_view));
   // Pressures
   Object.entries(structure.pressures || {}).forEach(([pressure_id, pressure_data]) => {
     let plate_data = structure.plates[pressure_data.plate_id];
@@ -341,7 +342,7 @@ function getQuadsByPlate(meshed_plates) {
  * Surface of a meshed plate, two triangles per quad, so it follows any shape (Delaunay over the corners does not)
  * @param {object} structural_nodes
  * @param {number[][]} quads
- * @param {boolean} faded Under the deformed shape
+ * @param {boolean} faded Under the results
  */
 function getMeshedPlateTrace(structural_nodes, quads, faded) {
   const trace = {

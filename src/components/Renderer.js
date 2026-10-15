@@ -92,7 +92,7 @@ class Renderer extends React.Component {
     super(props);
     this.drawing_state = getInitialDrawingState();
     /** @type {import("../js/types").ParamEleResultsView} */
-    this.results_view = { component: "sum", scale: null, load_case: null };
+    this.results_view = { result: "displacement_sum", scale: null, diagram_scale: 1, load_case: null };
     this.updateBaseData();
     this.state = {
       data: this.base_data,
@@ -106,7 +106,7 @@ class Renderer extends React.Component {
       can_undo: drawing.canUndo(),
       // Element being edited in place: its box, where it was clicked and its inputs
       editor: null,
-      displacement_results: this.displacement_results,
+      results: this.results,
       results_view: this.results_view,
     };
     this.updateRenderer = this.updateRenderer.bind(this);
@@ -276,23 +276,26 @@ class Renderer extends React.Component {
     if (scene && layout_scene && typeof scene.getCamera === "function") layout_scene.camera = scene.getCamera();
   }
   updateBaseData() {
-    let previous_results = this.displacement_results;
-    this.displacement_results = resultsLayer.getDisplacementResults(getState("structure"), this.results_view.load_case);
-    // Other results get their own automatic scale
-    if (previous_results && this.displacement_results && previous_results.max_displacement !== this.displacement_results.max_displacement)
+    let previous_displacements = this.results?.displacements;
+    this.results = resultsLayer.getResults(getState("structure"), this.results_view.load_case);
+    // Other displacements get their own automatic scale
+    let displacements = this.results?.displacements;
+    if (previous_displacements && displacements && previous_displacements.max_displacement !== displacements.max_displacement)
       this.results_view = { ...this.results_view, scale: null };
-    this.base_data = renderer.getData(this.drawing_state, this.getDeformedView());
+    this.base_data = renderer.getData(this.drawing_state, this.getResultsView());
     this.pick_candidates = null;
     // The element under the cursor may have moved, the next pointer move finds it again
     this.drawing_state = { ...this.drawing_state, hover_target: null };
   }
   /**
-   * The deformed shape is drawn while there are results for the structure and no drawing tool is active
+   * The chosen result is drawn while the results have it for the structure and no drawing tool is active
    */
-  getDeformedView() {
-    let { component, scale } = this.results_view;
-    if (!this.displacement_results || component === "none" || this.drawing_state.tool !== "none") return null;
-    return { results: this.displacement_results, component, scale: scale ?? this.displacement_results.auto_scale };
+  getResultsView() {
+    let { result, scale, diagram_scale } = this.results_view;
+    if (!this.results || result === "none" || this.drawing_state.tool !== "none") return null;
+    let { displacements, forces } = this.results;
+    if (result.startsWith("displacement_")) return displacements ? { results: this.results, result, scale: scale ?? displacements.auto_scale } : null;
+    return forces && forces.results.includes(result) ? { results: this.results, result, scale: diagram_scale } : null;
   }
   /**
    * @param {Partial<import("../js/types").ParamEleResultsView>} update
@@ -314,7 +317,7 @@ class Renderer extends React.Component {
       data: [...this.base_data, ...overlay],
       drawing_state: this.drawing_state,
       levels: this.getLevels(structure),
-      displacement_results: this.displacement_results,
+      results: this.results,
       results_view: this.results_view,
     });
   }
@@ -597,8 +600,8 @@ class Renderer extends React.Component {
             model_locked={this.props.model_locked}
           />
         )}
-        {this.isShown() && this.state.displacement_results && tool === "none" && (
-          <ResultsToolbar results={this.state.displacement_results} view={this.state.results_view} onChange={this.setResultsView} />
+        {this.isShown() && this.state.results && tool === "none" && (
+          <ResultsToolbar results={this.state.results} view={this.state.results_view} onChange={this.setResultsView} />
         )}
         {this.state.hover_visual && <HoverVisual visual={this.state.hover_visual} />}
         {this.state.editor && (

@@ -303,10 +303,17 @@ exports.unused = {};
  */
 
 /**
- * Displacements of the results on the current structure (see resultsLayer.getDisplacementResults), in the units of the results
+ * Results of a load case on the current structure (see resultsLayer.getResults)
+ * @typedef {Object} ParamEleResults
+ * @property {{key: string, name: string}[]} load_cases Load cases with results
+ * @property {string} load_case Key of the load case of the results
+ * @property {ParamEleDisplacementResults|null} displacements
+ * @property {ParamEleForceResults|null} forces
+ */
+
+/**
+ * Displacements of the results on the current structure, in the units of the results
  * @typedef {Object} ParamEleDisplacementResults
- * @property {{key: string, name: string}[]} load_cases Load cases with displacements
- * @property {string} load_case Key of the load case of the displacements
  * @property {Object<string, {t: number, d: {x: number, y: number, z: number}}[]>} members Displacements along each member (t from 0 at node A to 1), at the points of the results
  * @property {Object<string, {node_id: number, d: {x: number, y: number, z: number}}[]>} quads Displacements at the corners of each meshed plate
  * @property {number} to_length Factor from the units of the results to the length units of the model
@@ -318,9 +325,22 @@ exports.unused = {};
  */
 
 /**
+ * Internal forces of the results along the members of the current structure, in the units of the results
+ * @typedef {Object} ParamEleForceResults
+ * @property {Object<string, {t: number, f: Object<string, number>}[]>} members Forces along each member (t from 0 at node A to 1) by result
+ *  (moment_x, moment_y, moment_z, shear_y, shear_z, axial)
+ * @property {string[]} results Results the members have
+ * @property {Object<string, string>} units Unit each result is shown in
+ * @property {Object<string, {min: number, max: number}>} extremes Smallest and largest value of each result (0 included)
+ * @property {Object<string, number>} auto_scale Length each unit of a result is drawn at by default
+ */
+
+/**
  * What the 3D view draws from the results
  * @typedef {Object} ParamEleResultsView
- * @property {"none"|"sum"|"x"|"y"|"z"} component Displacement drawn as the deformed shape
+ * @property {"none"|"displacement_sum"|"displacement_x"|"displacement_y"|"displacement_z"|"moment_x"|"moment_y"|"moment_z"|"shear_y"|"shear_z"|"axial"} result
+ *  The deformed shape or force diagram drawn
  * @property {number|null} scale Scale of the displacements, null for the automatic one
+ * @property {number} diagram_scale Scale of the force diagrams relative to their automatic one
  * @property {string|null} load_case Key of the load case in the results, null for the first one
  */

@@ -24,6 +24,22 @@ const DEFORMED_MESH_LINES_COLOR = "rgba(45, 55, 72, 0.45)";
 // The largest displacement drawn with the automatic scale, as a fraction of the size of the structure
 const AUTO_SCALE_TARGET = 0.08;
 const COMPONENTS = ["x", "y", "z"];
+// Force diagrams: where each result is in member_forces, the local axis it is drawn along and the sign it is drawn with.
+// Moments are drawn on the tension side: a positive Mz (sagging) has its tension on -y, a positive My on -z
+const FORCE_RESULTS = {
+  moment_x: { key: "torsion", axis: "y", sign: 1, kind: "moment" },
+  moment_y: { key: "bending_moment_y", axis: "z", sign: -1, kind: "moment" },
+  moment_z: { key: "bending_moment_z", axis: "y", sign: -1, kind: "moment" },
+  shear_y: { key: "shear_force_y", axis: "y", sign: 1, kind: "force" },
+  shear_z: { key: "shear_force_z", axis: "z", sign: 1, kind: "force" },
+  axial: { key: "axial_force", axis: "y", sign: 1, kind: "force" },
+};
+// The largest value of a diagram drawn with the automatic scale, as a fraction of the median length of the members
+const DIAGRAM_SCALE_TARGET = 0.25;
+const DIAGRAM_OUTLINE_COLOR = "rgba(26, 32, 44, 0.75)";
+// Up to this many members with a diagram, the values at the ends of each one and its largest and smallest values are labeled; above it,
+// only the largest and smallest of all of them
+const MAX_LABELED_MEMBERS = 16;
 
 function localGetCopy(key) {
   return utils.getDisplayCopy("renderer", key);
@@ -51,9 +67,29 @@ function tagResults(results, structure, solver_engine) {
   const { units } = structure.settings;
   // PyNite works in the length units of the model, SkyCiv returns translations in their own units
   const displacement_unit = solver_engine === "skyciv" ? units.translation : units.length;
+  // Its forces are in the force units of the model, and so its moments in force by length units
+  const moment_unit = solver_engine === "skyciv" ? units.moment : `${units.force}-${units.length}`;
   Object.values(results || {}).forEach((lc_results) => {
-    if (lc_results && typeof lc_results === "object" && !lc_results.displacement_unit) lc_results.displacement_unit = displacement_unit;
+    if (!lc_results || typeof lc_results !== "object") return;
+    if (!lc_results.displacement_unit) lc_results.displacement_unit = displacement_unit;
+    if (!lc_results.force_unit) lc_results.force_unit = units.force;
+    if (!lc_results.moment_unit) lc_results.moment_unit = moment_unit;
   });
+}
+
+/**
+ * Values of several results along a member, at the positions of the first one
+ * @param {(Object<string, number>|undefined)[]} by_result Values of each result by position along the member, in % of its length
+ * @returns {{t: number, values: number[]}[]|null} By position (t from 0 at node A to 1), null when a result is missing
+ */
+function getMemberStations(by_result) {
+  if (by_result.some((values) => !values || typeof values !== "object")) return null;
+  const stations = Object.keys(by_result[0])
+    .map((key) => ({ key, t: Number(key) }))
+    .filter(({ t }) => Number.isFinite(t))
+    .sort((a, b) => a.t - b.t);
+  if (stations.length < 2) return null;
+  return stations.map(({ key, t }) => ({ t: t / 100, values: by_result.map((values) => Number(values[key]) || 0) }));
 }
 
 /**
@@ -62,25 +98,15 @@ function tagResults(results, structure, solver_engine) {
  * @param {object} lc_results
  */
 function getDisplacedElements(structure, lc_results) {
-  const solved_geometry = state.getGlobalVariable("results_geometry");
-  const geometry_matches = !solved_geometry || solved_geometry === getGeometrySignature(structure);
-  if (!geometry_matches) return { members: {}, quads: {} };
   const members = {};
   const member_displacements = lc_results.member_displacements || {};
   Object.keys(structure.members || {}).forEach((member_id) => {
-    const by_component = COMPONENTS.map((axis) => (member_displacements[`displacement_${axis}`] || {})[member_id]);
-    if (by_component.some((values) => !values || typeof values !== "object")) return;
-    // Values by position along the member, in % of its length
-    const stations = Object.keys(by_component[0])
-      .map(Number)
-      .filter((t) => Number.isFinite(t))
-      .sort((a, b) => a - b);
-    if (stations.length < 2) return;
-    members[member_id] = stations.map((t) => {
-      const key = Object.keys(by_component[0]).find((candidate) => Number(candidate) === t);
+    const stations = getMemberStations(COMPONENTS.map((axis) => (member_displacements[`displacement_${axis}`] || {})[member_id]));
+    if (!stations) return;
+    members[member_id] = stations.map(({ t, values }) => {
       const d = {};
-      COMPONENTS.forEach((axis, i) => (d[axis] = Number(by_component[i][key]) || 0));
-      return { t: t / 100, d };
+      COMPONENTS.forEach((axis, i) => (d[axis] = values[i]));
+      return { t, d };
     });
   });
   const quads = {};
@@ -114,20 +140,36 @@ function getAutoScale(structure, max_displacement) {
 }
 
 /**
- * Displacements of the results that belong to the current structure, or null when there are none
+ * Results that belong to the current structure, or null when there are none
  * @param {object} structure
  * @param {string} [load_case] Key of the load case in the results, the first one by default
- * @returns {import("./types").ParamEleDisplacementResults|null}
+ * @returns {import("./types").ParamEleResults|null}
  */
-function getDisplacementResults(structure, load_case) {
+function getResults(structure, load_case) {
   const results = getState("results");
   if (!results || typeof results !== "object") return null;
+  // The results are only drawn on the geometry they were solved with
+  const solved_geometry = state.getGlobalVariable("results_geometry");
+  if (solved_geometry && solved_geometry !== getGeometrySignature(structure)) return null;
   const load_cases = Object.entries(results)
-    .filter(([, lc_results]) => lc_results && (lc_results.member_displacements || lc_results.plate_displacements))
+    .filter(([, lc_results]) => lc_results && (lc_results.member_displacements || lc_results.plate_displacements || lc_results.member_forces))
     .map(([key, lc_results]) => ({ key, name: lc_results.name !== undefined ? String(lc_results.name) : key }));
   if (load_cases.length === 0) return null;
   const key = load_cases.some((lc) => lc.key === load_case) ? load_case : load_cases[0].key;
   const lc_results = results[key];
+  const displacements = getDisplacementResults(structure, lc_results);
+  const forces = getForceResults(structure, lc_results);
+  if (!displacements && !forces) return null;
+  return { load_cases, load_case: key, displacements, forces };
+}
+
+/**
+ * Displacements of a load case on the structure, or null when there are none
+ * @param {object} structure
+ * @param {object} lc_results
+ * @returns {import("./types").ParamEleDisplacementResults|null}
+ */
+function getDisplacementResults(structure, lc_results) {
   const { members, quads } = getDisplacedElements(structure, lc_results);
   if (Object.keys(members).length === 0 && Object.keys(quads).length === 0) return null;
 
@@ -149,8 +191,6 @@ function getDisplacementResults(structure, load_case) {
   Object.keys(extremes).forEach((component) => (extremes[component] *= to_display));
   const max_displacement = extremes.sum / to_display;
   return {
-    load_cases,
-    load_case: key,
     members,
     quads,
     to_length,
@@ -160,6 +200,104 @@ function getDisplacementResults(structure, load_case) {
     extremes,
     auto_scale: getAutoScale(structure, max_displacement * to_length),
   };
+}
+
+/**
+ * Internal forces of a load case along the members of the structure, or null when there are none
+ * @param {object} structure
+ * @param {object} lc_results
+ * @returns {import("./types").ParamEleForceResults|null}
+ */
+function getForceResults(structure, lc_results) {
+  const member_forces = lc_results.member_forces;
+  if (!member_forces || typeof member_forces !== "object") return null;
+  const result_names = Object.keys(FORCE_RESULTS).filter((name) => member_forces[FORCE_RESULTS[name].key]);
+  if (result_names.length === 0) return null;
+  const members = {};
+  Object.keys(structure.members || {}).forEach((member_id) => {
+    const stations = getMemberStations(result_names.map((name) => member_forces[FORCE_RESULTS[name].key][member_id]));
+    if (!stations) return;
+    members[member_id] = stations.map(({ t, values }) => {
+      const f = {};
+      result_names.forEach((name, i) => (f[name] = values[i]));
+      return { t, f };
+    });
+  });
+  if (Object.keys(members).length === 0) return null;
+  const extremes = {};
+  result_names.forEach((name) => {
+    const values = Object.values(members).flatMap((stations) => stations.map(({ f }) => f[name]));
+    extremes[name] = { min: Math.min(0, ...values), max: Math.max(0, ...values) };
+  });
+  const { units } = structure.settings;
+  const unit_by_kind = {
+    force: formatUnit(lc_results.force_unit || units.force),
+    moment: formatUnit(lc_results.moment_unit || units.moment || `${units.force}-${units.length}`),
+  };
+  const result_units = {};
+  result_names.forEach((name) => (result_units[name] = unit_by_kind[FORCE_RESULTS[name].kind]));
+  // The largest value of each diagram drawn at a fraction of the usual length of the members
+  const lengths = Object.keys(members)
+    .map((member_id) => getMemberLength(structure, member_id))
+    .sort((a, b) => a - b);
+  const target = DIAGRAM_SCALE_TARGET * (lengths[Math.floor(lengths.length / 2)] || 1);
+  const auto_scale = {};
+  result_names.forEach((name) => {
+    const largest = Math.max(Math.abs(extremes[name].min), Math.abs(extremes[name].max));
+    auto_scale[name] = largest > 0 ? target / largest : 1;
+  });
+  return { members, results: result_names, units: result_units, extremes, auto_scale };
+}
+
+/**
+ * Units as they are written in the results (kn-m) to show them (kN·m)
+ * @param {string} unit
+ */
+function formatUnit(unit) {
+  return String(unit || "")
+    .split("-")
+    .map((atom) => ({ kn: "kN", n: "N", kip: "kip", lb: "lb" }[atom] || atom))
+    .join("·");
+}
+
+function getMemberLength(structure, member_id) {
+  const { node_A, node_B } = structure.members[member_id];
+  const a = structure.nodes[node_A];
+  const b = structure.nodes[node_B];
+  return Math.hypot(b.x - a.x, b.y - a.y, b.z - a.z);
+}
+
+/**
+ * Local axes of a member as the results use them. They are PyNite's (local y horizontal for members that are not along Y, and
+ * local z on top of the member) with y and z swapped, as model_solver.py returns its results: y = PyNite z, z = -PyNite y
+ * @param {{x: number, y: number, z: number}} a Node A
+ * @param {{x: number, y: number, z: number}} b Node B
+ * @returns {{x: number[], y: number[], z: number[]}} Unit vectors
+ */
+function getMemberAxes(a, b) {
+  // As Python's math.isclose, the one PyNite uses
+  const isClose = (u, v) => Math.abs(u - v) <= 1e-9 * Math.max(Math.abs(u), Math.abs(v));
+  const cross = (u, v) => [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]];
+  const unit = (u) => {
+    const length = Math.hypot(...u);
+    return u.map((value) => value / length);
+  };
+  const x = unit([b.x - a.x, b.y - a.y, b.z - a.z]);
+  let y;
+  let z;
+  if (isClose(a.x, b.x) && isClose(a.z, b.z)) {
+    // Along global Y
+    y = b.y > a.y ? [-1, 0, 0] : [1, 0, 0];
+    z = [0, 0, 1];
+  } else if (isClose(a.y, b.y)) {
+    y = [0, 1, 0];
+    z = unit(cross(x, y));
+  } else {
+    const projection = [b.x - a.x, 0, b.z - a.z];
+    z = unit(b.y > a.y ? cross(projection, x) : cross(x, projection));
+    y = unit(cross(z, x));
+  }
+  return { x, y: z, z: y.map((value) => -value) };
 }
 
 /**
@@ -188,7 +326,7 @@ function formatValue(value) {
 function getDeformedTraces(structure, displacement_results, view) {
   const { members, quads, to_length, to_display, display_unit } = displacement_results;
   const { component, scale } = view;
-  const title = `${localGetCopy(`deformed_${component}`)} (${display_unit})`;
+  const title = `${localGetCopy(`result_displacement_${component}`)} (${display_unit})`;
   const move = (point, vector) => {
     const moved = {};
     COMPONENTS.forEach((axis) => (moved[axis] = point[axis] + vector[axis] * to_length * scale));
@@ -320,7 +458,7 @@ function getDeformedTraces(structure, displacement_results, view) {
       x: [extreme.position.x],
       y: [extreme.position.y],
       z: [extreme.position.z],
-      text: [`${localGetCopy("max_displacement")} ${formatValue(extreme.value)} ${display_unit}`],
+      text: [`${localGetCopy("max")} ${formatValue(extreme.value)} ${display_unit}`],
       type: "scatter3d",
       mode: "markers+text",
       name: "max_displacement",
@@ -335,6 +473,166 @@ function getDeformedTraces(structure, displacement_results, view) {
   return traces;
 }
 
-const resultsLayer = { tagResults, getDisplacementResults, getDeformedTraces };
+/**
+ * Diagram of an internal force along the members, drawn across them along the local axis of the result
+ * @param {object} structure
+ * @param {import("./types").ParamEleForceResults} force_results
+ * @param {{result: string, scale: number}} view Scale relative to the automatic one
+ * @returns {object[]} Plotly traces
+ */
+function getDiagramTraces(structure, force_results, view) {
+  const { result, scale } = view;
+  const { axis, sign } = FORCE_RESULTS[result];
+  const unit = force_results.units[result];
+  const length_unit = structure.settings.units.length;
+  const factor = sign * force_results.auto_scale[result] * scale;
+  const { min, max } = force_results.extremes[result];
+  const largest = Math.max(Math.abs(min), Math.abs(max));
+  // Values below this are zero: the noise of the solver would draw a diagram of a member without forces
+  const tolerance = largest * 1e-6;
+
+  const fill = {
+    x: [],
+    y: [],
+    z: [],
+    i: [],
+    j: [],
+    k: [],
+    intensity: [],
+    text: [],
+    type: "mesh3d",
+    name: "force_diagram",
+    opacity: 0.7,
+    flatshading: true,
+    lighting: { ambient: 0.85, diffuse: 0.3, specular: 0, roughness: 1, fresnel: 0 },
+    hovertemplate: "%{text}<extra></extra>",
+  };
+  const outline = {
+    x: [],
+    y: [],
+    z: [],
+    type: "scatter3d",
+    mode: "lines",
+    name: "force_diagram_outline",
+    hoverinfo: "none",
+    line: { width: 2, color: DIAGRAM_OUTLINE_COLOR },
+  };
+  // Values of each member and of all of them, labeled
+  const member_extremes = [];
+  let drawn_members = 0;
+  const extremes = { max: null, min: null };
+  Object.entries(force_results.members).forEach(([member_id, stations]) => {
+    const node_A = structure.nodes[structure.members[member_id].node_A];
+    const node_B = structure.nodes[structure.members[member_id].node_B];
+    const direction = getMemberAxes(node_A, node_B)[axis];
+    const member_length = getMemberLength(structure, member_id);
+    const values = stations.map(({ f }) => (Math.abs(f[result]) > tolerance ? f[result] : 0));
+    if (values.every((value) => value === 0)) return;
+    // Where the diagram crosses the member, so the area of each sign is drawn on its side
+    const points = [];
+    stations.forEach(({ t }, s) => {
+      if (s > 0 && values[s - 1] * values[s] < 0) {
+        const t_zero = stations[s - 1].t + ((stations[s].t - stations[s - 1].t) * values[s - 1]) / (values[s - 1] - values[s]);
+        points.push({ t: t_zero, value: 0 });
+      }
+      points.push({ t, value: values[s] });
+    });
+    const getText = (t, value) =>
+      `${localGetCopy("member")} ${member_id} · x = ${Number((t * member_length).toFixed(2))} ${length_unit}<br>${localGetCopy(
+        `result_${result}`
+      )}: ${formatValue(value)} ${unit}`;
+    drawn_members++;
+    const first_vertex = fill.x.length;
+    const own = { max: null, min: null };
+    const ends = [];
+    const tips = points.map(({ t, value }, s) => {
+      const base = COMPONENTS.map((coordinate) => node_A[coordinate] + (node_B[coordinate] - node_A[coordinate]) * t);
+      const tip = base.map((coordinate, i) => coordinate + direction[i] * value * factor);
+      [base, tip].forEach((point) => {
+        COMPONENTS.forEach((coordinate, i) => fill[coordinate].push(point[i]));
+        fill.intensity.push(value);
+        fill.text.push(getText(t, value));
+      });
+      [own, extremes].forEach((found) => {
+        if (value > 0 && (!found.max || value > found.max.value)) found.max = { position: tip, value };
+        if (value < 0 && (!found.min || value < found.min.value)) found.min = { position: tip, value };
+      });
+      if (s === 0 || s === points.length - 1) ends.push({ position: tip, value });
+      return tip;
+    });
+    for (let s = 0; s < points.length - 1; s++) {
+      const [base, tip, next_base, next_tip] = [0, 1, 2, 3].map((offset) => first_vertex + 2 * s + offset);
+      fill.i.push(base, base);
+      fill.j.push(tip, next_tip);
+      fill.k.push(next_tip, next_base);
+    }
+    // Closed at the ends of the member
+    const start = [node_A.x, node_A.y, node_A.z];
+    const end = [node_B.x, node_B.y, node_B.z];
+    [start, ...tips, end].forEach((point) => COMPONENTS.forEach((coordinate, i) => outline[coordinate].push(point[i])));
+    COMPONENTS.forEach((coordinate) => outline[coordinate].push(null));
+
+    // A value much smaller than the largest one of the member is not worth a label
+    const own_largest = Math.max(own.max?.value || 0, -(own.min?.value || 0));
+    const own_values = points.map(({ value }) => value);
+    if (Math.max(...own_values) - Math.min(...own_values) <= 0.01 * own_largest) {
+      // A constant value, labeled once in the middle
+      member_extremes.push({ position: tips[Math.floor(tips.length / 2)], value: points[Math.floor(points.length / 2)].value });
+      return;
+    }
+    const labeled = [...ends, ...Object.values(own)].filter((extreme) => extreme && Math.abs(extreme.value) >= 0.05 * own_largest);
+    // The largest value is often at an end
+    member_extremes.push(...labeled.filter((extreme, k) => labeled.findIndex(({ position }) => position === extreme.position) === k));
+  });
+
+  if (fill.x.length === 0) return [];
+  const cmax = largest || 1;
+  const title = `${localGetCopy(`result_${result}`)} (${unit})`;
+  Object.assign(fill, {
+    cmin: -cmax,
+    cmax,
+    colorscale: SIGNED_COLORSCALE,
+    showscale: true,
+    colorbar: { title: { text: title, side: "right" }, thickness: 12, len: 0.45, x: 0.98, y: 0.62, yanchor: "middle" },
+  });
+  const traces = [fill, outline];
+  const by_member = drawn_members <= MAX_LABELED_MEMBERS;
+  const labels = by_member
+    ? member_extremes.map(({ position, value }) => ({ position, text: `${formatValue(value)}` }))
+    : Object.entries(extremes)
+        .filter(([, extreme]) => extreme)
+        .map(([kind, { position, value }]) => ({ position, text: `${localGetCopy(kind)} ${formatValue(value)} ${unit}` }));
+  if (labels.length > 0) {
+    traces.push({
+      x: labels.map(({ position }) => position[0]),
+      y: labels.map(({ position }) => position[1]),
+      z: labels.map(({ position }) => position[2]),
+      text: labels.map(({ text }) => text),
+      type: "scatter3d",
+      mode: "markers+text",
+      name: "force_extremes",
+      textposition: "top center",
+      textfont: { color: "#1A202C", size: by_member ? 11 : 12 },
+      marker: { size: 3, color: "#1A202C" },
+      hoverinfo: "none",
+    });
+  }
+  traces.forEach((trace, i) => (trace.uid = `diagram-${i}-${result}`));
+  return traces;
+}
+
+/**
+ * What the 3D view draws for the chosen result: the deformed shape or a force diagram
+ * @param {object} structure
+ * @param {{results: import("./types").ParamEleResults, result: string, scale: number}} view
+ */
+function getResultTraces(structure, view) {
+  const { results, result, scale } = view;
+  if (result.startsWith("displacement_"))
+    return getDeformedTraces(structure, results.displacements, { component: result.replace("displacement_", ""), scale });
+  return getDiagramTraces(structure, results.forces, { result, scale });
+}
+
+const resultsLayer = { FORCE_RESULTS, tagResults, getResults, getResultTraces };
 
 export default resultsLayer;
