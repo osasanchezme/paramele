@@ -327,6 +327,31 @@ div.drawing-toolbar > * {
   white-space: nowrap;
 }
 
+/* Settings of what the renderer draws, in the dock next to the sections panel */
+div.dock-panel.visibility-panel {
+  width: 260px;
+}
+
+div.dock-panel.visibility-panel.closed {
+  width: auto;
+}
+
+.visibility-panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 4px 2px;
+}
+
+.visibility-panel-label {
+  color: var(--chakra-colors-gray-700);
+}
+
+.visibility-panel-number {
+  width: 72px;
+  flex-shrink: 0;
+}
+
 /* Results of the renderer, in the dock next to the sections panel */
 div.dock-panel.results-panel {
   order: -1;

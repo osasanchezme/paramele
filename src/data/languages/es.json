@@ -134,7 +134,13 @@
         "editor_tab": "Editor",
         "view_nodes": "Solo nodos",
         "view_split": "Dividir pantalla",
-        "view_renderer": "Solo vista 3D"
+        "view_renderer": "Solo vista 3D",
+        "view_tab": "Visualización",
+        "show_sections": "Mostrar las secciones en los elementos",
+        "show_plate_thickness": "Mostrar el espesor de las placas",
+        "visibility_panel": "Visualización",
+        "visibility_more": "Toda la configuración",
+        "close_visibility_panel": "Cerrar"
     },
     "solver_status": {
         "server_checking": "Verificando si el servidor local está activo...",

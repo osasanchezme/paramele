@@ -6,6 +6,7 @@ import drawingLayer from "./drawingLayer";
 import mesher from "./mesher";
 import resultsLayer from "./resultsLayer";
 import sectionsLibrary from "./sectionsLibrary";
+import solidsLayer from "./solidsLayer";
 import supportGlyphs from "./supportGlyphs";
 
 const PLATE_COLOR = "#D2DDE8";
@@ -36,6 +37,9 @@ function getData(drawing_state, results_view) {
   // The loads stay as a reference under the results
   const faded = Boolean(results_view);
   const loads_opacity = faded ? 0.3 : 1;
+  // The solids would hide the results drawn on the structure
+  const show_sections = Boolean(global_settings["show_sections"]) && !faded;
+  const show_plate_thickness = Boolean(global_settings["show_plate_thickness"]) && !faded;
 
   // Add axes
   let axes_length = 2;
@@ -137,6 +141,11 @@ function getData(drawing_state, results_view) {
     selection_nodes.marker.color.push(section_color);
   });
   plotly_data.push(selection_nodes);
+  if (show_sections) {
+    plotly_data.push(
+      ...solidsLayer.getMemberSolidTraces(structure, (member_data) => sectionsLibrary.getMemberColor(section_colors, member_data.section_id), 0.45)
+    );
+  }
 
   // Supports
   const support_builder = supportGlyphs.createBuilder();
@@ -252,7 +261,11 @@ function getData(drawing_state, results_view) {
   const quads_by_plate = getQuadsByPlate(structure.meshed_plates);
   Object.entries(structure.plates).forEach(([plate_id, plate_data]) => {
     if (!plate_data.nodes || !Array.isArray(plate_data.nodes)) return;
-    if (quads_by_plate[plate_id]) {
+    let plate_solid = show_plate_thickness && solidsLayer.getPlateSolidTrace(structure, plate_data, PLATE_COLOR, 0.5);
+    if (plate_solid) {
+      // The mesh lines stay on its middle surface
+      plotly_data.push(plate_solid);
+    } else if (quads_by_plate[plate_id]) {
       plotly_data.push(getMeshedPlateTrace(structure.nodes, quads_by_plate[plate_id], faded));
     } else {
       // Triangles of the plate's own polygon: Delaunay over the corners would fill a concave plate up to its convex hull

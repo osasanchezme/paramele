@@ -633,6 +633,6 @@ function getResultTraces(structure, view) {
   return getDiagramTraces(structure, results.forces, { result, scale });
 }
 
-const resultsLayer = { FORCE_RESULTS, tagResults, getResults, getResultTraces };
+const resultsLayer = { FORCE_RESULTS, tagResults, getResults, getResultTraces, getMemberAxes };
 
 export default resultsLayer;

@@ -73,16 +73,6 @@
             "type": "text",
             "tab": "structure_tab"
         },
-        "physical_load_size": {
-            "default": 2,
-            "type": "text",
-            "tab": "structure_tab"
-        },
-        "show_proportional_loads": {
-            "default": true,
-            "type": "check",
-            "tab": "structure_tab"
-        },
         "mesh_plates": {
             "default": false,
             "type": "check",
@@ -97,6 +87,26 @@
             "default": true,
             "type": "check",
             "tab": "structure_tab"
+        },
+        "show_sections": {
+            "default": false,
+            "type": "check",
+            "tab": "view_tab"
+        },
+        "show_plate_thickness": {
+            "default": false,
+            "type": "check",
+            "tab": "view_tab"
+        },
+        "physical_load_size": {
+            "default": 2,
+            "type": "text",
+            "tab": "view_tab"
+        },
+        "show_proportional_loads": {
+            "default": true,
+            "type": "check",
+            "tab": "view_tab"
         },
         "mini_map": {
             "default": true,

@@ -13,6 +13,7 @@ import drawingDimensions from "./drawing_dimensions";
 import { notify } from "./notification";
 import AxisIndicator from "./axis_indicator";
 import ResultsToolbar from "./results_toolbar";
+import VisibilityPanel from "./visibility_panel";
 import resultsLayer from "../js/resultsLayer";
 import React from "react";
 import { createPortal } from "react-dom";
@@ -740,6 +741,7 @@ class Renderer extends React.Component {
             />,
             this.props.panel_dock
           )}
+        {this.isShown() && this.props.panel_dock && createPortal(<VisibilityPanel />, this.props.panel_dock)}
         {this.isShown() &&
           this.props.panel_dock &&
           this.state.results &&

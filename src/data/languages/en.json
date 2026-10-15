@@ -134,7 +134,13 @@
         "editor_tab": "Editor",
         "view_nodes": "Nodes only",
         "view_split": "Split screen",
-        "view_renderer": "3D view only"
+        "view_renderer": "3D view only",
+        "view_tab": "View",
+        "show_sections": "Show the sections on the members",
+        "show_plate_thickness": "Show the thickness of the plates",
+        "visibility_panel": "Visibility",
+        "visibility_more": "All the settings",
+        "close_visibility_panel": "Close"
     },
     "solver_status": {
         "server_checking": "Checking whether the local server is running...",
