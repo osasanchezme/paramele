@@ -18,6 +18,11 @@ ParamEle is an open-source node-based visual programming editor (Create React Ap
 - Formatting: Prettier (`.prettierrc`: 2 spaces, printWidth 150). No separate lint script; ESLint runs through react-scripts (`react-app` config).
 - Submodule: `src/submodules/paramele-parsers` is a git submodule (SSH URL). Run `git submodule update --init` after cloning.
 
+## Commits
+
+- Never add a `Co-Authored-By` trailer or any other attribution line.
+- Write messages in the repo's style: imperative subject. Weigh whether one line is enough. Most changes only need the subject. Add a short body only when the change needs one, for example several distinct parts or a non-obvious reason.
+
 ## Architecture
 
 ### Three places app data lives
