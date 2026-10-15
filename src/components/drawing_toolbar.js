@@ -25,6 +25,7 @@ import {
   TbChevronDown,
   TbEraser,
   TbLine,
+  TbPaint,
   TbPointer,
   TbPolygon,
   TbRotateClockwise,
@@ -32,6 +33,7 @@ import {
 } from "react-icons/tb";
 import utils from "../utils";
 import drawingLayer from "../js/drawingLayer";
+import sectionPicker from "./section_picker";
 
 const TOOLS = [
   { tool: "none", icon: TbPointer, shortcut: "Esc" },
@@ -42,6 +44,7 @@ const TOOLS = [
   { tool: "distributed_load", icon: TbArrowsDown, shortcut: "D" },
   { tool: "pressure", icon: TbArrowBigDownLines, shortcut: "A" },
   { tool: "moment", icon: TbRotateClockwise, shortcut: "O" },
+  { tool: "assign", icon: TbPaint, shortcut: "T" },
   { tool: "delete", icon: TbEraser, shortcut: "E" },
 ];
 const LOAD_TOOLS = {
@@ -52,6 +55,7 @@ const LOAD_TOOLS = {
 };
 const PLANES = ["xy", "xz", "yz"];
 const PRESSURE_AXES = ["global", "local"];
+const ASSIGN_MODES = ["section", "material"];
 const RESTRAINTS = [
   { code: "FFFFFF", copy: "fixed" },
   { code: "FFFFFR", copy: "pinned" },
@@ -106,6 +110,7 @@ function getHint(drawing_state, model_locked) {
   let { tool, points } = drawing_state;
   if (tool === "member") return localGetCopy(points.length === 0 ? "hint_member_start" : "hint_member_next");
   if (tool === "plate") return localGetCopy(points.length < 3 ? "hint_plate_next" : "hint_plate_close");
+  if (tool === "assign") return localGetCopy(`hint_assign_${drawing_state.assign_mode}`);
   return localGetCopy(`hint_${tool}`);
 }
 
@@ -229,6 +234,49 @@ function DrawingToolbar({ drawing_state, setDrawingState, levels, can_undo, undo
                   min={0.001}
                   onChange={(value) => value > 0 && setDrawingState({ thickness: value })}
                   width="52px"
+                />
+              )}
+            </HStack>
+          )}
+          {tool === "member" && (
+            <HStack spacing={1} minWidth="240px">
+              <Text className="drawing-toolbar-label">{utils.getDisplayCopy("sections", "section")}</Text>
+              <sectionPicker.LibraryPicker
+                kind="section"
+                value={drawing_state.active_section ?? "auto"}
+                extra_option={{ value: "auto", label: localGetCopy("section_auto") }}
+                onChange={(value) => setDrawingState({ active_section: value === "auto" ? null : value ?? "default" })}
+              />
+            </HStack>
+          )}
+          {tool === "assign" && (
+            <HStack spacing={2} minWidth="300px">
+              <ButtonGroup size="xs" isAttached variant="outline">
+                {ASSIGN_MODES.map((mode) => (
+                  <Button
+                    key={mode}
+                    aria-pressed={drawing_state.assign_mode === mode}
+                    bg={drawing_state.assign_mode === mode ? "brand.50" : "white"}
+                    color={drawing_state.assign_mode === mode ? "brand.600" : "gray.700"}
+                    onClick={() => setDrawingState({ assign_mode: mode })}
+                  >
+                    {localGetCopy(`assign_${mode}`)}
+                  </Button>
+                ))}
+              </ButtonGroup>
+              {drawing_state.assign_mode === "section" ? (
+                <sectionPicker.LibraryPicker
+                  key="section"
+                  kind="section"
+                  value={drawing_state.active_section}
+                  onChange={(value) => setDrawingState({ active_section: value ?? "default" })}
+                />
+              ) : (
+                <sectionPicker.LibraryPicker
+                  key="material"
+                  kind="material"
+                  value={drawing_state.active_material}
+                  onChange={(value) => setDrawingState({ active_material: value ?? "default" })}
                 />
               )}
             </HStack>

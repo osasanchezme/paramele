@@ -10,7 +10,7 @@ const PICK_RADIUS = 12;
 // Structural elements each tool can click, besides the snap points of the point tools.
 // The tools that add loads or supports also click the existing ones of their kind, to edit them
 const TOOL_TARGETS = {
-  none: ["nodes", "plates", "supports", "point_loads", "distributed_loads", "pressures", "moments"],
+  none: ["nodes", "members", "plates", "supports", "point_loads", "distributed_loads", "pressures", "moments"],
   member: ["nodes"],
   plate: ["nodes"],
   point_load: ["nodes", "point_loads"],
@@ -20,6 +20,8 @@ const TOOL_TARGETS = {
   pressure: ["plates", "pressures"],
   delete: ["nodes", "members", "plates", "supports", "point_loads", "distributed_loads", "pressures", "moments"],
 };
+// The assign tool paints sections on members, or materials on plates
+const ASSIGN_TARGETS = { section: "members", material: "plates" };
 // Load or support each tool adds
 const TOOL_HANDLE_KIND = {
   point_load: "point_loads",
@@ -62,11 +64,19 @@ function getNodesMarkerSize(tool) {
 }
 
 function getMembersMarkerSize(tool) {
-  return tool === "distributed_load" || tool === "delete" ? 7 : 3;
+  return tool === "distributed_load" || tool === "delete" || tool === "assign" ? 7 : 3;
 }
 
 function getPlatesMarkerSize(tool) {
-  return tool === "delete" || tool === "pressure" ? 8 : 5;
+  return tool === "delete" || tool === "pressure" || tool === "assign" ? 8 : 5;
+}
+
+/**
+ * Kind of element the assign tool paints
+ * @param {"section"|"material"} assign_mode
+ */
+function getAssignTarget(assign_mode) {
+  return ASSIGN_TARGETS[assign_mode];
 }
 
 function isSnapKind(kind) {
@@ -256,10 +266,11 @@ function getSceneRanges(drawing_state, structure, previous_ranges) {
  * Elements that the active tool can click, from the traces of the renderer (named, with the IDs in customdata)
  * @param {object[]} plot_data
  * @param {import("./types").ParamEleDrawingTool} tool
+ * @param {"section"|"material"} [assign_mode] What the assign tool paints
  * @returns {{kind: string, id: string|undefined, x: number, y: number, z: number}[]}
  */
-function getPickCandidates(plot_data, tool) {
-  let kinds = new Set(TOOL_TARGETS[tool] || []);
+function getPickCandidates(plot_data, tool, assign_mode = "section") {
+  let kinds = new Set(tool === "assign" ? [ASSIGN_TARGETS[assign_mode]] : TOOL_TARGETS[tool] || []);
   if (isPointTool(tool)) SNAP_KINDS.forEach((kind) => kinds.add(kind));
   let candidates = [];
   plot_data.forEach((trace) => {
@@ -397,6 +408,7 @@ const drawingLayer = {
   isSnapKind,
   getNodesMarkerSize,
   getMembersMarkerSize,
+  getAssignTarget,
   getPlatesMarkerSize,
   getEmptyHandles,
   pushHandle,

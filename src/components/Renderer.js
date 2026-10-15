@@ -3,16 +3,28 @@ import renderer from "../js/renderer";
 import drawingLayer from "../js/drawingLayer";
 import drawing from "../js/drawing";
 import modelLinks from "../js/modelLinks";
+import sectionsLibrary from "../js/sectionsLibrary";
 import getState from "../getState";
 import state from "../state";
 import DrawingToolbar from "./drawing_toolbar";
 import EntityEditor from "./entity_editor";
+import SectionsPanel from "./sections_panel";
 import drawingDimensions from "./drawing_dimensions";
 import { notify } from "./notification";
 import AxisIndicator from "./axis_indicator";
 import React from "react";
 
-const TOOL_SHORTCUTS = { m: "member", p: "plate", s: "support", l: "point_load", d: "distributed_load", a: "pressure", o: "moment", e: "delete" };
+const TOOL_SHORTCUTS = {
+  m: "member",
+  p: "plate",
+  s: "support",
+  l: "point_load",
+  d: "distributed_load",
+  a: "pressure",
+  o: "moment",
+  e: "delete",
+  t: "assign",
+};
 // Tools that act on a clicked structural node
 const NODE_ACTIONS = {
   point_load: (id, drawing_state) => drawing.addPointLoad(id, drawing_state.force),
@@ -31,6 +43,8 @@ const TOOL_EDIT_KINDS = {
 const CLICK_TOLERANCE = 5;
 // Parts of the drawing state that Plotly draws. The hover feedback is drawn over the plot instead, replotting on every hover makes rotating slow
 const PLOTTED_KEYS = ["tool", "plane", "offset", "spacing", "points", "selected_target", "highlight"];
+// Mouse events that would rotate the view while the assign tool paints
+const PAINT_BLOCKED_EVENTS = ["mousedown", "mousemove", "mouseup"];
 const HOVER_COLORS = { delete: "#E53E3E", default: "#DD6B20" };
 
 /** @returns {import("../js/types").ParamEleDrawingState} */
@@ -52,6 +66,9 @@ function getInitialDrawingState() {
     pressure_axes: "global",
     thickness: 200,
     restraint_code: "FFFFFF",
+    assign_mode: "section",
+    active_section: null,
+    active_material: null,
   };
 }
 
@@ -102,6 +119,8 @@ class Renderer extends React.Component {
       can_undo: drawing.canUndo(),
       // Element being edited in place: its box, where it was clicked and its inputs
       editor: null,
+      // Section or material whose elements are highlighted from the sections panel
+      highlighted_item: null,
     };
     this.updateRenderer = this.updateRenderer.bind(this);
     this.handleMainPlotRelayout = this.handleMainPlotRelayout.bind(this);
@@ -114,6 +133,7 @@ class Renderer extends React.Component {
     this.handlePointerUp = this.handlePointerUp.bind(this);
     this.handlePointerLeave = this.handlePointerLeave.bind(this);
     this.handleKeyDown = this.handleKeyDown.bind(this);
+    this.blockMouseWhilePainting = this.blockMouseWhilePainting.bind(this);
     window.ParamEle.updateRenderer = this.updateRenderer.bind(this);
     window.ParamEle.resetRendererView = this.resetView.bind(this);
   }
@@ -125,6 +145,7 @@ class Renderer extends React.Component {
     this.plot_element.addEventListener("pointermove", this.handlePointerMove, true);
     this.plot_element.addEventListener("pointerup", this.handlePointerUp, true);
     this.plot_element.addEventListener("pointerleave", this.handlePointerLeave);
+    PAINT_BLOCKED_EVENTS.forEach((type) => this.plot_element.addEventListener(type, this.blockMouseWhilePainting, true));
     this.removeUndoListener = drawing.onUndoChange(() => this.setState({ can_undo: drawing.canUndo() }));
     this.removeHighlightListener = modelLinks.onHighlight((node_ids) => this.highlightBoxes(node_ids));
   }
@@ -134,6 +155,7 @@ class Renderer extends React.Component {
     this.plot_element.removeEventListener("pointermove", this.handlePointerMove, true);
     this.plot_element.removeEventListener("pointerup", this.handlePointerUp, true);
     this.plot_element.removeEventListener("pointerleave", this.handlePointerLeave);
+    PAINT_BLOCKED_EVENTS.forEach((type) => this.plot_element.removeEventListener(type, this.blockMouseWhilePainting, true));
     this.removeUndoListener();
     this.removeHighlightListener();
   }
@@ -159,21 +181,33 @@ class Renderer extends React.Component {
    */
   highlightBoxes(node_ids) {
     this.highlighted_boxes = node_ids;
+    if (this.state.highlighted_item) this.setState({ highlighted_item: null });
     if (this.state.editor) this.setState({ editor: null });
     this.setDrawingState({ selected_target: null, highlight: this.getHighlight() });
   }
+  /**
+   * Highlights the elements of a section or a material, picked in the sections panel
+   * @param {{kind: "section"|"material", key: string}|null} item
+   */
+  highlightItem(item) {
+    this.highlighted_boxes = null;
+    this.setState({ highlighted_item: item, ...(this.state.editor ? { editor: null } : {}) });
+    this.setDrawingState({ selected_target: null, highlight: item ? sectionsLibrary.getItemElements(item) : [] });
+  }
   getHighlight() {
+    if (this.state.highlighted_item) return sectionsLibrary.getItemElements(this.state.highlighted_item);
     return (this.highlighted_boxes || []).flatMap((node_id) => modelLinks.getBoxElements(node_id));
   }
   /**
    * The highlighted boxes may create other elements after the model changes
    */
   refreshHighlight() {
-    if (this.highlighted_boxes) this.drawing_state = { ...this.drawing_state, highlight: this.getHighlight() };
+    if (this.highlighted_boxes || this.state.highlighted_item) this.drawing_state = { ...this.drawing_state, highlight: this.getHighlight() };
   }
   clearHighlight() {
-    if (!this.highlighted_boxes) return;
+    if (!this.highlighted_boxes && !this.state.highlighted_item) return;
     this.highlighted_boxes = null;
+    if (this.state.highlighted_item) this.setState({ highlighted_item: null });
     this.setDrawingState({ highlight: [] });
   }
   /**
@@ -196,7 +230,7 @@ class Renderer extends React.Component {
       this.updateSceneRanges();
     }
     this.highlighted_boxes = null;
-    this.setState({ editor: { node_id: entity.node_id, kind: candidate.kind, position, entity } });
+    this.setState({ editor: { node_id: entity.node_id, kind: candidate.kind, position, entity }, highlighted_item: null });
     this.setDrawingState({ selected_target: candidate, highlight: [] });
   }
   closeEditor() {
@@ -296,6 +330,17 @@ class Renderer extends React.Component {
       if (this.state.editor) this.setState({ editor: null });
     }
     if (update.plane !== undefined && update.plane !== previous.plane) next.offset = 0;
+    // The assign tool always paints something: the first section or material when none was picked
+    if (next.tool === "assign") {
+      let library = {
+        section: () => sectionsLibrary.getSections().find(({ editable }) => editable),
+        material: () => sectionsLibrary.getMaterials()[0],
+      };
+      ["section", "material"].forEach((mode) => {
+        let active_key = `active_${mode}`;
+        if (!next[active_key]) next[active_key] = library[mode]()?.node_id || "default";
+      });
+    }
     this.drawing_state = next;
     if (next.tool !== previous.tool) {
       this.updateBaseData();
@@ -303,6 +348,7 @@ class Renderer extends React.Component {
     }
     // The snap line normal to the work plane goes through the last picked point
     if (next.points !== previous.points) this.pick_candidates = null;
+    if (next.assign_mode !== previous.assign_mode) this.pick_candidates = null;
     if (["tool", "plane", "offset", "spacing"].some((key) => next[key] !== previous[key])) {
       this.pick_candidates = null;
       // Plotly hover labels would compete with the drawing highlight, and the view is fixed while drawing
@@ -332,7 +378,17 @@ class Renderer extends React.Component {
       else dimensions = drawingDimensions.getDrawingDimensions({ tool, points, hover_point, project, unit: this.length_unit });
     }
     let color = HOVER_COLORS[tool] || HOVER_COLORS.default;
+    if (tool === "assign") color = this.getAssignColor();
     this.setState({ hover_visual: ring && { ring, preview, is_polygon: tool === "plate" && points.length >= 2, color, dimensions } });
+  }
+  /**
+   * Color of the section the assign tool paints, so the cursor shows what a click gives the member
+   */
+  getAssignColor() {
+    let { assign_mode, active_section } = this.drawing_state;
+    if (assign_mode !== "section") return HOVER_COLORS.default;
+    let section = sectionsLibrary.getSections().find(({ node_id }) => node_id === active_section);
+    return section?.color || sectionsLibrary.DEFAULT_SECTION_COLOR;
   }
   /**
    * Point of the drawing for a picked grid point or structural node
@@ -354,7 +410,8 @@ class Renderer extends React.Component {
     if (!this.pick_candidates) {
       // The snap points are part of the overlay, which is computed on every update
       let grid_traces = drawingLayer.getOverlayTraces({ ...this.drawing_state, hover_point: null, hover_target: null }, getState("structure"));
-      this.pick_candidates = drawingLayer.getPickCandidates([...this.base_data, ...grid_traces], this.drawing_state.tool);
+      let { tool, assign_mode } = this.drawing_state;
+      this.pick_candidates = drawingLayer.getPickCandidates([...this.base_data, ...grid_traces], tool, assign_mode);
     }
     return drawingLayer.pickCandidate(this.pick_candidates, project, this.getPlotPosition(event));
   }
@@ -366,11 +423,26 @@ class Renderer extends React.Component {
     return !this.props.model_locked;
   }
   handlePointerDown(event) {
+    // The browser may leave out the mouse release of the last painting
+    this.is_mouse_blocked = false;
     this.pointer_down = event.button === 0 && this.isInteractive() ? { x: event.clientX, y: event.clientY } : null;
+    // Pressing on an element with the assign tool paints every element the pointer goes over, instead of rotating the view
+    if (this.pointer_down && this.drawing_state.tool === "assign") {
+      let candidate = this.pick(event);
+      if (candidate) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.painting = { kind: candidate.kind, ids: [candidate.id] };
+        this.is_mouse_blocked = true;
+        this.setDrawingState({ highlight: [{ structure_key: candidate.kind, element_id: candidate.id }] });
+        return;
+      }
+    }
     // Dragging rotates the view, which leaves the hover feedback behind
     if (this.state.hover_visual) this.setState({ hover_visual: null });
   }
   handlePointerMove(event) {
+    if (this.painting) return this.paintMove(event);
     if (!this.isInteractive() || event.buttons !== 0) return;
     let candidate = this.pick(event);
     if (drawingLayer.isPointTool(this.drawing_state.tool)) {
@@ -388,6 +460,7 @@ class Renderer extends React.Component {
   handlePointerUp(event) {
     let down = this.pointer_down;
     this.pointer_down = null;
+    if (this.painting) return this.finishPainting();
     if (!down || !this.isInteractive() || Math.hypot(event.clientX - down.x, event.clientY - down.y) > CLICK_TOLERANCE) return;
     let candidate = this.pick(event);
     if (candidate) this.handlePick(candidate, this.getPlotPosition(event));
@@ -395,6 +468,36 @@ class Renderer extends React.Component {
       this.closeEditor();
       this.clearHighlight();
     }
+  }
+  /**
+   * The camera of Plotly rotates with the mouse events (it reads the pressed buttons on every move), they do not reach it while painting
+   * @param {MouseEvent} event
+   */
+  blockMouseWhilePainting(event) {
+    if (!this.is_mouse_blocked) return;
+    event.stopPropagation();
+    event.preventDefault();
+    // The release that ends the painting is the last one
+    if (event.type === "mouseup") this.is_mouse_blocked = false;
+  }
+  paintMove(event) {
+    let candidate = this.pick(event);
+    if (candidate && candidate.kind === this.painting.kind && !this.painting.ids.includes(candidate.id)) {
+      this.painting.ids.push(candidate.id);
+      this.setDrawingState({ highlight: this.painting.ids.map((element_id) => ({ structure_key: candidate.kind, element_id })) });
+    }
+    if (candidate !== this.drawing_state.hover_target) this.setDrawingState({ hover_target: candidate });
+  }
+  /**
+   * Gives the painted elements the section or material of the assign tool, in one undo step
+   */
+  finishPainting() {
+    let { kind, ids } = this.painting;
+    this.painting = null;
+    let { assign_mode, active_section, active_material } = this.drawing_state;
+    let active = assign_mode === "section" ? active_section : active_material;
+    this.setDrawingState({ highlight: this.getHighlight() });
+    sectionsLibrary.assignToElements(kind, ids, active === "default" ? null : active);
   }
   /**
    * Acts on the element clicked with the active tool
@@ -412,7 +515,7 @@ class Renderer extends React.Component {
         // Clicking the last point again ends the chain of members
         if (isSamePoint(point, last_point)) return this.setDrawingState({ points: [] });
         if (!last_point) return this.setDrawingState({ points: [point], ...this.getFollowedPlane(candidate) });
-        let end_node_id = drawing.addMember(last_point, point);
+        let end_node_id = drawing.addMember(last_point, point, drawing_state.active_section);
         this.setDrawingState({ points: end_node_id ? [{ ...point, node_id: end_node_id }] : [], ...this.getFollowedPlane(candidate) });
         break;
       }
@@ -429,6 +532,11 @@ class Renderer extends React.Component {
       case "pressure":
         drawing.addPressure(candidate.id, drawing_state.pressure, drawing_state.pressure_axes);
         break;
+      case "assign": {
+        let active = drawing_state.assign_mode === "section" ? drawing_state.active_section : drawing_state.active_material;
+        sectionsLibrary.assignToElements(candidate.kind, [candidate.id], active === "default" ? null : active);
+        break;
+      }
       case "delete":
         drawing.deleteElement(candidate.kind, candidate.id);
         this.setDrawingState({ hover_target: null });
@@ -466,7 +574,7 @@ class Renderer extends React.Component {
     let { tool, points } = this.drawing_state;
     let key = event.key.toLowerCase();
     if (key === "escape" && this.state.editor) return this.closeEditor();
-    if (key === "escape" && this.highlighted_boxes) return this.clearHighlight();
+    if (key === "escape" && (this.highlighted_boxes || this.state.highlighted_item)) return this.clearHighlight();
     if ((event.ctrlKey || event.metaKey) && key === "z") {
       if (!drawing.canUndo()) return;
       event.preventDefault();
@@ -530,7 +638,7 @@ class Renderer extends React.Component {
     let { tool, hover_target } = this.state.drawing_state;
     let drawing_class = tool === "none" ? "" : " drawing";
     // Elements that open the editor show a pointer
-    if (hover_target && (tool === "none" || TOOL_EDIT_KINDS[tool] === hover_target.kind)) drawing_class += " pointing";
+    if (hover_target && (tool === "none" || tool === "assign" || TOOL_EDIT_KINDS[tool] === hover_target.kind)) drawing_class += " pointing";
     let global_style = { zIndex: this.props.visible ? 4 : 2, width: String(this.props.width) + "%", right: this.props.layout.renderer_right + "%" };
 
     return (
@@ -572,8 +680,19 @@ class Renderer extends React.Component {
             model_locked={this.props.model_locked}
             onChange={(field_key, value) => drawing.updateEntityField(this.state.editor.node_id, field_key, value)}
             onDetach={(field_key) => drawing.detachEntityField(this.state.editor.node_id, field_key)}
+            onLinkChange={(link_key, value) => drawing.updateEntityLink(this.state.editor.node_id, link_key, value)}
+            onCreateSection={(spec) => sectionsLibrary.createSection(spec, [this.state.editor.node_id])}
             onShowBox={modelLinks.focusBox}
             onClose={() => this.closeEditor()}
+          />
+        )}
+        {this.isShown() && (
+          <SectionsPanel
+            model_locked={this.props.model_locked}
+            drawing_state={this.state.drawing_state}
+            setDrawingState={this.setDrawingState}
+            highlighted={this.state.highlighted_item}
+            onHighlight={(item) => this.highlightItem(item)}
           />
         )}
         <AxisIndicator ref={this.axis_indicator} />

@@ -4,6 +4,7 @@ import state from "../state";
 import utils from "../utils";
 import drawingLayer from "./drawingLayer";
 import mesher from "./mesher";
+import sectionsLibrary from "./sectionsLibrary";
 
 const PLATE_COLOR = "#D2DDE8";
 const MESH_LINES_COLOR = "#5A6B7D";
@@ -96,8 +97,9 @@ function getData(drawing_state) {
     text: [],
     hovertemplate: "%{text} <extra></extra>",
   };
+  const section_colors = sectionsLibrary.getSectionColors(structure).by_section_id;
   Object.entries(structure.members).forEach(([member_id, member_data]) => {
-    let section_color = state.getSectionColor(member_data.section_id);
+    let section_color = sectionsLibrary.getMemberColor(section_colors, member_data.section_id);
     let member = { x: [], y: [], z: [], type: "scatter3d", mode: "lines", hoverinfo: "none", line: { width: 3, color: section_color } };
     // Node A
     let node_A = structure.nodes[member_data.node_A];

@@ -255,7 +255,7 @@ function StructuralPressureExec(args) {
 }
 
 // Plate
-const plate_target_ids = ["nodes-ids", "thickness-value"];
+const plate_target_ids = ["nodes-ids", "thickness-value", "material_id-id-1"];
 function StructuralPlate({ data, id }) {
   return (
     <GenericInOutNode
@@ -274,7 +274,6 @@ function StructuralPlateExec(args) {
   return {
     "plate_out-id": {
       ...structural_args,
-      material_id: 1,
       rotZ: 0,
       type: "auto",
       offset: 0,

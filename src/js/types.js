@@ -217,7 +217,7 @@ exports.unused = {};
  */
 
 /**
- * @typedef {"none"|"member"|"plate"|"point_load"|"distributed_load"|"pressure"|"moment"|"support"|"delete"} ParamEleDrawingTool
+ * @typedef {"none"|"member"|"plate"|"point_load"|"distributed_load"|"pressure"|"moment"|"support"|"delete"|"assign"} ParamEleDrawingTool
  */
 
 /**
@@ -239,6 +239,10 @@ exports.unused = {};
  * @property {"global"|"local"} pressure_axes Axes of the pressure components: global, or the plate's local axes
  * @property {number} thickness Plate thickness
  * @property {"FFFFFF"|"FFFFFR"} restraint_code Support type
+ * @property {"section"|"material"} assign_mode What the assign tool paints: sections on members or materials on plates
+ * @property {string|null} active_section Section box of new members and of the assign tool, "default" for none,
+ * or null for the section of the last drawn member
+ * @property {string|null} active_material Material box the assign tool paints on plates, "default" for none
  */
 
 /**
@@ -249,6 +253,7 @@ exports.unused = {};
  * @property {string} structure_key e.g. "point_loads"
  * @property {string|undefined} element_id Structural ID of the element
  * @property {ParamEleDrawingEntityField[]} fields
+ * @property {ParamEleDrawingEntityLink[]} [links] Inputs that take a section or material box
  * @property {{node_id: string, label: string}} [group] Group box the element comes from, then it is not editable here
  */
 
@@ -300,4 +305,39 @@ exports.unused = {};
 /**
  * @typedef {Object} ParamEleSampleCatalog
  * @property {ParamEleSample[]} samples
+ */
+
+/**
+ * An input of a box that takes a section or material box
+ * @typedef {Object} ParamEleDrawingEntityLink
+ * @property {"section"|"material"} key
+ * @property {"section"|"material"} kind
+ * @property {string|null} value Section or material box connected to it, null when there is none
+ * @property {{node_id: string, label: string}|null} other_source Another kind of box that feeds the input (e.g. a number)
+ */
+
+/**
+ * A section as the renderer lists it: a section box, the sections of a group box, or the default section
+ * @typedef {Object} ParamEleLibrarySection
+ * @property {string} key Section box ID, "group:<box ID>" or "default"
+ * @property {string|null} node_id Section box or group box
+ * @property {string} [type] Type of the section box
+ * @property {string} label
+ * @property {string} description e.g. "300 × 500 mm"
+ * @property {string} color Color of its members in the renderer
+ * @property {{node_id: string, label: string}|null} material
+ * @property {string[]} member_ids Structural members that use it
+ * @property {boolean} editable Only section boxes can be edited and assigned
+ * @property {boolean} [is_default]
+ */
+
+/**
+ * A material box as the renderer lists it
+ * @typedef {Object} ParamEleLibraryMaterial
+ * @property {string} key
+ * @property {string} node_id
+ * @property {string} label
+ * @property {ParamEleDrawingEntityField[]} fields E, Poisson's ratio and density
+ * @property {string[]} section_node_ids Section boxes that use it
+ * @property {string[]} plate_ids Structural plates that use it
  */
