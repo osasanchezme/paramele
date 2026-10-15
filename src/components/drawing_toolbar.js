@@ -54,7 +54,7 @@ const PLANES = ["xy", "xz", "yz"];
 const PRESSURE_AXES = ["global", "local"];
 const RESTRAINTS = [
   { code: "FFFFFF", copy: "fixed" },
-  { code: "FFFFFR", copy: "pinned" },
+  { code: "FFFFRR", copy: "pinned" },
 ];
 const MAX_LEVELS = 12;
 

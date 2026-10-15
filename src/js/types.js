@@ -238,7 +238,7 @@ exports.unused = {};
  * @property {{x: number, y: number, z: number}} pressure Pressure components (on plates)
  * @property {"global"|"local"} pressure_axes Axes of the pressure components: global, or the plate's local axes
  * @property {number} thickness Plate thickness
- * @property {"FFFFFF"|"FFFFFR"} restraint_code Support type
+ * @property {"FFFFFF"|"FFFFRR"} restraint_code Support type
  */
 
 /**

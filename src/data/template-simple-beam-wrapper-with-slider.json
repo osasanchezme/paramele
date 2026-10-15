@@ -98,7 +98,7 @@
                                         "rz": 0,
                                         "type": "node",
                                         "node": 2,
-                                        "restraint_code": "FFFFFR"
+                                        "restraint_code": "FFFFRR"
                                     }
                                 },
                                 "positionAbsolute": {
@@ -127,7 +127,7 @@
                                         "rz": 0,
                                         "type": "node",
                                         "node": 1,
-                                        "restraint_code": "FFFFFR"
+                                        "restraint_code": "FFFFRR"
                                     }
                                 },
                                 "positionAbsolute": {

@@ -510,7 +510,7 @@
                                         "rz": 0,
                                         "type": "node",
                                         "node": 1,
-                                        "restraint_code": "FFFFFR"
+                                        "restraint_code": "FFFFRR"
                                     },
                                     "selected": true
                                 },
@@ -572,7 +572,7 @@
                                         "rz": 0,
                                         "type": "node",
                                         "node": 3,
-                                        "restraint_code": "FFFFFR"
+                                        "restraint_code": "FFFFRR"
                                     },
                                     "selected": true
                                 },

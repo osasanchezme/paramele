@@ -527,7 +527,7 @@ function deleteElement(structure_key, element_id) {
 const AXES = ["x", "y", "z"];
 const RESTRAINT_OPTIONS = [
   { value: "FFFFFF", copy: "fixed" },
-  { value: "FFFFFR", copy: "pinned" },
+  { value: "FFFFRR", copy: "pinned" },
 ];
 const LOAD_AXES_OPTIONS = [
   { value: "global", copy: "axes_global" },

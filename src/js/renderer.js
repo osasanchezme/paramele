@@ -4,6 +4,7 @@ import state from "../state";
 import utils from "../utils";
 import drawingLayer from "./drawingLayer";
 import mesher from "./mesher";
+import supportGlyphs from "./supportGlyphs";
 
 const PLATE_COLOR = "#D2DDE8";
 const MESH_LINES_COLOR = "#5A6B7D";
@@ -127,24 +128,14 @@ function getData(drawing_state) {
   plotly_data.push(selection_nodes);
 
   // Supports
+  const support_builder = supportGlyphs.createBuilder();
   Object.entries(structure.supports).forEach(([support_id, support_data]) => {
-    let support = {
-      x: [],
-      y: [],
-      z: [],
-      type: "scatter3d",
-      mode: "lines",
-      hoverinfo: "none",
-      line: { width: 2, color: "black" },
-    };
     let node = structure.nodes[support_data.node];
-    let support_coords = createSupport(support_data.restraint_code, node);
-    support.x.push(...support_coords.support_x);
-    support.y.push(...support_coords.support_y);
-    support.z.push(...support_coords.support_z);
-    plotly_data.push(support);
-    drawingLayer.pushHandle(handles, "supports", support_id, { x: node.x, y: node.y, z: node.z - 0.4 });
+    if (!node) return;
+    let handle = supportGlyphs.addSupport(support_builder, support_data.restraint_code, node);
+    drawingLayer.pushHandle(handles, "supports", support_id, handle);
   });
+  plotly_data.push(...supportGlyphs.getTraces(support_builder));
 
   // Find the max magnitude to normalize the others
   let magnitude_sources = {
@@ -587,93 +578,6 @@ function getConfig() {
   return {
     responsive: true,
   };
-}
-
-function createSupport(restraint_code, node) {
-  let support_size = 0.6;
-
-  let support_x = [];
-  let support_y = [];
-  let support_z = [];
-  switch (restraint_code) {
-    case "FFFFFF":
-      support_x.push(node.x);
-      support_y.push(node.y);
-      support_z.push(node.z);
-
-      support_x.push(node.x + support_size);
-      support_y.push(node.y);
-      support_z.push(node.z);
-
-      support_x.push(node.x + support_size);
-      support_y.push(node.y);
-      support_z.push(node.z - support_size);
-
-      support_x.push(node.x - support_size);
-      support_y.push(node.y);
-      support_z.push(node.z - support_size);
-
-      support_x.push(node.x - support_size);
-      support_y.push(node.y);
-      support_z.push(node.z);
-
-      support_x.push(node.x);
-      support_y.push(node.y);
-      support_z.push(node.z);
-
-      support_x.push(node.x);
-      support_y.push(node.y + support_size);
-      support_z.push(node.z);
-
-      support_x.push(node.x);
-      support_y.push(node.y + support_size);
-      support_z.push(node.z - support_size);
-
-      support_x.push(node.x);
-      support_y.push(node.y - support_size);
-      support_z.push(node.z - support_size);
-
-      support_x.push(node.x);
-      support_y.push(node.y - support_size);
-      support_z.push(node.z);
-
-      support_x.push(node.x);
-      support_y.push(node.y);
-      support_z.push(node.z);
-      break;
-    case "FFFFFR":
-      support_x.push(node.x);
-      support_y.push(node.y);
-      support_z.push(node.z);
-
-      support_x.push(node.x - support_size);
-      support_y.push(node.y);
-      support_z.push(node.z - support_size);
-
-      support_x.push(node.x + support_size);
-      support_y.push(node.y);
-      support_z.push(node.z - support_size);
-
-      support_x.push(node.x);
-      support_y.push(node.y);
-      support_z.push(node.z);
-
-      support_x.push(node.x);
-      support_y.push(node.y - support_size);
-      support_z.push(node.z - support_size);
-
-      support_x.push(node.x);
-      support_y.push(node.y + support_size);
-      support_z.push(node.z - support_size);
-
-      support_x.push(node.x);
-      support_y.push(node.y);
-      support_z.push(node.z);
-      break;
-    default:
-      break;
-  }
-  return { support_x, support_y, support_z };
 }
 
 function createPointLoad(node, x_mag, y_mag, z_mag, max_abs_mag, physical_load_size, show_proportional_loads) {
