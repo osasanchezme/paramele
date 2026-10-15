@@ -681,7 +681,11 @@ class Renderer extends React.Component {
             onChange={(field_key, value) => drawing.updateEntityField(this.state.editor.node_id, field_key, value)}
             onDetach={(field_key) => drawing.detachEntityField(this.state.editor.node_id, field_key)}
             onLinkChange={(link_key, value) => drawing.updateEntityLink(this.state.editor.node_id, link_key, value)}
-            onCreateSection={(spec) => sectionsLibrary.createSection(spec, [this.state.editor.node_id])}
+            onCreateLink={(kind, spec) =>
+              kind === "section"
+                ? sectionsLibrary.createSection(spec, [this.state.editor.node_id])
+                : sectionsLibrary.createMaterial(spec, [this.state.editor.node_id])
+            }
             onShowBox={modelLinks.focusBox}
             onClose={() => this.closeEditor()}
           />

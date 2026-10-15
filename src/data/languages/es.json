@@ -594,6 +594,8 @@
         "selected": "Seleccionado"
     },
     "sections": {
+        "not_set": "Sin asignar",
+        "uses": "usa {name}",
         "panel_title": "Secciones",
         "sections": "Secciones",
         "materials": "Materiales",
@@ -628,7 +630,6 @@
         "paint_section": "Pintar barras con esta sección",
         "paint_material": "Pintar placas con este material",
         "close_panel": "Cerrar",
-        "inner_model": "El editor muestra la lógica dentro de una caja: vuelve al modelo principal para editarlas",
         "no_sections": "Todavía no hay secciones",
         "no_materials": "Todavía no hay materiales"
     }

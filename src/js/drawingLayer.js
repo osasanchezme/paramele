@@ -19,6 +19,8 @@ const TOOL_TARGETS = {
   distributed_load: ["members", "distributed_loads"],
   pressure: ["plates", "pressures"],
   delete: ["nodes", "members", "plates", "supports", "point_loads", "distributed_loads", "pressures", "moments"],
+  // It only picks the kind of its mode (ASSIGN_TARGETS)
+  assign: ["members", "plates"],
 };
 // The assign tool paints sections on members, or materials on plates
 const ASSIGN_TARGETS = { section: "members", material: "plates" };

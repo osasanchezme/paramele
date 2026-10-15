@@ -173,6 +173,7 @@ function SectionRow({ section, is_expanded, is_highlighted, is_painting, onToggl
                   kind="material"
                   value={section.material?.node_id || null}
                   onChange={(value) => drawing.linkBoxes([section.node_id], "material", value)}
+                  onCreate={(spec) => sectionsLibrary.createMaterial(spec, [section.node_id])}
                   isDisabled={model_locked}
                 />
               </HStack>
@@ -251,8 +252,6 @@ function SectionsPanel({ model_locked, drawing_state, setDrawingState, highlight
   const [tab, setTab] = useState("sections");
   const [expanded, setExpanded] = useState(null);
   const [is_creating, setIsCreating] = useState(false);
-  const is_main_model = modelLinks.isEditingMainModel();
-  const is_locked = model_locked || !is_main_model;
 
   const open = (value) => {
     setIsOpen(value);
@@ -260,6 +259,8 @@ function SectionsPanel({ model_locked, drawing_state, setDrawingState, highlight
     if (!value) onHighlight(null);
   };
   const toggle = (kind, key) => {
+    // The highlight may have been cleared from the renderer (Escape, a click on nothing), then the open row shows it again
+    if (expanded === key && highlighted?.key !== key) return onHighlight({ kind, key });
     let is_expanding = expanded !== key;
     setExpanded(is_expanding ? key : null);
     onHighlight(is_expanding ? { kind, key } : null);
@@ -321,7 +322,6 @@ function SectionsPanel({ model_locked, drawing_state, setDrawingState, highlight
         <SmallIconButton label={localGetCopy("close_panel")} icon={<TbX />} onClick={() => open(false)} />
       </HStack>
       <div className="sections-panel-body">
-        {!is_main_model && <Text className="library-muted library-note">{localGetCopy("inner_model")}</Text>}
         {items.length === 0 && (
           <Text className="library-muted library-note">{localGetCopy(tab === "sections" ? "no_sections" : "no_materials")}</Text>
         )}
@@ -335,7 +335,7 @@ function SectionsPanel({ model_locked, drawing_state, setDrawingState, highlight
                 is_painting={isPainting("section", section.node_id)}
                 onToggle={() => toggle("section", section.key)}
                 onPaint={() => paint("section", section.node_id)}
-                model_locked={is_locked}
+                model_locked={model_locked}
               />
             ))
           : library.materials.map((material) => (
@@ -347,7 +347,7 @@ function SectionsPanel({ model_locked, drawing_state, setDrawingState, highlight
                 is_painting={isPainting("material", material.node_id)}
                 onToggle={() => toggle("material", material.key)}
                 onPaint={() => paint("material", material.node_id)}
-                model_locked={is_locked}
+                model_locked={model_locked}
               />
             ))}
       </div>
@@ -359,7 +359,7 @@ function SectionsPanel({ model_locked, drawing_state, setDrawingState, highlight
             <sectionPicker.NewMaterialForm onCreate={create} onCancel={() => setIsCreating(false)} />
           )
         ) : (
-          <Button size="xs" variant="ghost" colorScheme="brand" leftIcon={<TbPlus />} onClick={() => setIsCreating(true)} isDisabled={is_locked}>
+          <Button size="xs" variant="ghost" colorScheme="brand" leftIcon={<TbPlus />} onClick={() => setIsCreating(true)} isDisabled={model_locked}>
             {localGetCopy(tab === "sections" ? "new_section" : "new_material")}
           </Button>
         )}

@@ -46,6 +46,16 @@ function getOptions(kind, library) {
 }
 
 /**
+ * What the button of a picker shows: the name of the picked option, with its detail when it is the fallback or when other
+ * options have the same name
+ */
+function getButtonLabel(selected, default_option, options) {
+  if (selected === default_option) return `${default_option.label} (${default_option.detail})`;
+  let is_repeated = options.some((option) => option !== selected && option.label === selected.label);
+  return is_repeated && selected.detail ? `${selected.label} · ${selected.detail}` : selected.label;
+}
+
+/**
  * Menu to pick a section or material box, and to create a new one
  * @param {object} props
  * @param {"section"|"material"} props.kind
@@ -60,12 +70,16 @@ function LibraryPicker({ kind, value, onChange, extra_option, allow_new = true, 
   const library = useLibrary();
   const [is_creating, setIsCreating] = useState(false);
   const options = getOptions(kind, library);
+  // An input with no box takes the section or material with ID 1, it is only offered while nothing is connected
+  const fallback = sectionsLibrary.getFallback(kind);
   const default_option = {
     value: "default",
-    label: localGetCopy(kind === "section" ? "default_section" : "default_material"),
-    color: kind === "section" ? sectionsLibrary.DEFAULT_SECTION_COLOR : null,
+    label: localGetCopy("not_set"),
+    detail: localGetCopy("uses").replace("{name}", fallback.label),
+    color: fallback.color,
   };
-  const all_options = [...(extra_option ? [extra_option] : []), ...options, default_option];
+  const is_unset = !value || value === "default";
+  const all_options = [...(extra_option ? [extra_option] : []), ...options, ...(is_unset || options.length === 0 ? [default_option] : [])];
   const selected = all_options.find((option) => option.value === (value ?? "default")) || default_option;
   const has_swatches = kind === "section";
 
@@ -93,7 +107,7 @@ function LibraryPicker({ kind, value, onChange, extra_option, allow_new = true, 
           <HStack spacing={1.5} minWidth={0}>
             {has_swatches && <Swatch color={selected.color} />}
             {/* The dimensions are in the list, the button is often narrow */}
-            <Text noOfLines={1}>{selected.label}</Text>
+            <Text noOfLines={1}>{getButtonLabel(selected, default_option, all_options)}</Text>
           </HStack>
         </MenuButton>
         <MenuList fontSize="xs" zIndex="popover" minWidth="200px" maxHeight="300px" overflowY="auto" onKeyDown={stopKeys}>
@@ -255,10 +269,11 @@ function NewSectionForm({ materials, onCreate, onCancel }) {
  */
 function MaterialMenu({ materials, value, onChange }) {
   const selected = materials.find(({ node_id }) => node_id === value);
+  const fallback_label = `${localGetCopy("not_set")} (${localGetCopy("uses").replace("{name}", sectionsLibrary.getFallback("material").label)})`;
   return (
     <Menu isLazy placement="bottom-start" matchWidth>
       <MenuButton as={Button} size="xs" variant="outline" bg="white" flex="1" fontWeight="normal" textAlign="left" rightIcon={<TbChevronDown />}>
-        <Text noOfLines={1}>{selected ? selected.label : localGetCopy("default_material")}</Text>
+        <Text noOfLines={1}>{selected ? selected.label : fallback_label}</Text>
       </MenuButton>
       <MenuList fontSize="xs" zIndex="popover" minWidth="160px">
         {materials.map(({ node_id, label }) => (
@@ -266,7 +281,7 @@ function MaterialMenu({ materials, value, onChange }) {
             {label}
           </MenuItem>
         ))}
-        <MenuItem onClick={() => onChange(null)}>{localGetCopy("default_material")}</MenuItem>
+        <MenuItem onClick={() => onChange(null)}>{fallback_label}</MenuItem>
       </MenuList>
     </Menu>
   );

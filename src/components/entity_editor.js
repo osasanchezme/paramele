@@ -144,11 +144,11 @@ function FieldSource({ field, onDetach, onShowBox, isDisabled }) {
  * @param {function(string, number|string): void} props.onChange
  * @param {function(string): void} props.onDetach
  * @param {function(string, string|null): void} props.onLinkChange Connects a section or material box (null for none) to an input
- * @param {function(object): string} props.onCreateSection Creates a section for the element and returns its box
+ * @param {function("section"|"material", object): string} props.onCreateLink Creates a section or material for the element and returns its box
  * @param {function(string): void} props.onShowBox Goes to a box in the editor
  * @param {Function} props.onClose
  */
-function EntityEditor({ entity, position, container_size, model_locked, onChange, onDetach, onLinkChange, onCreateSection, onShowBox, onClose }) {
+function EntityEditor({ entity, position, container_size, model_locked, onChange, onDetach, onLinkChange, onCreateLink, onShowBox, onClose }) {
   // The box of an element from a group is the group, so the element is named by its kind
   let type_label = entity.group ? localGetCopy(entity.structure_key) : getTypeLabel(entity.type);
   let title = `${type_label} ${entity.element_id ?? ""}`;
@@ -190,7 +190,7 @@ function EntityEditor({ entity, position, container_size, model_locked, onChange
                 kind={link.kind}
                 value={link.value}
                 onChange={(value) => onLinkChange(link.key, value)}
-                onCreate={link.kind === "section" ? onCreateSection : undefined}
+                onCreate={(spec) => onCreateLink(link.kind, spec)}
                 isDisabled={model_locked}
               />
               {link.value && <ShowBoxButton label={utils.getDisplayCopy("sections", "show_box")} onClick={() => onShowBox(link.value)} />}

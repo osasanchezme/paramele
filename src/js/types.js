@@ -319,7 +319,7 @@ exports.unused = {};
 /**
  * A section as the renderer lists it: a section box, the sections of a group box, or the default section
  * @typedef {Object} ParamEleLibrarySection
- * @property {string} key Section box ID, "group:<box ID>" or "default"
+ * @property {string} key Section box ID, "group:<box ID>:<shape>" or "default"
  * @property {string|null} node_id Section box or group box
  * @property {string} [type] Type of the section box
  * @property {string} label

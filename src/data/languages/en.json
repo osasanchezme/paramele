@@ -592,6 +592,8 @@
         "selected": "Selected"
     },
     "sections": {
+        "not_set": "Not set",
+        "uses": "uses {name}",
         "panel_title": "Sections",
         "sections": "Sections",
         "materials": "Materials",
@@ -626,7 +628,6 @@
         "paint_section": "Paint members with this section",
         "paint_material": "Paint plates with this material",
         "close_panel": "Close",
-        "inner_model": "The editor shows the logic inside a box: go back to the main model to edit them",
         "no_sections": "There are no sections yet",
         "no_materials": "There are no materials yet"
     }

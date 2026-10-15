@@ -107,13 +107,15 @@ function onShowView(listener) {
 }
 
 /**
- * Selects a box of the main model in the editor and centers the view on it. The editor is brought into view if it is hidden,
- * and goes back to the main model if it shows the inner logic of a box
+ * Selects a box in the editor and centers the view on it. The editor is brought into view if it is hidden, and goes back to
+ * the main model if it shows the inner logic of another box
  * @param {string} node_id
  */
 function focusBox(node_id) {
   emit("show_view", "nodes");
-  if (!isEditingMainModel()) {
+  // While the inner logic of a box is edited, the renderer shows the elements of its boxes
+  let is_in_editor = Boolean(state.getRfInstance()?.getNode(node_id));
+  if (!isEditingMainModel() && !is_in_editor) {
     let model_path = getState("model_path");
     let model_path_print = getState("model_path_print");
     state.setState([model_path[0]], "model_path");

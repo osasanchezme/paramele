@@ -2,7 +2,6 @@ import getState from "../getState";
 import state from "../state";
 import utils from "../utils";
 import drawing from "./drawing";
-import modelLinks from "./modelLinks";
 import { notify } from "../components/notification";
 
 // Sections and materials as the renderer shows them: each section or material box is one entry, even when the model has ranges
@@ -32,16 +31,15 @@ function localGetCopy(copy_key) {
 }
 
 /**
- * Boxes and links of the main model, where the structure in the renderer comes from
+ * Boxes and links of the model in the editor, where the structure in the renderer comes from (the inner logic of a box
+ * is evaluated on its own while it is edited). The editor is more up to date than the global state
  * @returns {{nodes: object[], edges: object[]}}
  */
-function getMainModel() {
-  if (modelLinks.isEditingMainModel()) {
-    let rf_instance = state.getRfInstance();
-    if (rf_instance) return { nodes: rf_instance.getNodes(), edges: rf_instance.getEdges() };
-  }
-  let { nodes = [], edges = [] } = getState().model || {};
-  return { nodes, edges };
+function getEditedModel() {
+  let rf_instance = state.getRfInstance();
+  // The editor is not ready before the first render
+  if (!rf_instance) return { nodes: [], edges: [] };
+  return { nodes: rf_instance.getNodes(), edges: rf_instance.getEdges() };
 }
 
 function getNodeIndex({ id }) {
@@ -57,23 +55,39 @@ function getSectionBoxes(nodes) {
 }
 
 /**
- * Colors of the sections: each section box takes the next color of the palette in the order the boxes were created,
- * so the colors do not change between evaluations. Sections made inside group boxes come after them
+ * Key of a section that no box of the model makes: the group box that makes it and its shape, so the copies a group makes
+ * for each possibility of the ranges are one section
+ * @param {string|number} section_id
  * @param {object} structure
- * @param {object[]} [nodes] Boxes of the main model
+ */
+function getOtherSectionKey(section_id, structure) {
+  let group_id = state.getGlobalVariable("structure_group_origins")?.sections?.[section_id];
+  return `group:${group_id || ""}:${describeStructuralSection(structure.sections[section_id], structure.settings?.units?.section_length)}`;
+}
+
+/**
+ * Colors of the sections: each section box takes the next color of the palette in the order the boxes were created,
+ * so the colors do not change between evaluations. Sections made inside group boxes come after them, one color for each
+ * group and shape
+ * @param {object} structure
+ * @param {object[]} [nodes] Boxes of the model in the editor
  * @returns {{by_section_id: Object<string, string>, by_box: Object<string, string>}}
  */
-function getSectionColors(structure, nodes = getMainModel().nodes) {
+function getSectionColors(structure, nodes = getEditedModel().nodes) {
   let by_box = {};
   getSectionBoxes(nodes).forEach(({ id }, index) => (by_box[id] = PALETTE[index % PALETTE.length]));
   let next_index = Object.keys(by_box).length;
   let origins = state.getGlobalVariable("structure_origins")?.sections || {};
   let by_section_id = {};
+  let by_other_key = {};
   Object.keys(structure.sections || {})
     .sort((a, b) => Number(a) - Number(b))
     .forEach((section_id) => {
       let box_color = by_box[origins[section_id]];
-      by_section_id[section_id] = box_color || PALETTE[next_index++ % PALETTE.length];
+      if (box_color) return (by_section_id[section_id] = box_color);
+      let key = getOtherSectionKey(section_id, structure);
+      if (!by_other_key[key]) by_other_key[key] = PALETTE[next_index++ % PALETTE.length];
+      by_section_id[section_id] = by_other_key[key];
     });
   return { by_section_id, by_box };
 }
@@ -108,14 +122,26 @@ function describeSection(entity) {
 }
 
 /**
- * Sections of the main model with the members that use them. Besides the section boxes, there is an entry for the sections
+ * Short description of a section of the structure, for the sections that no box of the model makes
+ * @param {object} section
+ * @param {string} [unit] Unit of the section dimensions
+ */
+function describeStructuralSection(section, unit = "") {
+  let { shape, dimensions = {} } = section.info || {};
+  if (shape === "rectangle") return `${formatNumber(dimensions.b)} × ${formatNumber(dimensions.h)} ${unit}`.trim();
+  if (shape === "circle") return `Ø ${formatNumber(dimensions.D)} ${unit}`.trim();
+  return section.area !== undefined ? `A = ${formatNumber(section.area)}` : localGetCopy("from_group");
+}
+
+/**
+ * Sections of the model in the editor with the members that use them. Besides the section boxes, there is an entry for the sections
  * of each group box and one for the members whose section no box makes
  * @returns {import("./types").ParamEleLibrarySection[]}
  */
 function getSections() {
   // The editor is not ready before the first render
   if (!state.getRfInstance()) return [];
-  let { nodes, edges } = getMainModel();
+  let { nodes, edges } = getEditedModel();
   let structure = getState("structure");
   let origins = state.getGlobalVariable("structure_origins") || {};
   let group_origins = state.getGlobalVariable("structure_group_origins") || {};
@@ -144,15 +170,18 @@ function getSections() {
     let key;
     if (!structure.sections?.[section_id]) key = "default";
     else if (origins.sections?.[section_id] && sections_by_key[origins.sections[section_id]]) key = origins.sections[section_id];
-    else if (group_origins.sections?.[section_id]) key = `group:${group_origins.sections[section_id]}`;
+    else if (group_origins.sections?.[section_id]) key = getOtherSectionKey(section_id, structure);
     else key = "default";
     if (!sections_by_key[key]) {
-      let group_id = key.startsWith("group:") ? key.slice(6) : null;
+      // A group can make several sections, each shape is an entry
+      let group_id = key.startsWith("group:") ? group_origins.sections[section_id] : null;
       let entry = {
         key,
         node_id: group_id,
         label: group_id ? getBoxLabel(nodes_by_id[group_id] || { type: "nodesWrapper" }) : localGetCopy("default_section"),
-        description: group_id ? localGetCopy("from_group") : localGetCopy("default_section_description"),
+        description: group_id
+          ? describeStructuralSection(structure.sections[section_id], structure.settings?.units?.section_length)
+          : localGetCopy("default_section_description"),
         color: group_id ? by_section_id[section_id] : DEFAULT_SECTION_COLOR,
         material: null,
         member_ids: [],
@@ -168,12 +197,12 @@ function getSections() {
 }
 
 /**
- * Material boxes of the main model, with the sections and plates that use them
+ * Material boxes of the model in the editor, with the sections and plates that use them
  * @returns {import("./types").ParamEleLibraryMaterial[]}
  */
 function getMaterials() {
   if (!state.getRfInstance()) return [];
-  let { nodes, edges } = getMainModel();
+  let { nodes, edges } = getEditedModel();
   let structure = getState("structure");
   let origins = state.getGlobalVariable("structure_origins") || {};
   let transaction = new drawing.DrawingTransaction();
@@ -200,6 +229,23 @@ function getMaterials() {
         plate_ids,
       };
     });
+}
+
+/**
+ * What an input without a section or material box gets: the section or material with ID 1 (made by the first box that makes one),
+ * or the default one the solver adds when there is none
+ * @param {"section"|"material"} kind
+ * @returns {{label: string, color: string|null}}
+ */
+function getFallback(kind) {
+  let structure = getState("structure");
+  let structure_key = kind === "section" ? "sections" : "materials";
+  let color = kind === "section" ? getMemberColor(getSectionColors(structure).by_section_id, 1) : null;
+  if (!structure[structure_key]?.[1]) return { label: localGetCopy(kind === "section" ? "default_section" : "default_material"), color };
+  let origin_id = state.getGlobalVariable("structure_origins")?.[structure_key]?.[1];
+  let group_id = state.getGlobalVariable("structure_group_origins")?.[structure_key]?.[1];
+  let node = getEditedModel().nodes.find(({ id }) => id === (origin_id || group_id));
+  return { label: node ? getBoxLabel(node) : structure[structure_key][1].name || "1", color };
 }
 
 /**
@@ -283,9 +329,10 @@ function getNewSectionLabel(shape, dimensions) {
  * @param {object} options
  * @param {"concrete"|"steel"} options.preset
  * @param {string} [options.label]
+ * @param {string[]} [target_node_ids] Section or plate boxes that take the material, in the same undo step
  * @returns {string} ID of the new box
  */
-function createMaterial({ preset, label = "" }) {
+function createMaterial({ preset, label = "" }, target_node_ids = []) {
   let values = MATERIAL_PRESETS[preset];
   let name = label.trim() || localGetCopy(preset);
   let transaction = new drawing.DrawingTransaction();
@@ -296,12 +343,17 @@ function createMaterial({ preset, label = "" }) {
   sources.forEach(({ key, source, source_handle }) => transaction.connect(source, source_handle, material_id, MATERIAL_HANDLES[key]));
   transaction.connect(name_source.source, name_source.source_handle, material_id, "name-name-Concrete");
   transaction.connect(class_source.source, class_source.source_handle, material_id, "class-name-concrete");
+  target_node_ids.forEach((target_node_id) => {
+    if (!transaction.getNode(target_node_id)) return;
+    transaction.edges = transaction.edges.filter(({ target, targetHandle }) => target !== target_node_id || targetHandle !== "material_id-id-1");
+    transaction.connect(material_id, "material_out-id", target_node_id, "material_id-id-1");
+  });
   transaction.commit();
   return material_id;
 }
 
 /**
- * Changes the name a box shows (its custom label)
+ * Changes the name a box shows (its custom label). A material also takes it as its name when a text box gives it the name
  * @param {string} node_id
  * @param {string} label
  */
@@ -311,6 +363,12 @@ function renameBox(node_id, label) {
   let custom_label = label.trim();
   if (!node || !custom_label || node.data.custom_label === custom_label) return;
   node.data = { ...node.data, custom_label };
+  if (node.type === "structuralMaterial") {
+    let name_edge = transaction.getIncomingEdges(node_id, "name-name-Concrete")[0];
+    let name_node = name_edge && transaction.getNode(name_edge.source);
+    if (name_node?.type === "inputString" && name_edge.sourceHandle === "value-string")
+      name_node.data = { ...name_node.data, "value-string": custom_label };
+  }
   transaction.commit();
 }
 
@@ -322,6 +380,7 @@ const sectionsLibrary = {
   getSections,
   getMaterials,
   getItemElements,
+  getFallback,
   getUnits,
   assignToElements,
   createSection,
