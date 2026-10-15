@@ -301,3 +301,26 @@ exports.unused = {};
  * @typedef {Object} ParamEleSampleCatalog
  * @property {ParamEleSample[]} samples
  */
+
+/**
+ * Displacements of the results on the current structure (see resultsLayer.getDisplacementResults), in the units of the results
+ * @typedef {Object} ParamEleDisplacementResults
+ * @property {{key: string, name: string}[]} load_cases Load cases with displacements
+ * @property {string} load_case Key of the load case of the displacements
+ * @property {Object<string, {t: number, d: {x: number, y: number, z: number}}[]>} members Displacements along each member (t from 0 at node A to 1), at the points of the results
+ * @property {Object<string, {node_id: number, d: {x: number, y: number, z: number}}[]>} quads Displacements at the corners of each meshed plate
+ * @property {number} to_length Factor from the units of the results to the length units of the model
+ * @property {number} to_display Factor from the units of the results to display_unit
+ * @property {string} display_unit Unit the displacements are shown in (the translation units of the model)
+ * @property {number} max_displacement Largest displacement, in display_unit
+ * @property {{sum: number, x: number, y: number, z: number}} extremes Largest value of each component (with its sign), in display_unit
+ * @property {number} auto_scale Scale that draws the largest displacement at a visible size
+ */
+
+/**
+ * What the 3D view draws from the results
+ * @typedef {Object} ParamEleResultsView
+ * @property {"none"|"sum"|"x"|"y"|"z"} component Displacement drawn as the deformed shape
+ * @property {number|null} scale Scale of the displacements, null for the automatic one
+ * @property {string|null} load_case Key of the load case in the results, null for the first one
+ */

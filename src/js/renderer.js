@@ -4,11 +4,14 @@ import state from "../state";
 import utils from "../utils";
 import drawingLayer from "./drawingLayer";
 import mesher from "./mesher";
+import resultsLayer from "./resultsLayer";
 import supportGlyphs from "./supportGlyphs";
 
 const PLATE_COLOR = "#D2DDE8";
 const MESH_LINES_COLOR = "#5A6B7D";
 const PRESSURE_COLOR = "#805AD5";
+// The structure under its deformed shape
+const UNDEFORMED_COLOR = "#A0AEC0";
 
 function localGetCopy(node_name) {
   return utils.getDisplayCopy("renderer", node_name);
@@ -16,8 +19,10 @@ function localGetCopy(node_name) {
 
 /**
  * @param {import("./types").ParamEleDrawingState} [drawing_state] Adds what the drawing tools need: clickable elements, the work plane grid...
+ * @param {{results: import("./types").ParamEleDisplacementResults, component: "sum"|"x"|"y"|"z", scale: number}|null} [deformed] Draws the
+ *  deformed shape over the structure, which is faded
  */
-function getData(drawing_state) {
+function getData(drawing_state, deformed) {
   let structure = getState("structure");
   const tool = drawing_state ? drawing_state.tool : "none";
   // Elements are named and carry their IDs, so a click in the renderer knows what was clicked
@@ -27,6 +32,8 @@ function getData(drawing_state) {
   const global_settings = getState("settings")["global"];
   const physical_load_size = global_settings["physical_load_size"];
   const show_proportional_loads = global_settings["show_proportional_loads"];
+  // The loads stay as a reference under the deformed shape
+  const loads_opacity = deformed ? 0.3 : 1;
 
   // Add axes
   let axes_length = 2;
@@ -99,7 +106,8 @@ function getData(drawing_state) {
   };
   Object.entries(structure.members).forEach(([member_id, member_data]) => {
     let section_color = state.getSectionColor(member_data.section_id);
-    let member = { x: [], y: [], z: [], type: "scatter3d", mode: "lines", hoverinfo: "none", line: { width: 3, color: section_color } };
+    let member_line = deformed ? { width: 2, color: UNDEFORMED_COLOR } : { width: 3, color: section_color };
+    let member = { x: [], y: [], z: [], type: "scatter3d", mode: "lines", hoverinfo: "none", line: member_line };
     // Node A
     let node_A = structure.nodes[member_data.node_A];
     member.x.push(node_A.x);
@@ -167,6 +175,7 @@ function getData(drawing_state) {
       type: "scatter3d",
       mode: "lines",
       hoverinfo: "none",
+      opacity: loads_opacity,
       line: { width: 4, color: "red" },
     };
     let node = structure.nodes[pl_data.node];
@@ -188,6 +197,7 @@ function getData(drawing_state) {
       type: "scatter3d",
       mode: "lines",
       hoverinfo: "none",
+      opacity: loads_opacity,
       line: { width: 4, color: "orange" },
     };
     let member = structure.members[dl_data.member];
@@ -237,16 +247,10 @@ function getData(drawing_state) {
     hovertemplate: "%{text} <extra></extra>",
   };
   const quads_by_plate = getQuadsByPlate(structure.meshed_plates);
-  const plate_contour = getPlateDisplacementContour(structure.meshed_plates, units);
-  let show_scale = true;
   Object.entries(structure.plates).forEach(([plate_id, plate_data]) => {
     if (!plate_data.nodes || !Array.isArray(plate_data.nodes)) return;
     if (quads_by_plate[plate_id]) {
-      let plate_trace = getMeshedPlateTrace(structure.nodes, quads_by_plate[plate_id], plate_contour, show_scale);
-      // Plotly keeps the colors of a mesh3d trace that goes from intensity to a plain color, a new uid redraws it
-      plate_trace.uid = `plate-${plate_id}-${plate_contour ? "contour" : "plain"}`;
-      plotly_data.push(plate_trace);
-      show_scale = false;
+      plotly_data.push(getMeshedPlateTrace(structure.nodes, quads_by_plate[plate_id], Boolean(deformed)));
     } else {
       // Triangles of the plate's own polygon: Delaunay over the corners would fill a concave plate up to its convex hull
       let plate_nodes = plate_data.nodes.map((node_id) => structure.nodes[node_id]).filter(Boolean);
@@ -261,7 +265,7 @@ function getData(drawing_state) {
         type: "mesh3d",
         color: PLATE_COLOR,
         hoverinfo: "none",
-        opacity: 0.5,
+        opacity: deformed ? 0.15 : 0.5,
         flatshading: true,
         lighting: { ambient: 0.85, diffuse: 0.3, specular: 0, roughness: 1, fresnel: 0 },
       };
@@ -282,7 +286,8 @@ function getData(drawing_state) {
     selection_nodes_plates.customdata.push(plate_id);
   });
   plotly_data.push(selection_nodes_plates);
-  if (Object.keys(quads_by_plate).length > 0) plotly_data.push(getMeshLinesTrace(structure.nodes, Object.values(quads_by_plate).flat()));
+  if (Object.keys(quads_by_plate).length > 0 && !deformed) plotly_data.push(getMeshLinesTrace(structure.nodes, Object.values(quads_by_plate).flat()));
+  if (deformed) plotly_data.push(...resultsLayer.getDeformedTraces(structure, deformed.results, deformed));
   // Pressures
   Object.entries(structure.pressures || {}).forEach(([pressure_id, pressure_data]) => {
     let plate_data = structure.plates[pressure_data.plate_id];
@@ -290,7 +295,7 @@ function getData(drawing_state) {
     let plate_nodes = plate_data.nodes.map((node_id) => structure.nodes[node_id]).filter(Boolean);
     let pressure = createPressure(plate_nodes, plate_data.rotZ, pressure_data, max_abs_mag, physical_load_size, show_proportional_loads);
     if (!pressure) return;
-    plotly_data.push(pressure.trace);
+    plotly_data.push({ ...pressure.trace, opacity: loads_opacity });
     drawingLayer.pushHandle(handles, "pressures", pressure_id, pressure.handle);
   });
   // Moments
@@ -302,6 +307,7 @@ function getData(drawing_state) {
       type: "scatter3d",
       mode: "lines",
       hoverinfo: "none",
+      opacity: loads_opacity,
       line: { width: 4, color: "green" },
     };
     let node = structure.nodes[mm_data.node];
@@ -332,38 +338,12 @@ function getQuadsByPlate(meshed_plates) {
 }
 
 /**
- * Displacement of each node of the meshed plates in the results, when they were solved with the current mesh
- * @param {object} [meshed_plates]
- * @param {object} units
- * @returns {{values: Object<string, number>, min: number, max: number, title: string}|null}
- */
-function getPlateDisplacementContour(meshed_plates, units) {
-  const results = getState("results");
-  const plate_displacements = results && results[0] && results[0].plate_displacements;
-  if (!plate_displacements || !plate_displacements.displacement_sum) return null;
-  const solved_meshed_plates = state.getGlobalVariable("results_meshed_plates");
-  if (!solved_meshed_plates || JSON.stringify(solved_meshed_plates) !== JSON.stringify(meshed_plates || {})) return null;
-  const values = {};
-  Object.entries(meshed_plates).forEach(([quad_id, { node_A, node_B, node_C, node_D }]) => {
-    const quad_values = plate_displacements.displacement_sum[quad_id];
-    if (!quad_values) return;
-    [node_A, node_B, node_C, node_D].forEach((node_id, k) => (values[node_id] = quad_values[k]));
-  });
-  const all_values = Object.values(values);
-  if (all_values.length === 0) return null;
-  const title = `${localGetCopy("displacement")} (${units.translation})`;
-  return { values, min: Math.min(...all_values), max: Math.max(...all_values), title };
-}
-
-/**
- * Surface of a meshed plate, two triangles per quad, so it follows any shape (Delaunay over the corners does not).
- * With results, it is colored by the displacement of its nodes.
+ * Surface of a meshed plate, two triangles per quad, so it follows any shape (Delaunay over the corners does not)
  * @param {object} structural_nodes
  * @param {number[][]} quads
- * @param {{values: Object<string, number>, min: number, max: number, title: string}|null} contour
- * @param {boolean} show_scale Whether this trace shows the color bar (only one plate does)
+ * @param {boolean} faded Under the deformed shape
  */
-function getMeshedPlateTrace(structural_nodes, quads, contour, show_scale) {
+function getMeshedPlateTrace(structural_nodes, quads, faded) {
   const trace = {
     x: [],
     y: [],
@@ -374,25 +354,10 @@ function getMeshedPlateTrace(structural_nodes, quads, contour, show_scale) {
     type: "mesh3d",
     color: PLATE_COLOR,
     hoverinfo: "none",
-    opacity: 0.5,
+    opacity: faded ? 0.15 : 0.5,
     flatshading: true,
-    // Matte, so the triangles of a flat plate look the same and the contour colors match the color bar
     lighting: { ambient: 0.85, diffuse: 0.3, specular: 0, roughness: 1, fresnel: 0 },
   };
-  if (contour) {
-    Object.assign(trace, {
-      intensity: [],
-      cmin: contour.min,
-      cmax: contour.max,
-      colorscale: "Viridis",
-      showscale: show_scale,
-      colorbar: { title: { text: contour.title, side: "right" }, thickness: 12, len: 0.5, x: 0.98 },
-      opacity: 0.9,
-      hovertemplate: `%{intensity:.4g} <extra>${contour.title}</extra>`,
-    });
-    delete trace.hoverinfo;
-    delete trace.color;
-  }
   const vertex_index = {};
   const getVertex = (node_id) => {
     if (vertex_index[node_id] === undefined) {
@@ -401,7 +366,6 @@ function getMeshedPlateTrace(structural_nodes, quads, contour, show_scale) {
       trace.x.push(node.x);
       trace.y.push(node.y);
       trace.z.push(node.z);
-      if (contour) trace.intensity.push(contour.values[node_id] ?? 0);
     }
     return vertex_index[node_id];
   };

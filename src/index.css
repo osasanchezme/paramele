@@ -435,6 +435,32 @@ div.drawing-toolbar > * {
   white-space: nowrap;
 }
 
+div.results-toolbar {
+  position: absolute;
+  /* Over the pill of the favorite parameters, centered at the bottom */
+  bottom: 64px;
+  right: 10px;
+  /* Above the plot (10), like the drawing toolbar */
+  z-index: 11;
+  width: 230px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid var(--chakra-colors-gray-200);
+  border-radius: var(--chakra-radii-md);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+.results-toolbar-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--chakra-colors-gray-600);
+}
+
 .drawing-toolbar-hint {
   color: var(--chakra-colors-gray-600);
   font-size: 11px;

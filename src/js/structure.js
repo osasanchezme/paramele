@@ -15,6 +15,7 @@ import repair from "./repair";
 import pyniteWasm from "./pyniteWasm";
 import solverCredentials from "./solverCredentials";
 import mesher from "./mesher";
+import resultsLayer from "./resultsLayer";
 
 const PYNITE_SERVER_URL = "http://127.0.0.1:5013";
 
@@ -90,8 +91,8 @@ const removeMesh = () => {
 const solveStructure = () => {
   let global_settings = getState("settings")["global"];
   const { solver_engine } = global_settings;
-  // PyNite only takes meshed plates
-  if (solver_engine !== "skyciv" && !isMeshing() && Object.keys(getState("structure").plates).length > 0) {
+  // PyNite only takes meshed plates. SkyCiv would mesh them itself, but its mesh does not come back, so the plate results could not be drawn
+  if (!isMeshing() && Object.keys(getState("structure").plates).length > 0) {
     setMeshing(true);
     const structure_mesh = state.getGlobalVariable("structure_mesh");
     notification.notify(
@@ -106,9 +107,9 @@ const solveStructure = () => {
   let structure = repair.repairStructuralModel(getState("structure"), solver_engine);
   if (solver_engine !== "pynite_wasm") notification.notify("info", "requested_solve", "", true, 90000);
   function setResults(results) {
+    // The renderer only draws the results on the geometry they were solved with
+    resultsLayer.tagResults(results, structure, solver_engine);
     state.setState(results, "results");
-    // The plate results are by meshed plate, the renderer only shows them while the mesh is the one solved
-    state.setGlobalVariable("results_meshed_plates", structure.meshed_plates || {});
     notification.notify("info", "results_saved", null, true);
     // Run the logic to get the results plot
     logic_runner.run();

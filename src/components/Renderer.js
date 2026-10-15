@@ -10,6 +10,8 @@ import EntityEditor from "./entity_editor";
 import drawingDimensions from "./drawing_dimensions";
 import { notify } from "./notification";
 import AxisIndicator from "./axis_indicator";
+import ResultsToolbar from "./results_toolbar";
+import resultsLayer from "../js/resultsLayer";
 import React from "react";
 
 const TOOL_SHORTCUTS = { m: "member", p: "plate", s: "support", l: "point_load", d: "distributed_load", a: "pressure", o: "moment", e: "delete" };
@@ -89,7 +91,9 @@ class Renderer extends React.Component {
   constructor(props) {
     super(props);
     this.drawing_state = getInitialDrawingState();
-    this.base_data = renderer.getData(this.drawing_state);
+    /** @type {import("../js/types").ParamEleResultsView} */
+    this.results_view = { component: "sum", scale: null, load_case: null };
+    this.updateBaseData();
     this.state = {
       data: this.base_data,
       layout: renderer.getLayout(),
@@ -102,6 +106,8 @@ class Renderer extends React.Component {
       can_undo: drawing.canUndo(),
       // Element being edited in place: its box, where it was clicked and its inputs
       editor: null,
+      displacement_results: this.displacement_results,
+      results_view: this.results_view,
     };
     this.updateRenderer = this.updateRenderer.bind(this);
     this.handleMainPlotRelayout = this.handleMainPlotRelayout.bind(this);
@@ -109,6 +115,7 @@ class Renderer extends React.Component {
     this.updateAxisIndicator = this.updateAxisIndicator.bind(this);
     this.axis_indicator = React.createRef();
     this.setDrawingState = this.setDrawingState.bind(this);
+    this.setResultsView = this.setResultsView.bind(this);
     this.handlePointerDown = this.handlePointerDown.bind(this);
     this.handlePointerMove = this.handlePointerMove.bind(this);
     this.handlePointerUp = this.handlePointerUp.bind(this);
@@ -269,10 +276,31 @@ class Renderer extends React.Component {
     if (scene && layout_scene && typeof scene.getCamera === "function") layout_scene.camera = scene.getCamera();
   }
   updateBaseData() {
-    this.base_data = renderer.getData(this.drawing_state);
+    let previous_results = this.displacement_results;
+    this.displacement_results = resultsLayer.getDisplacementResults(getState("structure"), this.results_view.load_case);
+    // Other results get their own automatic scale
+    if (previous_results && this.displacement_results && previous_results.max_displacement !== this.displacement_results.max_displacement)
+      this.results_view = { ...this.results_view, scale: null };
+    this.base_data = renderer.getData(this.drawing_state, this.getDeformedView());
     this.pick_candidates = null;
     // The element under the cursor may have moved, the next pointer move finds it again
     this.drawing_state = { ...this.drawing_state, hover_target: null };
+  }
+  /**
+   * The deformed shape is drawn while there are results for the structure and no drawing tool is active
+   */
+  getDeformedView() {
+    let { component, scale } = this.results_view;
+    if (!this.displacement_results || component === "none" || this.drawing_state.tool !== "none") return null;
+    return { results: this.displacement_results, component, scale: scale ?? this.displacement_results.auto_scale };
+  }
+  /**
+   * @param {Partial<import("../js/types").ParamEleResultsView>} update
+   */
+  setResultsView(update) {
+    this.results_view = { ...this.results_view, ...update };
+    this.updateBaseData();
+    this.updatePlotData();
   }
   /**
    * Plotly is only updated when the structure or what the drawing tools draw changes, not on hover
@@ -282,7 +310,13 @@ class Renderer extends React.Component {
     let structure = getState("structure");
     this.length_unit = structure.settings?.units?.length || "";
     let overlay = drawingLayer.getOverlayTraces(this.drawing_state, structure);
-    this.setState({ data: [...this.base_data, ...overlay], drawing_state: this.drawing_state, levels: this.getLevels(structure) });
+    this.setState({
+      data: [...this.base_data, ...overlay],
+      drawing_state: this.drawing_state,
+      levels: this.getLevels(structure),
+      displacement_results: this.displacement_results,
+      results_view: this.results_view,
+    });
   }
   /**
    * @param {Partial<import("../js/types").ParamEleDrawingState>} update
@@ -562,6 +596,9 @@ class Renderer extends React.Component {
             }}
             model_locked={this.props.model_locked}
           />
+        )}
+        {this.isShown() && this.state.displacement_results && tool === "none" && (
+          <ResultsToolbar results={this.state.displacement_results} view={this.state.results_view} onChange={this.setResultsView} />
         )}
         {this.state.hover_visual && <HoverVisual visual={this.state.hover_visual} />}
         {this.state.editor && (
