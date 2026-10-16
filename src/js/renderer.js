@@ -4,6 +4,7 @@ import state from "../state";
 import utils from "../utils";
 import drawingLayer from "./drawingLayer";
 import mesher from "./mesher";
+import pressures from "./pressures";
 import resultsLayer from "./resultsLayer";
 import sectionsLibrary from "./sectionsLibrary";
 import solidsLayer from "./solidsLayer";
@@ -162,7 +163,6 @@ function getData(drawing_state, results_view) {
   let magnitude_sources = {
     point_loads: [["x_mag", "y_mag", "z_mag"]],
     moments: [["x_mag", "y_mag", "z_mag"]],
-    pressures: [["x_mag", "y_mag", "z_mag"]],
     distributed_loads: [
       ["x_mag_A", "y_mag_A", "z_mag_A"],
       ["x_mag_B", "y_mag_B", "z_mag_B"],
@@ -177,6 +177,10 @@ function getData(drawing_state, results_view) {
       });
     });
   });
+  // The linear pressures (SkyCiv's) have their magnitudes at three points, and may keep components they do not use
+  Object.values(structure.pressures || {}).forEach(
+    (pressure_data) => (max_abs_mag = Math.max(max_abs_mag, pressures.getMaxMagnitude(pressure_data)))
+  );
   if (max_abs_mag == 0) max_abs_mag = 1;
 
   // Point loads
@@ -310,7 +314,15 @@ function getData(drawing_state, results_view) {
     let plate_data = structure.plates[pressure_data.plate_id];
     if (!plate_data || !Array.isArray(plate_data.nodes)) return;
     let plate_nodes = plate_data.nodes.map((node_id) => structure.nodes[node_id]).filter(Boolean);
-    let pressure = createPressure(plate_nodes, plate_data.rotZ, pressure_data, max_abs_mag, physical_load_size, show_proportional_loads);
+    let pressure = createPressure(
+      plate_nodes,
+      plate_data.rotZ,
+      pressure_data,
+      structure.nodes,
+      max_abs_mag,
+      physical_load_size,
+      show_proportional_loads
+    );
     if (!pressure) return;
     plotly_data.push({ ...pressure.trace, opacity: loads_opacity });
     drawingLayer.pushHandle(handles, "pressures", pressure_id, pressure.handle);
@@ -660,43 +672,55 @@ function createDistributedLoad(
 }
 
 /**
- * Arrows spread over a plate that end on it, with the outline of the plate through their tails
+ * Arrows spread over a plate that end on it, with the outline of the plate through their tails. The arrows of a linear
+ * pressure follow its value at each point, so their tails outline the trapezoid
  * @param {{x: number, y: number, z: number}[]} plate_nodes Corners of the plate, in order
  * @param {number} rot_z rotZ of the plate
- * @param {{x_mag: number, y_mag: number, z_mag: number, axes: string}} pressure_data Components in the global axes, or in the
- *  plate's local axes when axes is "local" ("global_projected" only changes the area they act on, not their direction)
+ * @param {import("../submodules/paramele-parsers/types").s3d_pressure} pressure_data Components in the global axes, or in
+ *  the plate's local axes when axes is "local" ("global_projected" only changes the area they act on, not their direction)
+ * @param {Object<string, {x: number, y: number, z: number}>} nodes Of the structure, for the points of a linear pressure
  * @returns {{trace: object, handle: {x: number, y: number, z: number}}|null}
  */
-function createPressure(plate_nodes, rot_z, pressure_data, max_abs_mag, physical_load_size, show_proportional_loads) {
+function createPressure(plate_nodes, rot_z, pressure_data, nodes, max_abs_mag, physical_load_size, show_proportional_loads) {
   let surface = mesher.getPlateSurfacePoints(plate_nodes, rot_z);
   if (!surface) return null;
-  let magnitudes = ["x", "y", "z"].map((axis) => Number(pressure_data[`${axis}_mag`]) || 0);
-  let direction = { x: magnitudes[0], y: magnitudes[1], z: magnitudes[2] };
-  if (pressure_data.axes === "local") {
+  let own_max = pressures.getMaxMagnitude(pressure_data);
+  if (own_max === 0) return null;
+  // Arrow length by unit pressure: the largest arrow of a pressure is as long as a load when they are not proportional
+  let length_scale = (show_proportional_loads ? physical_load_size / max_abs_mag : physical_load_size / own_max) || 0;
+  let field = pressures.getPressureField(pressure_data, nodes);
+  const getDirection = (point) => {
+    let magnitudes = field(point);
+    if (pressure_data.axes !== "local") return magnitudes;
     let { axes } = surface;
-    direction = {};
-    ["x", "y", "z"].forEach((axis) => (direction[axis] = magnitudes[0] * axes.x[axis] + magnitudes[1] * axes.y[axis] + magnitudes[2] * axes.z[axis]));
-  }
-  let magnitude = Math.hypot(direction.x, direction.y, direction.z);
-  if (magnitude === 0) return null;
-  let length = show_proportional_loads ? (physical_load_size * magnitude) / max_abs_mag : physical_load_size;
-  // Where the tails are, from a point on the plate
-  let tail = { x: (-direction.x * length) / magnitude, y: (-direction.y * length) / magnitude, z: (-direction.z * length) / magnitude };
+    return Object.fromEntries(
+      ["x", "y", "z"].map((axis) => [axis, magnitudes.x * axes.x[axis] + magnitudes.y * axes.y[axis] + magnitudes.z * axes.z[axis]])
+    );
+  };
+  // Where the tail of the arrow that ends on a point is
+  const getTail = (point) => {
+    let direction = getDirection(point);
+    return { x: point.x - direction.x * length_scale, y: point.y - direction.y * length_scale, z: point.z - direction.z * length_scale };
+  };
   let trace = { x: [], y: [], z: [], type: "scatter3d", mode: "lines", hoverinfo: "none", line: { width: 3, color: PRESSURE_COLOR } };
   [...surface.points, ...surface.edge_points].forEach((point) => {
-    let vector = new geom_utils.Vector(point.x + tail.x, point.y + tail.y, point.z + tail.z, point.x, point.y, point.z);
+    let tail = getTail(point);
+    let length = Math.hypot(point.x - tail.x, point.y - tail.y, point.z - tail.z);
+    // No arrow where there is no pressure (e.g. at the water level)
+    if (length < 1e-9 * physical_load_size) return;
+    let vector = new geom_utils.Vector(tail.x, tail.y, tail.z, point.x, point.y, point.z);
     let arrow = geom_utils.getPlotableArrow(vector, length);
     trace.x.push(...arrow.x, null);
     trace.y.push(...arrow.y, null);
     trace.z.push(...arrow.z, null);
   });
-  [...plate_nodes, plate_nodes[0]].forEach((node) => {
-    trace.x.push(node.x + tail.x);
-    trace.y.push(node.y + tail.y);
-    trace.z.push(node.z + tail.z);
+  [...surface.edge_points, surface.edge_points[0]].forEach((point) => {
+    let tail = getTail(point);
+    trace.x.push(tail.x);
+    trace.y.push(tail.y);
+    trace.z.push(tail.z);
   });
-  let { centroid } = surface;
-  return { trace, handle: { x: centroid.x + tail.x, y: centroid.y + tail.y, z: centroid.z + tail.z } };
+  return { trace, handle: getTail(surface.centroid) };
 }
 
 const renderer = { SETTINGS_HIDDEN_BY_RESULTS, getData, getLayout, getConfig };

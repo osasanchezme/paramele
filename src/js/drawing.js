@@ -27,6 +27,7 @@ const ESTIMATED_HEIGHTS = {
   structuralMoment: 150,
   structuralDistributedLoad: 330,
   structuralPressure: 170,
+  structuralTrapezoidalPressure: 330,
   structuralRectangleSection: 110,
   structuralCircularSection: 90,
   structuralMaterial: 150,
@@ -42,6 +43,7 @@ const DEPENDENT_TYPES = new Set([
   "structuralMoment",
   "structuralDistributedLoad",
   "structuralPressure",
+  "structuralTrapezoidalPressure",
 ]);
 // Inputs that take the section of a member and the material of a section or a plate
 const SECTION_HANDLE = "section_id-id-1";
@@ -546,6 +548,17 @@ const LOAD_AXES_OPTIONS = [
   { value: "global", copy: "axes_global" },
   { value: "local", copy: "axes_local" },
 ];
+const LOAD_DIRECTION_OPTIONS = AXES.map((axis) => ({ value: axis.toUpperCase(), copy: `axis_${axis}` }));
+const PRESSURE_AXES_FIELD = {
+  key: "axes",
+  kind: "axes",
+  options: LOAD_AXES_OPTIONS,
+  default: "global",
+  label_copy: "axes",
+  handles: ["axes-string-global"],
+  param_key: "Axes",
+  element_key: "axes",
+};
 const ENTITY_FIELDS = {
   structuralNode: AXES.map((axis) => ({
     key: axis,
@@ -583,16 +596,27 @@ const ENTITY_FIELDS = {
       param_key: `p${axis}`,
       element_key: `${axis}_mag`,
     })),
+    PRESSURE_AXES_FIELD,
+  ],
+  structuralTrapezoidalPressure: [
+    ...["1", "2", "3"].map((point) => ({
+      key: `p${point}`,
+      label: `p${point}`,
+      handles: [`p${point}_magnitude-value`],
+      param_key: `p${point}`,
+      element_key: `p${point}_magnitude`,
+    })),
     {
-      key: "axes",
-      kind: "axes",
-      options: LOAD_AXES_OPTIONS,
-      default: "global",
-      label_copy: "axes",
-      handles: ["axes-string-global"],
-      param_key: "Axes",
-      element_key: "axes",
+      key: "load_direction",
+      kind: "load_direction",
+      options: LOAD_DIRECTION_OPTIONS,
+      default: "Z",
+      label_copy: "load_direction",
+      handles: ["load_direction-string-Z"],
+      param_key: "Direction",
+      element_key: "load_direction",
     },
+    PRESSURE_AXES_FIELD,
   ],
   structuralPlate: [{ key: "thickness", label_copy: "thickness", handles: ["thickness-value"], param_key: "t", element_key: "thickness" }],
   structuralRectangleSection: [
@@ -637,6 +661,7 @@ const ENTITY_STRUCTURE_KEYS = {
   structuralMoment: "moments",
   structuralDistributedLoad: "distributed_loads",
   structuralPressure: "pressures",
+  structuralTrapezoidalPressure: "pressures",
   structuralPlate: "plates",
   structuralGenericSupport: "supports",
   structuralFixedSupport: "supports",

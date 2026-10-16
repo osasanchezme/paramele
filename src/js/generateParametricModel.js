@@ -1,6 +1,7 @@
 import { addEdgesArrayToTheEditor, addNodesArrayToTheEditor, addNodeToTheEditor, fitView, getEdgeObject, getZoom } from "../components/VisualEditor";
 import utils from "../utils";
 import { getProcessResponseObject } from "./processResponse";
+import pressuresUtils from "./pressures";
 
 class ParameleInterface {
   constructor(x_orig, y_orig, master_spacing) {
@@ -368,20 +369,46 @@ const generateParametricModel = (s3d_model, callback) => {
 
   // Process the pressures by magnitude and axes
   paramele_interface.spaceNodesGroup("parameters");
-  let pressures_with_axes = Object.fromEntries(
-    Object.entries(pressures).map(([pressure_id, pressure]) => [pressure_id, { ...pressure, axes: pressure.axes || "global" }])
-  );
-  let pressures_magnitudes = paramele_interface.findParameters(pressures_with_axes, {
+  let pressures_with_axes = Object.entries(pressures).map(([pressure_id, pressure]) => [
+    pressure_id,
+    { ...pressure, axes: pressure.axes || "global" },
+  ]);
+  let uniform_pressures = Object.fromEntries(pressures_with_axes.filter(([, pressure]) => !pressuresUtils.isLinear(pressure)));
+  let linear_pressures = Object.fromEntries(pressures_with_axes.filter(([, pressure]) => pressuresUtils.isLinear(pressure)));
+  let pressures_magnitudes = paramele_interface.findParameters(uniform_pressures, {
     x_mag: {},
     y_mag: {},
     z_mag: {},
     axes: { type: "string", target_handle: "axes-string-global" },
   });
   let pressures_dependencies = [{ key: "plate_id", group_name: "plates", target_handle: "plate_id-id", source_handle: "plate_out-id" }];
-  paramele_interface.addNodesAndEdgesFromParameters(pressures_with_axes, pressures_magnitudes, pressures_dependencies, {
+  paramele_interface.addNodesAndEdgesFromParameters(uniform_pressures, pressures_magnitudes, pressures_dependencies, {
     elements_group_name: "pressures",
     elements_node_type: "structuralPressure",
     elements_node_spacing: 2,
+  });
+  paramele_interface.spaceNodesGroup("parameters");
+  // The boxes are made with the first parameter, which every linear pressure has
+  let linear_parameters = paramele_interface.findParameters(linear_pressures, {
+    load_direction: { type: "string", target_handle: "load_direction-string-Z" },
+    p1_magnitude: {},
+    p2_magnitude: {},
+    p3_magnitude: {},
+    axes: { type: "string", target_handle: "axes-string-global" },
+  });
+  let linear_dependencies = [
+    ...pressures_dependencies,
+    ...pressuresUtils.POINT_KEYS.map((point) => ({
+      key: `${point}_point_id`,
+      group_name: "nodes",
+      target_handle: `${point}_point_id-id`,
+      source_handle: "node_out-id",
+    })),
+  ];
+  paramele_interface.addNodesAndEdgesFromParameters(linear_pressures, linear_parameters, linear_dependencies, {
+    elements_group_name: "pressures",
+    elements_node_type: "structuralTrapezoidalPressure",
+    elements_node_spacing: 3,
   });
 
   console.log(paramele_interface.log);

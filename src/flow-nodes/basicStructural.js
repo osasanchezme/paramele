@@ -254,6 +254,48 @@ function StructuralPressureExec(args) {
   };
 }
 
+// Trapezoidal pressure on a plate, as SkyCiv's linear pressures: one component along load_direction ("X", "Y" or "Z" of the
+// axes) that varies linearly over the plate, through the magnitudes at three points (node IDs, e.g. two at the water level
+// with 0 and one at the bottom of a wall for a hydrostatic pressure)
+const trapezoidal_pressure_target_ids = [
+  "plate_id-id",
+  "load_direction-string-Z",
+  "p1_point_id-id",
+  "p1_magnitude-value",
+  "p2_point_id-id",
+  "p2_magnitude-value",
+  "p3_point_id-id",
+  "p3_magnitude-value",
+  "axes-string-global",
+  "load_group-name-LG",
+];
+function StructuralTrapezoidalPressure({ data, id }) {
+  return (
+    <GenericInOutNode
+      node_label={localGetCopy("structuralTrapezoidalPressure")}
+      data={data}
+      id={id}
+      target_ids={trapezoidal_pressure_target_ids}
+      source_ids={["pressure_out-id"]}
+    ></GenericInOutNode>
+  );
+}
+
+function StructuralTrapezoidalPressureExec(args) {
+  let structural_args = utils.convertNodeToStructuralArgs(args, trapezoidal_pressure_target_ids);
+  let load_direction = String(structural_args.load_direction).trim().toUpperCase();
+  return {
+    "pressure_out-id": {
+      ...structural_args,
+      x_mag: 0,
+      y_mag: 0,
+      z_mag: 0,
+      load_distribution: "linear",
+      load_direction: ["X", "Y", "Z"].includes(load_direction) ? load_direction : "Z",
+    },
+  };
+}
+
 // Plate
 const plate_target_ids = ["nodes-ids", "thickness-value", "material_id-id-1"];
 function StructuralPlate({ data, id }) {
@@ -355,6 +397,7 @@ const BasicStructuralNodes = {
   StructuralPlateNode: { Node: StructuralPlate, Exec: StructuralPlateExec },
   StructuralMomentNode: { Node: StructuralMoment, Exec: StructuralMomentExec },
   StructuralPressureNode: { Node: StructuralPressure, Exec: StructuralPressureExec },
+  StructuralTrapezoidalPressureNode: { Node: StructuralTrapezoidalPressure, Exec: StructuralTrapezoidalPressureExec },
   StructuralMaterialNode: { Node: StructuralMaterial, Exec: StructuralMaterialExec },
 };
 

@@ -147,7 +147,7 @@
  */
 
 /**
- * @typedef {'inputNumber'|'variableRange'|'sumNumbers'|'multiplyNumbers'|'divideNumbers'|'roundNumber'|'powerNumber'|'rootNumber'|'sin'|'cos'|'tan'|'asin'|'acos'|'atan'|'deg2rad'|'structuralNode'|'structuralMember'|'structuralFixedSupport'|'structuralPinSupport'|'structuralGenericSupport'|'structuralPointLoad'|'structuralDistributedLoad'|'structuralPlate'|'structuralMoment'|'structuralPressure'|'structuralMaterial'|'structuralRectangleSection'|'structuralGenericSupport'|'nodesWrapper'|'structuralMemberResult'|'structuralNodeResult'|'dataDisplay2DPlot'} ParamEleNodesTypes
+ * @typedef {'inputNumber'|'variableRange'|'sumNumbers'|'multiplyNumbers'|'divideNumbers'|'roundNumber'|'powerNumber'|'rootNumber'|'sin'|'cos'|'tan'|'asin'|'acos'|'atan'|'deg2rad'|'structuralNode'|'structuralMember'|'structuralFixedSupport'|'structuralPinSupport'|'structuralGenericSupport'|'structuralPointLoad'|'structuralDistributedLoad'|'structuralPlate'|'structuralMoment'|'structuralPressure'|'structuralTrapezoidalPressure'|'structuralMaterial'|'structuralRectangleSection'|'structuralGenericSupport'|'nodesWrapper'|'structuralMemberResult'|'structuralNodeResult'|'dataDisplay2DPlot'} ParamEleNodesTypes
  */
 
 /**

@@ -135,22 +135,58 @@ def rotateVector(vx, vy, rot_z):
     return vx * c + vy * s, -vx * s + vy * c
 
 
-def quadNodalWeights(quad):
-    """Area of the quad that goes to each node for a uniform pressure (consistent loads, 2x2 Gauss integration),
-    and the quad's area vector (normal times area)."""
+def quadNodalForces(quad, getForcePerArea):
+    """Consistent nodal forces of a pressure over a quad (2x2 Gauss integration of the pressure times each node's shape
+    function). getForcePerArea(point, area_vector) is the force by unit area at a point, given the quad's area vector there
+    (normal times area)."""
     corners = [nodeVector(node) for node in (quad.i_node, quad.j_node, quad.m_node, quad.n_node)]
-    weights = np.zeros(4)
-    area_vector = np.zeros(3)
+    forces = [np.zeros(3) for _ in corners]
     gp = 1 / 3**0.5
     for xi in (-gp, gp):
         for eta in (-gp, gp):
             shape = [(1 + cxi * xi) * (1 + ceta * eta) / 4 for cxi, ceta in QUAD_CORNERS]
+            point = sum(n * corner for n, corner in zip(shape, corners))
             d_xi = sum((cxi * (1 + ceta * eta) / 4) * corner for (cxi, ceta), corner in zip(QUAD_CORNERS, corners))
             d_eta = sum((ceta * (1 + cxi * xi) / 4) * corner for (cxi, ceta), corner in zip(QUAD_CORNERS, corners))
-            jacobian = np.cross(d_xi, d_eta)
-            weights += np.array(shape) * np.linalg.norm(jacobian)
-            area_vector += jacobian
-    return weights, area_vector
+            force = getForcePerArea(point, np.cross(d_xi, d_eta))
+            for i, n in enumerate(shape):
+                forces[i] += n * force
+    return forces
+
+
+def linearPressureField(pressure_data, model):
+    """Magnitude of a SkyCiv linear pressure at a point: on the plane through the magnitudes at its three points (nodes),
+    measured in the plane of those points."""
+    keys = ("p1", "p2", "p3")
+    points = []
+    for key in keys:
+        node_name = f"N{pressure_data.get(f'{key}_point_id')}"
+        if node_name not in model.nodes:
+            raise Exception(f"Point {pressure_data.get(f'{key}_point_id')} of a linear pressure is not a node")
+        points.append(nodeVector(model.nodes[node_name]))
+    magnitudes = [float(pressure_data.get(f"{key}_magnitude") or 0) for key in keys]
+    e1, e2 = points[1] - points[0], points[2] - points[0]
+    gram = np.array([[e1 @ e1, e1 @ e2], [e1 @ e2, e2 @ e2]])
+    # Points in a line: only the first magnitude is known everywhere
+    if abs(np.linalg.det(gram)) <= 1e-12 * gram[0, 0] * gram[1, 1]:
+        return lambda point: magnitudes[0]
+    a, b = np.linalg.solve(gram, [magnitudes[1] - magnitudes[0], magnitudes[2] - magnitudes[0]])
+    gradient = a * e1 + b * e2
+    return lambda point: magnitudes[0] + gradient @ (point - points[0])
+
+
+def pressureField(pressure_data, model):
+    """Components of a pressure at a point, in its axes: uniform (x_mag, y_mag, z_mag), or SkyCiv's linear pressures (one
+    component, load_direction, through the magnitudes at three points)."""
+    if pressure_data.get("load_distribution") == "linear":
+        direction = str(pressure_data.get("load_direction", "")).upper()
+        if direction not in ("X", "Y", "Z"):
+            raise Exception(f"Linear pressure direction {pressure_data.get('load_direction')} is not supported")
+        unit = np.eye(3)["XYZ".index(direction)]
+        field = linearPressureField(pressure_data, model)
+        return lambda point: field(point) * unit
+    magnitudes = np.array([float(pressure_data.get(f"{axis}_mag") or 0) for axis in "xyz"])
+    return lambda point: magnitudes
 
 
 def addPlates(model, model_data, used_load_cases):
@@ -186,24 +222,23 @@ def addPlates(model, model_data, used_load_cases):
         if plate_id not in quads_by_plate:
             raise Exception(f"Pressure {pressure_id} is on plate {plate_id}, which does not exist")
         axes = pressure_data.get("axes", "global")
-        magnitudes = np.array([float(pressure_data.get(f"{axis}_mag") or 0) for axis in "xyz"])
+        if axes not in ("global", "global_projected", "local"):
+            raise Exception(f"Pressure axes {axes} are not supported")
+        field = pressureField(pressure_data, model)
         load_case = pressure_data["load_group"]
         if load_case not in used_load_cases:
             used_load_cases.append(load_case)
         for quad_id in quads_by_plate[plate_id]:
             quad = model.quads[f"Q{quad_id}"]
-            weights, area_vector = quadNodalWeights(quad)
             if axes == "local":
-                parent_x, parent_y, normal = parentAxes(quad, quads_rot_z[quad_id])
-                force = (magnitudes[0] * parent_x + magnitudes[1] * parent_y + magnitudes[2] * normal) * weights.sum()
-                node_forces = [force * weight / weights.sum() for weight in weights]
+                local_axes = np.array(parentAxes(quad, quads_rot_z[quad_id]))
+                getForcePerArea = lambda point, area_vector: (field(point) @ local_axes) * np.linalg.norm(area_vector)
             elif axes == "global_projected":
                 # Each component acts on the area projected on the plane perpendicular to it
-                node_forces = [magnitudes * np.abs(area_vector) * weight / weights.sum() for weight in weights]
-            elif axes == "global":
-                node_forces = [magnitudes * weight for weight in weights]
+                getForcePerArea = lambda point, area_vector: field(point) * np.abs(area_vector)
             else:
-                raise Exception(f"Pressure axes {axes} are not supported")
+                getForcePerArea = lambda point, area_vector: field(point) * np.linalg.norm(area_vector)
+            node_forces = quadNodalForces(quad, getForcePerArea)
             for node, node_force in zip((quad.i_node, quad.j_node, quad.m_node, quad.n_node), node_forces):
                 for direction, value in zip(("FX", "FY", "FZ"), node_force):
                     if value != 0:

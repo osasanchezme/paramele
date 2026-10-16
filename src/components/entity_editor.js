@@ -13,6 +13,7 @@ const TYPE_COPIES = {
   structuralMoment: "moments",
   structuralDistributedLoad: "distributed_loads",
   structuralPressure: "pressures",
+  structuralTrapezoidalPressure: "pressures",
   structuralGenericSupport: "supports",
   structuralFixedSupport: "supports",
   structuralPinSupport: "supports",
