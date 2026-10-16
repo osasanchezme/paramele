@@ -177,6 +177,8 @@
  * @property {string} node_label Label of the variableRange node that is iterated
  * @property {number} value Value that the iterated node takes in this possibility
  * @property {string[]} node_ids Structural nodes created by this possibility
+ * @property {{bottom: number, top: number}|null} drawn_z Lowest and highest Z drawn for it, supports and load arrows included
+ * (null when it has no nodes)
  */
 
 exports.unused = {};

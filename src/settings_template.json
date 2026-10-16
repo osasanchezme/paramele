@@ -68,11 +68,6 @@
             ],
             "tab": "structure_tab"
         },
-        "spacing_between_combinations": {
-            "default": 1,
-            "type": "text",
-            "tab": "structure_tab"
-        },
         "mesh_plates": {
             "default": false,
             "type": "check",

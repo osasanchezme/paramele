@@ -289,7 +289,7 @@ function multiSpanBeam() {
 const SETTINGS = {
   general: { auto_update: true, mini_map: false, show_nodes: true, side_by_side: true, show_properties_panel: false, show_parameters_panel: true },
   layout: { renderer_width: 45, editor_width: 55, panel_width: 0, renderer_right: 55 },
-  global: { sliders_mode: "sliders_single", spacing_between_combinations: 1, solver_engine: "pynite_wasm" },
+  global: { sliders_mode: "sliders_single", solver_engine: "pynite_wasm" },
 };
 
 const SAMPLES = [

@@ -129,7 +129,6 @@
         "sliders_mode": "For ranges calculate...",
         "sliders_all": "All the possibilities",
         "sliders_single": "Only one possibility",
-        "spacing_between_combinations": "Spacing between combinations",
         "physical_load_size": "Physical size to scale loads",
         "show_proportional_loads": "Display proportional loads",
         "mesh_plates": "Mesh the plates",

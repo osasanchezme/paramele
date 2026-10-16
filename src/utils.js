@@ -237,13 +237,6 @@ function updatePropertiesPanel() {
   window.ParamEle.updateNodesFromLocalState();
 }
 
-function findHighestZCoordinate(nodes) {
-  let highest_z = 0;
-  Object.values(nodes).forEach((node) => {
-    if (node.z > highest_z) highest_z = node.z;
-  });
-  return highest_z;
-}
 function allIndexOf(arr, value) {
   const indexes = [];
 
@@ -334,7 +327,6 @@ const utils = {
   updatePropertiesPanel,
   updateNavigator,
   openGlobalSettings,
-  findHighestZCoordinate,
   allIndexOf,
   getUser,
   setUser,

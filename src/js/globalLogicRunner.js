@@ -4,6 +4,7 @@ import utils from "../utils";
 import mesher from "./mesher";
 import settings_template from "../settings_template.json";
 import modelLinks from "./modelLinks";
+import supportGlyphs from "./supportGlyphs";
 
 const STRUCTURAL_RESULT_TYPES = new Set([
   "node",
@@ -18,6 +19,10 @@ const STRUCTURAL_RESULT_TYPES = new Set([
   "material",
 ]);
 const ACCUMULATED_LIST_TYPES = new Set(["member_list", "node_list"]);
+// Gap between stacked possibilities, as a fraction of the larger of their two heights
+const COMBINATION_GAP_RATIO = 0.5;
+// Flat possibilities (beams, slabs) are given at least this fraction of their plan size as height, so they do not stack too close
+const COMBINATION_MIN_HEIGHT_RATIO = 0.25;
 
 /**
  * Empties the member/node list outputs of the model and of the wrappers' inner models. They accumulate IDs across the
@@ -57,6 +62,92 @@ function addGroupOrigins(group_origins, ids_before, node_id) {
       group_origins[structure_key][element_id] = node_id;
     });
   });
+}
+
+/**
+ * Moves the structural nodes of a possibility above the previous one. Each possibility is calculated where its boxes
+ * place it, and the gap to the previous one grows with the taller of the two, so tall possibilities do not crowd and
+ * short ones do not drift apart. The gap is left between what the renderer draws, supports and load arrows included.
+ * @param {string[]} node_ids Structural nodes of the possibility
+ * @param {{bottom: number, top: number, height: number}|null} previous_box Of the previous possibility, null for the first one (it is not moved)
+ * @returns {{bottom: number, top: number, height: number}|null} Of this possibility once moved (bottom and top as drawn), the
+ * previous one when it has no nodes
+ */
+function stackCombination(node_ids, previous_box) {
+  const structure = getState("structure");
+  const structural_nodes = node_ids.map((node_id) => structure.nodes[node_id]).filter(Boolean);
+  if (structural_nodes.length === 0) return previous_box;
+  const min = { x: Infinity, y: Infinity, z: Infinity };
+  const max = { x: -Infinity, y: -Infinity, z: -Infinity };
+  structural_nodes.forEach((node) => {
+    ["x", "y", "z"].forEach((axis) => {
+      min[axis] = Math.min(min[axis], node[axis]);
+      max[axis] = Math.max(max[axis], node[axis]);
+    });
+  });
+  const plan_size = Math.max(max.x - min.x, max.y - min.y);
+  const height = Math.max(max.z - min.z, COMBINATION_MIN_HEIGHT_RATIO * plan_size) || 1;
+  const drawn = getDrawnZRange(structure, new Set(node_ids), min.z, max.z);
+  if (!previous_box) return { ...drawn, height };
+  const gap = COMBINATION_GAP_RATIO * Math.max(previous_box.height, height);
+  // Rounded so the moved coordinates stay as clean as the ones the boxes give
+  const shift = Math.round((previous_box.top + gap - drawn.bottom) * 1000) / 1000;
+  structural_nodes.forEach((node) => (node.z += shift));
+  state.setState(structure, "structure");
+  return { bottom: drawn.bottom + shift, top: drawn.top + shift, height };
+}
+
+/**
+ * Lowest and highest Z that the renderer draws for some structural nodes: the nodes, the symbols of their supports
+ * (under them) and the arrows of their loads (as long as the load size, on the side of the arrow's tail)
+ * @param {object} structure
+ * @param {Set<string>} node_ids
+ * @param {number} min_z Of the nodes
+ * @param {number} max_z Of the nodes
+ * @returns {{bottom: number, top: number}}
+ */
+function getDrawnZRange(structure, node_ids, min_z, max_z) {
+  const load_size = Number(getState("settings")["global"]["physical_load_size"]) || 0;
+  let bottom = min_z;
+  let top = max_z;
+  const has = (node_id) => node_ids.has(String(node_id));
+  // An arrow along (x, y, z) whose tail is "sign" times the vector away from the node
+  const addArrow = (node_id, x, y, z, sign) => {
+    const node = structure.nodes[node_id];
+    const length = Math.hypot(x, y, z);
+    if (!node || !length) return;
+    const tail_z = node.z + (sign * load_size * z) / length;
+    bottom = Math.min(bottom, tail_z);
+    top = Math.max(top, tail_z);
+  };
+  Object.values(structure.supports).forEach(({ node }) => {
+    if (has(node)) bottom = Math.min(bottom, structure.nodes[node].z - supportGlyphs.SUPPORT_DEPTH);
+  });
+  // Forces point at their node and moments start from it
+  Object.values(structure.point_loads).forEach(({ node, x_mag, y_mag, z_mag }) => {
+    if (has(node)) addArrow(node, x_mag, y_mag, z_mag, -1);
+  });
+  Object.values(structure.moments).forEach(({ node, x_mag, y_mag, z_mag }) => {
+    if (has(node)) addArrow(node, x_mag, y_mag, z_mag, 1);
+  });
+  Object.values(structure.distributed_loads).forEach((load) => {
+    const member = structure.members[load.member];
+    if (!member || !has(member.node_A)) return;
+    addArrow(member.node_A, load.x_mag_A, load.y_mag_A, load.z_mag_A, -1);
+    addArrow(member.node_B, load.x_mag_B, load.y_mag_B, load.z_mag_B, -1);
+  });
+  // Pressures follow the axes of their plate, so they can go either way
+  Object.values(structure.pressures || {}).forEach(({ plate_id }) => {
+    const plate = structure.plates[plate_id];
+    if (!plate || !Array.isArray(plate.nodes) || !has(plate.nodes[0])) return;
+    plate.nodes.forEach((node_id) => {
+      const node = structure.nodes[node_id];
+      if (!node) return;
+      bottom = Math.min(bottom, node.z - load_size);
+      top = Math.max(top, node.z + load_size);
+    });
+  });
+  return { bottom, top };
 }
 
 function run(model) {
@@ -135,7 +226,6 @@ function calculateModel(model, is_from_main_model) {
   const library = utils.getNodesLibrary();
   const global_settings = getState("settings")["global"];
   const iterate_sliders = global_settings["sliders_mode"] === "sliders_all";
-  const spacing_between_combinations = global_settings["spacing_between_combinations"];
   // Preprocess nodes
   nodes.forEach((node, i) => {
     nodes_type[node.id] = node.type;
@@ -199,8 +289,10 @@ function calculateModel(model, is_from_main_model) {
   // If there are no range nodes, add null
   if (model_combinations.length === 0) model_combinations.push(null);
 
+  // Top and height of the last possibility, to stack the next one above it
+  let previous_combination_box = null;
   // Run all the combinations
-  model_combinations.forEach((model_combination, combination_i) => {
+  model_combinations.forEach((model_combination) => {
     let structure = getState("structure");
     let structure_id_state = {};
     Object.keys(structure).forEach((structure_key) => {
@@ -232,17 +324,9 @@ function calculateModel(model, is_from_main_model) {
 
     // Update the model with the given combination
     if (model_combination !== null) {
-      let structural_nodes = structure["nodes"];
-      state.setGlobalVariable(
-        "structure_nodes_shift",
-        utils.findHighestZCoordinate(structural_nodes) + spacing_between_combinations * (combination_i > 0 ? 1 : 0)
-      );
       Object.entries(model_combination).forEach(([node_id, new_node_data]) => {
         nodes_data[node_id] = new_node_data;
       });
-    } else if (is_from_main_model) {
-      // Case with no range iterators and not from a wrapper node (there should not be shift)
-      state.setGlobalVariable("structure_nodes_shift", 0);
     }
     const previous_node_ids = new Set(Object.keys(structure["nodes"]));
     // Run all the logic
@@ -275,9 +359,8 @@ function calculateModel(model, is_from_main_model) {
           // For structural nodes
           let structure_key = res_type + "s";
           actual_res_val = getNextStructuralId(structure_key);
-          // Shift the nodes if needed and store the node ID for the lists
+          // Store the node ID for the lists
           if (res_type === "node") {
-            res_val.z += state.getGlobalVariable("structure_nodes_shift");
             state.setGlobalVariable("last_structural_node", actual_res_val);
           }
           // Store the member ID for the lists
@@ -322,14 +405,20 @@ function calculateModel(model, is_from_main_model) {
       nodes[nodes_i[node_id]]["data"]["input"] = result_input;
       if (structure_changed) state.setState(structure, "structure");
     });
-    if (is_from_main_model && iterate_sliders && model_combination !== null && max_range_node.data.iterating) {
+    if (iterate_sliders && model_combination !== null && max_range_node.data.iterating) {
       // Wrapper nodes add their own structural nodes, so the new IDs are read from the structure
       const node_ids = Object.keys(getState("structure")["nodes"]).filter((node_id) => !previous_node_ids.has(node_id));
-      combinations.push({
-        node_label: max_range_node.data.custom_label || max_range_node.id,
-        value: model_combination[max_range_node.id]["slider-value"],
-        node_ids,
-      });
+      // The possibilities of a group box are stacked too, inside the possibility of the main model that contains them
+      const combination_box = stackCombination(node_ids, previous_combination_box);
+      const is_empty = combination_box === previous_combination_box;
+      previous_combination_box = combination_box;
+      if (is_from_main_model)
+        combinations.push({
+          node_label: max_range_node.data.custom_label || max_range_node.id,
+          value: model_combination[max_range_node.id]["slider-value"],
+          node_ids,
+          drawn_z: is_empty ? null : { bottom: combination_box.bottom, top: combination_box.top },
+        });
     }
   });
 
