@@ -149,7 +149,8 @@
         "visibility_panel": "Visibility",
         "visibility_more": "All the settings",
         "close_visibility_panel": "Close",
-        "visibility_hidden_by_results": "The sections and the plate thickness are not drawn while a result is shown."
+        "visibility_hidden_by_results": "The sections and the plate thickness are not drawn while a result is shown.",
+        "units_tab": "Units"
     },
     "solver_status": {
         "server_checking": "Checking whether the local server is running...",
@@ -374,7 +375,9 @@
         "sample_not_found_title": "Sample not found",
         "sample_not_found_desc": "The sample in the link does not exist. Pick one from File > Samples.",
         "sample_load_failed_title": "Could not open the sample",
-        "sample_load_failed_desc": "Check your connection and try again."
+        "sample_load_failed_desc": "Check your connection and try again.",
+        "units_converted_title": "Units changed",
+        "units_converted_desc": "The numbers of the boxes were converted to the new units."
     },
     "navigator":{
         "model": "Main model"
@@ -667,5 +670,31 @@
         "close_panel": "Close",
         "no_sections": "There are no sections yet",
         "no_materials": "There are no materials yet"
+    },
+    "units": {
+        "system": "Unit system",
+        "system_metric": "Metric",
+        "system_imperial": "Imperial",
+        "system_help": "Each quantity takes a unit of this system only, metric and imperial units are never mixed.",
+        "conversion_help": "When the units change, the numbers of the boxes are converted so the structure stays the same.",
+        "dimensionless": "No unit",
+        "length": "Length",
+        "section_length": "Section dimension",
+        "translation": "Displacement",
+        "area": "Area",
+        "section_area": "Section area",
+        "inertia": "Moment of inertia",
+        "force": "Force",
+        "moment": "Moment",
+        "distributed_force": "Distributed load",
+        "pressure": "Pressure",
+        "material_strength": "Material strength",
+        "density": "Density",
+        "angle": "Angle",
+        "adapt": "Adapt to links",
+        "chip_label": "Unit",
+        "chip_pinned": "click to change it",
+        "chip_inferred": "Unit taken from its links",
+        "chip_free": "No unit yet: it takes the one of what it is linked to. Click to give it one"
     }
 }

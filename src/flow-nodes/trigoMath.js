@@ -12,8 +12,10 @@ const trigo_source_ids = ["result_out-value"];
  * Creates a box with one number in and the result of the given function out
  * @param {string} copy_key Key of the box name in the language files
  * @param {function(number): number} math_function
+ * @param {string} input_unit Fixed unit of the number in ("rad", "deg" or "dimensionless")
+ * @param {string} output_unit Fixed unit of the result
  */
-function createTrigonometricNode(copy_key, math_function) {
+function createTrigonometricNode(copy_key, math_function, input_unit, output_unit) {
   function Node({ data, id }) {
     return (
       <GenericInOutNode
@@ -29,17 +31,18 @@ function createTrigonometricNode(copy_key, math_function) {
     args = utils.convertNodeToStructuralArgs(args, trigo_target_ids);
     return { "result_out-value": { value: math_function(args["num"]), ...args } };
   }
-  return { Node, Exec };
+  let units = { handles: { "num-value": `unit:${input_unit}`, "result_out-value": `unit:${output_unit}` } };
+  return { Node, Exec, units };
 }
 
 const TrigonometricNodes = {
-  MathSinNode: createTrigonometricNode("sin", Math.sin),
-  MathCosNode: createTrigonometricNode("cos", Math.cos),
-  MathTanNode: createTrigonometricNode("tan", Math.tan),
-  MathAsinNode: createTrigonometricNode("asin", Math.asin),
-  MathAcosNode: createTrigonometricNode("acos", Math.acos),
-  MathAtanNode: createTrigonometricNode("atan", Math.atan),
-  MathDeg2RadNode: createTrigonometricNode("deg2rad", (num) => (num * Math.PI) / 180),
+  MathSinNode: createTrigonometricNode("sin", Math.sin, "rad", "dimensionless"),
+  MathCosNode: createTrigonometricNode("cos", Math.cos, "rad", "dimensionless"),
+  MathTanNode: createTrigonometricNode("tan", Math.tan, "rad", "dimensionless"),
+  MathAsinNode: createTrigonometricNode("asin", Math.asin, "dimensionless", "rad"),
+  MathAcosNode: createTrigonometricNode("acos", Math.acos, "dimensionless", "rad"),
+  MathAtanNode: createTrigonometricNode("atan", Math.atan, "dimensionless", "rad"),
+  MathDeg2RadNode: createTrigonometricNode("deg2rad", (num) => (num * Math.PI) / 180, "deg", "rad"),
 };
 
 export default TrigonometricNodes;

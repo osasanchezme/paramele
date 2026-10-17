@@ -1,3 +1,5 @@
+import units from "./js/units";
+
 function getResult(results, result_name, result_direction, operation_type, element_id, lc_name) {
   let lc_results = results[lc_name];
   let actual_result = {};
@@ -119,6 +121,45 @@ function getResult(results, result_name, result_direction, operation_type, eleme
   return final_result;
 }
 
+// Quantity of each result the result boxes show, and the unit the solvers return it in (see resultsLayer.tagResults)
+const RESULT_QUANTITIES = {
+  moment: { quantity: "moment", unit_key: "moment_unit", fallback: `${units.SOLVER_UNITS.force}-${units.SOLVER_UNITS.length}` },
+  shear: { quantity: "force", unit_key: "force_unit", fallback: units.SOLVER_UNITS.force },
+  axial: { quantity: "force", unit_key: "force_unit", fallback: units.SOLVER_UNITS.force },
+  reaction: { quantity: "force", unit_key: "force_unit", fallback: units.SOLVER_UNITS.force },
+  displacement: { quantity: "translation", unit_key: "displacement_unit", fallback: units.SOLVER_UNITS.translation },
+  "local-displacement": { quantity: "translation", unit_key: "displacement_unit", fallback: units.SOLVER_UNITS.translation },
+};
+
+/**
+ * Factor from a result as the solver returned it to the units of the model, and how that unit is written
+ * @param {object} results
+ * @param {string} result_name
+ * @param {string|number} lc_name
+ * @param {object} model_units Settings units
+ * @returns {{factor: number, label: string}}
+ */
+function getResultUnit(results, result_name, lc_name, model_units) {
+  let definition = RESULT_QUANTITIES[result_name];
+  if (!definition) return { factor: 1, label: "" };
+  let result_unit = results?.[lc_name]?.[definition.unit_key] || definition.fallback;
+  return {
+    factor: units.getResultFactor(result_unit, definition.quantity, model_units),
+    label: units.formatUnit(units.getQuantityUnit(definition.quantity), model_units),
+  };
+}
+
+/**
+ * A result of getResult multiplied by a factor (the stations of a full result are kept)
+ * @param {any} result
+ * @param {number} factor
+ */
+function scaleResult(result, factor) {
+  if (typeof result === "number") return result * factor;
+  if (result && Array.isArray(result.y)) return { ...result, y: result.y.map((value) => value * factor) };
+  return result;
+}
+
 function interpolateResult(stations_results, desired_station) {
   if (isNaN(Number(desired_station))) {
     let result_values = Object.values(stations_results);
@@ -155,5 +196,7 @@ function interpolateResult(stations_results, desired_station) {
 
 const structural_utils = {
   getResult,
+  getResultUnit,
+  scaleResult,
 };
 export default structural_utils;

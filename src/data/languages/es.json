@@ -149,7 +149,8 @@
         "visibility_panel": "Visualización",
         "visibility_more": "Toda la configuración",
         "close_visibility_panel": "Cerrar",
-        "visibility_hidden_by_results": "Las secciones y el espesor de las placas no se dibujan mientras se muestra un resultado."
+        "visibility_hidden_by_results": "Las secciones y el espesor de las placas no se dibujan mientras se muestra un resultado.",
+        "units_tab": "Unidades"
     },
     "solver_status": {
         "server_checking": "Verificando si el servidor local está activo...",
@@ -361,7 +362,9 @@
         "sample_not_found_title": "Ejemplo no encontrado",
         "sample_not_found_desc": "El ejemplo del enlace no existe. Elige uno en Archivo > Ejemplos.",
         "sample_load_failed_title": "No se pudo abrir el ejemplo",
-        "sample_load_failed_desc": "Revisa tu conexión e inténtalo de nuevo."
+        "sample_load_failed_desc": "Revisa tu conexión e inténtalo de nuevo.",
+        "units_converted_title": "Unidades cambiadas",
+        "units_converted_desc": "Los números de las cajas se convirtieron a las nuevas unidades."
     },
     "navigator": {
         "model": "Modelo principal"
@@ -669,5 +672,31 @@
         "close_panel": "Cerrar",
         "no_sections": "Todavía no hay secciones",
         "no_materials": "Todavía no hay materiales"
+    },
+    "units": {
+        "system": "Sistema de unidades",
+        "system_metric": "Métrico",
+        "system_imperial": "Imperial",
+        "system_help": "Cada magnitud solo toma unidades de este sistema, nunca se mezclan unidades métricas e imperiales.",
+        "conversion_help": "Al cambiar las unidades, los números de las cajas se convierten para que la estructura siga siendo la misma.",
+        "dimensionless": "Sin unidad",
+        "length": "Longitud",
+        "section_length": "Dimensión de sección",
+        "translation": "Desplazamiento",
+        "area": "Área",
+        "section_area": "Área de sección",
+        "inertia": "Momento de inercia",
+        "force": "Fuerza",
+        "moment": "Momento",
+        "distributed_force": "Carga distribuida",
+        "pressure": "Presión",
+        "material_strength": "Resistencia del material",
+        "density": "Densidad",
+        "angle": "Ángulo",
+        "adapt": "Adaptar a las conexiones",
+        "chip_label": "Unidad",
+        "chip_pinned": "clic para cambiarla",
+        "chip_inferred": "Unidad tomada de sus conexiones",
+        "chip_free": "Aún sin unidad: toma la de lo que se conecte. Clic para darle una"
     }
 }

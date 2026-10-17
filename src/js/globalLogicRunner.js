@@ -4,6 +4,8 @@ import utils from "../utils";
 import mesher from "./mesher";
 import settings_template from "../settings_template.json";
 import modelLinks from "./modelLinks";
+import units from "./units";
+import unitInference from "./unitInference";
 
 const STRUCTURAL_RESULT_TYPES = new Set([
   "node",
@@ -64,8 +66,10 @@ function run(model) {
     console.log("There are places not passing the model to the logic runner");
     model = getState("model");
   }
-  // Restart the structure
-  state.setState(utils.getEmptyStructuralModel(), "structure");
+  // Restart the structure, in the units of the model
+  let empty_structure = utils.getEmptyStructuralModel();
+  empty_structure.settings.units = units.toS3DUnits(getState("settings").units);
+  state.setState(empty_structure, "structure");
   clearAccumulatedLists(model);
   let { nodes, origins, group_origins, combinations } = calculateModel(model, true);
   // Lets the drawing tools find the box behind an element clicked in the renderer
@@ -114,6 +118,18 @@ function getMeshSize(global_settings) {
 }
 
 /**
+ * Value that goes through a link, converted to the unit of the input it goes into
+ * @param {any} value
+ * @param {number} factor
+ */
+function convertLinkedValue(value, factor) {
+  if (factor === 1 || value === null || value === undefined || value === "") return value;
+  if (Array.isArray(value)) return value.map((item) => convertLinkedValue(item, factor));
+  const number = Number(value);
+  return Number.isFinite(number) ? number * factor : value;
+}
+
+/**
  *
  * @param {object} model - Processes a reactflow model of nodes and edges to calculate their outputs
  * @param {boolean} is_from_main_model
@@ -136,6 +152,10 @@ function calculateModel(model, is_from_main_model) {
   const global_settings = getState("settings")["global"];
   const iterate_sliders = global_settings["sliders_mode"] === "sliders_all";
   const spacing_between_combinations = global_settings["spacing_between_combinations"];
+  const model_units = units.repairUnits(getState("settings").units);
+  // Units of the value handles: links between units of the same dimension convert the value
+  const unit_inference = unitInference.inferUnits(model, library.units, model_units);
+  if (is_from_main_model) state.setGlobalVariable("unit_inference", unit_inference);
   // Preprocess nodes
   nodes.forEach((node, i) => {
     nodes_type[node.id] = node.type;
@@ -154,7 +174,21 @@ function calculateModel(model, is_from_main_model) {
       };
     if (!connected_nodes[edge.target]["sources"].hasOwnProperty(edge.targetHandle)) connected_nodes[edge.target]["sources"][edge.targetHandle] = [];
     connected_nodes[edge.target]["args"][edge.targetHandle] = null;
-    connected_nodes[edge.target]["sources"][edge.targetHandle].push({ source_node_id: edge.source, source_handle_id: edge.sourceHandle });
+    connected_nodes[edge.target]["sources"][edge.targetHandle].push({
+      source_node_id: edge.source,
+      source_handle_id: edge.sourceHandle,
+      unit_factor: unit_inference.edges[edge.id]?.factor ?? 1,
+    });
+  });
+  // Defaults of the unlinked inputs are written in the units of the solvers
+  Object.entries(connected_nodes).forEach(([node_id, node]) => {
+    const declared = library.units[node.type]?.handles || {};
+    Object.entries(declared).forEach(([handle_id, quantity]) => {
+      if (node.sources[handle_id] || quantity.startsWith("unit:")) return;
+      const default_value = Number(handle_id.split("-")[2]);
+      if (!Number.isFinite(default_value) || default_value === 0) return;
+      node.args[handle_id] = units.convertQuantity(default_value, quantity, units.SOLVER_UNITS, model_units);
+    });
   });
 
   // Get all the combinations using the node with the largest number of possibilities
@@ -179,7 +213,10 @@ function calculateModel(model, is_from_main_model) {
     if (iterate_sliders && step > 0) {
       max_range_node.data.iterating = true;
       let iterating_node_data = { node_label: max_range_node.data.custom_label || max_range_node.id, variation_values: [] };
-      for (let j = start; j <= end; j += step) {
+      // Each value from its index, adding the step up would carry its rounding errors (45.931758530219994)
+      const count = Math.floor((end - start) / step + 1e-9) + 1;
+      for (let k = 0; k < count; k++) {
+        const j = Number((start + k * step).toPrecision(12));
         let new_node_data = JSON.parse(JSON.stringify(max_range_node.data));
         new_node_data["slider-value"] = j;
         let model_combination = {};
@@ -254,8 +291,9 @@ function calculateModel(model, is_from_main_model) {
         let processed_args;
         if (arg_data_array.length > 1) processed_args = [];
         arg_data_array.forEach((arg_obj) => {
-          if (arg_data_array.length > 1) processed_args.push(nodes_data[arg_obj.source_node_id][arg_obj.source_handle_id]);
-          else processed_args = nodes_data[arg_obj.source_node_id][arg_obj.source_handle_id];
+          const value = convertLinkedValue(nodes_data[arg_obj.source_node_id][arg_obj.source_handle_id], arg_obj.unit_factor);
+          if (arg_data_array.length > 1) processed_args.push(value);
+          else processed_args = value;
         });
         node.args[arg_key] = processed_args;
       });

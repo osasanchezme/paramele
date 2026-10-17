@@ -70,6 +70,7 @@
         },
         "spacing_between_combinations": {
             "default": 1,
+            "quantity": "length",
             "type": "text",
             "tab": "structure_tab"
         },
@@ -80,6 +81,7 @@
         },
         "mesh_size": {
             "default": 0.5,
+            "quantity": "length",
             "type": "text",
             "tab": "structure_tab"
         },
@@ -100,6 +102,7 @@
         },
         "physical_load_size": {
             "default": 2,
+            "quantity": "length",
             "type": "text",
             "tab": "view_tab"
         },

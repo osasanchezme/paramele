@@ -91,9 +91,17 @@ function CircularExec(args) {
 }
 
 const StructuralSectionNodes = {
-  RectangleNode: { Node: Rectangle, Exec: RectangleExec },
-  CircularNode: { Node: Circular, Exec: CircularExec },
-  GenericNode: { Node: Generic, Exec: GenericExec },
+  RectangleNode: {
+    Node: Rectangle,
+    Exec: RectangleExec,
+    units: { handles: { "base-value-1": "section_length", "height-value-1": "section_length" } },
+  },
+  CircularNode: { Node: Circular, Exec: CircularExec, units: { handles: { "diameter-value-1": "section_length" } } },
+  GenericNode: {
+    Node: Generic,
+    Exec: GenericExec,
+    units: { handles: { "area-value-1": "section_area", "Iz-value-1": "inertia", "Iy-value-1": "inertia", "J-value-1": "inertia" } },
+  },
 };
 
 export default StructuralSectionNodes;

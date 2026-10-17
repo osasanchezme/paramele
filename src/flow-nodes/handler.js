@@ -67,14 +67,17 @@ function createNodesLibrary() {
   let nodes = {};
   let execution = {};
   let mapping = {};
+  // How each type of box handles units (see unitInference)
+  let units = {};
 
   Object.entries(global_library_wrapper).forEach(([key, value]) => {
     nodes[key] = value.node_component.Node;
     execution[key] = value.node_component.Exec;
     mapping[value.label] = key;
+    if (value.node_component.units) units[key] = value.node_component.units;
   });
 
-  return { nodes, execution, mapping };
+  return { nodes, execution, mapping, units };
 }
 
 export default createNodesLibrary;

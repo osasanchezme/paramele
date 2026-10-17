@@ -387,18 +387,59 @@ function StructuralMaterialExec(args) {
 }
 
 const BasicStructuralNodes = {
-  StructuralNodeNode: { Node: StructuralNode, Exec: StructuralNodeExec },
+  StructuralNodeNode: {
+    Node: StructuralNode,
+    Exec: StructuralNodeExec,
+    units: { handles: { "x-value": "length", "y-value": "length", "z-value": "length" } },
+  },
   StructuralMemberNode: { Node: StructuralMember, Exec: StructuralMemberExec },
   StructuralFixedSupportNode: { Node: StructuralFixedSupport, Exec: StructuralFixedSupportExec },
   StructuralPinSupportNode: { Node: StructuralPinSupport, Exec: StructuralPinSupportExec },
   StructuralGenericSupportNode: { Node: StructuralGenericSupport, Exec: StructuralGenericSupportExec },
-  StructuralPointLoadNode: { Node: StructuralPointLoad, Exec: StructuralPointLoadExec },
-  StructuralDistributedLoadNode: { Node: StructuralDistributedLoad, Exec: StructuralDistributedLoadExec },
-  StructuralPlateNode: { Node: StructuralPlate, Exec: StructuralPlateExec },
-  StructuralMomentNode: { Node: StructuralMoment, Exec: StructuralMomentExec },
-  StructuralPressureNode: { Node: StructuralPressure, Exec: StructuralPressureExec },
-  StructuralTrapezoidalPressureNode: { Node: StructuralTrapezoidalPressure, Exec: StructuralTrapezoidalPressureExec },
-  StructuralMaterialNode: { Node: StructuralMaterial, Exec: StructuralMaterialExec },
+  StructuralPointLoadNode: {
+    Node: StructuralPointLoad,
+    Exec: StructuralPointLoadExec,
+    units: { handles: { "x_mag-value": "force", "y_mag-value": "force", "z_mag-value": "force" } },
+  },
+  StructuralDistributedLoadNode: {
+    Node: StructuralDistributedLoad,
+    Exec: StructuralDistributedLoadExec,
+    units: {
+      handles: {
+        "x_mag_A-value": "distributed_force",
+        "y_mag_A-value": "distributed_force",
+        "z_mag_A-value": "distributed_force",
+        "x_mag_B-value": "distributed_force",
+        "y_mag_B-value": "distributed_force",
+        "z_mag_B-value": "distributed_force",
+        "position_A-value": "unit:percent",
+        "position_B-value-100": "unit:percent",
+      },
+    },
+  },
+  StructuralPlateNode: { Node: StructuralPlate, Exec: StructuralPlateExec, units: { handles: { "thickness-value": "section_length" } } },
+  StructuralMomentNode: {
+    Node: StructuralMoment,
+    Exec: StructuralMomentExec,
+    units: { handles: { "x_mag-value": "moment", "y_mag-value": "moment", "z_mag-value": "moment" } },
+  },
+  StructuralPressureNode: {
+    Node: StructuralPressure,
+    Exec: StructuralPressureExec,
+    units: { handles: { "x_mag-value": "pressure", "y_mag-value": "pressure", "z_mag-value": "pressure" } },
+  },
+  StructuralTrapezoidalPressureNode: {
+    Node: StructuralTrapezoidalPressure,
+    Exec: StructuralTrapezoidalPressureExec,
+    units: { handles: { "p1_magnitude-value": "pressure", "p2_magnitude-value": "pressure", "p3_magnitude-value": "pressure" } },
+  },
+  StructuralMaterialNode: {
+    Node: StructuralMaterial,
+    Exec: StructuralMaterialExec,
+    units: {
+      handles: { "density-value": "density", "elasticity_modulus-value-20000": "material_strength", "poissons_ratio-value-0.3": "dimensionless" },
+    },
+  },
 };
 
 export default BasicStructuralNodes;

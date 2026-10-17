@@ -5,6 +5,8 @@ import getState from "../getState";
 import { useEffect, useState } from "react";
 import utils from "../utils";
 import SelectionToolbar from "./selection_toolbar";
+import units from "../js/units";
+import unitInference from "../js/unitInference";
 import "reactflow/dist/style.css";
 
 let rf_instance;
@@ -36,6 +38,39 @@ function filterSelectionChanges(changes, kept_ids, is_selection_frozen) {
     if (change.type !== "select") return true;
     if (is_selection_frozen) return false;
     return change.selected || !kept_ids?.has(change.id);
+  });
+}
+
+/**
+ * Links as they are drawn: the ones between different dimensions in red, the ones that convert the value with both units
+ * @param {object[]} edges
+ * @returns {object[]}
+ */
+function getEdgesWithUnits(edges) {
+  const inference = window.ParamEle?.state?.globals?.unit_inference;
+  if (!inference) return edges;
+  const model_units = units.repairUnits(getState("settings").units);
+  return edges.map((edge) => {
+    const result = inference.edges[edge.id];
+    if (!result || (!result.error && Math.abs(result.factor - 1) < 1e-12)) return edge;
+    const from = units.formatUnit(result.source_unit, model_units) || "1";
+    const to = units.formatUnit(result.target_unit, model_units) || "1";
+    if (result.error)
+      return {
+        ...edge,
+        className: `${edge.className || ""} unit-error`.trim(),
+        label: `${from} ≠ ${to}`,
+        labelStyle: { fill: "var(--chakra-colors-red-600)", fontSize: 10 },
+        labelBgStyle: { fill: "var(--chakra-colors-red-50)" },
+        zIndex: 1,
+      };
+    return {
+      ...edge,
+      className: `${edge.className || ""} unit-conversion`.trim(),
+      label: `${from} → ${to}`,
+      labelStyle: { fill: "var(--chakra-colors-gray-600)", fontSize: 9 },
+      labelBgStyle: { fill: "var(--chakra-colors-gray-50)" },
+    };
   });
 }
 
@@ -86,6 +121,13 @@ function VisualEditor({ width, nodes_library, is_model_locked, nodes, edges, set
     setEdges((els) => updateEdge(oldEdge, newConnection, els));
     updateStateFromFlow();
   };
+  // Links between handles of different dimensions are not allowed (a length into a force)
+  const isValidConnection = (connection) => {
+    if (!rf_instance) return true;
+    const model = { nodes: rf_instance.getNodes(), edges: rf_instance.getEdges() };
+    const model_units = units.repairUnits(getState("settings").units);
+    return unitInference.isValidConnection(model, connection, utils.getNodesLibrary().units, model_units);
+  };
   const onConnect = (connection) => {
     setEdges((eds) => addEdge(connection, eds));
     updateStateFromFlow();
@@ -117,7 +159,8 @@ function VisualEditor({ width, nodes_library, is_model_locked, nodes, edges, set
     <div className="editor-container" style={global_style} onMouseDownCapture={onMouseDownCapture}>
       <ReactFlow
         nodes={nodes}
-        edges={edges}
+        edges={getEdgesWithUnits(edges)}
+        isValidConnection={isValidConnection}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onEdgeUpdate={onEdgeUpdate}

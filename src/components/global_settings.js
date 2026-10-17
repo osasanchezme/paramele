@@ -22,6 +22,8 @@ import {
   Icon,
   Select,
   Checkbox,
+  SimpleGrid,
+  Text,
 } from "@chakra-ui/react";
 import { useDisclosure } from "@chakra-ui/react";
 import utils from "../utils";
@@ -34,6 +36,8 @@ import logic_runner from "../js/globalLogicRunner";
 import solverCredentials from "../js/solverCredentials";
 import Firebase from "../js/firebase";
 import { notify } from "./notification";
+import units from "../js/units";
+import modelUnits from "../js/modelUnits";
 
 function localGetDisplayCopy(copy_key) {
   return utils.getDisplayCopy("settings", copy_key);
@@ -46,16 +50,61 @@ function getSettingsToEdit() {
   return { ...getState("settings")["global"], ...solverCredentials.getCredentials() };
 }
 
+/**
+ * Unit system of the model and the unit of each quantity, only from that system
+ * @param {object} props
+ * @param {object} props.model_units
+ * @param {function(object): void} props.onChange
+ */
+function UnitsForm({ model_units, onChange }) {
+  return (
+    <>
+      <FormControl mb={3}>
+        <FormLabel>{utils.getDisplayCopy("units", "system")}</FormLabel>
+        <Select value={model_units.system} onChange={(event) => onChange({ ...units.SYSTEM_DEFAULTS[event.target.value] })}>
+          {units.SYSTEMS.map((system) => (
+            <option value={system} key={system}>
+              {utils.getDisplayCopy("units", `system_${system}`)}
+            </option>
+          ))}
+        </Select>
+        <FormHelperText>{utils.getDisplayCopy("units", "system_help")}</FormHelperText>
+      </FormControl>
+      <SimpleGrid columns={2} spacingX={4} spacingY={2}>
+        {Object.keys(units.SETTING_QUANTITIES).map((quantity) => (
+          <FormControl key={quantity}>
+            <FormLabel fontSize="sm" mb={1}>
+              {utils.getDisplayCopy("units", quantity)}
+            </FormLabel>
+            <Select size="sm" value={model_units[quantity]} onChange={(event) => onChange({ ...model_units, [quantity]: event.target.value })}>
+              {units.getUnitOptions(quantity, model_units.system).map((unit_key) => (
+                <option value={unit_key} key={unit_key}>
+                  {units.getUnitLabel(quantity, unit_key)}
+                </option>
+              ))}
+            </Select>
+          </FormControl>
+        ))}
+      </SimpleGrid>
+      <Text mt={3} fontSize="sm" color="gray.600">
+        {utils.getDisplayCopy("units", "conversion_help")}
+      </Text>
+    </>
+  );
+}
+
 function GlobalSettings({ user }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
   window.ParamEle.openGlobalSettings = onOpen;
   let [localSettings, setLocalSettings] = useState(getSettingsToEdit);
+  let [localUnits, setLocalUnits] = useState(modelUnits.getModelUnits);
   let [isSaving, setIsSaving] = useState(false);
   // Text fields stay read only until focused so the browser does not autofill the account credentials into them
   let [focusedFields, setFocusedFields] = useState({});
   useEffect(() => {
     if (isOpen) {
       setLocalSettings(getSettingsToEdit());
+      setLocalUnits(modelUnits.getModelUnits());
       setFocusedFields({});
     }
   }, [isOpen]);
@@ -81,6 +130,9 @@ function GlobalSettings({ user }) {
     let original_settings = getState("settings");
     original_settings["global"] = model_settings;
     state.setState(original_settings, "settings");
+    // The values of the boxes are converted to the new units, so the structure stays the same
+    let converted_boxes = modelUnits.changeModelUnits(localUnits);
+    if (converted_boxes > 0) notify("info", "units_converted", null, true);
     let stored_credentials = solverCredentials.getCredentials();
     let credentials_changed = Object.keys(credentials).some((setting_name) => credentials[setting_name] !== stored_credentials[setting_name]);
     if (!user || !credentials_changed) {
@@ -100,7 +152,7 @@ function GlobalSettings({ user }) {
     });
   }
   const global_settings = settings_template["global"];
-  const settings_tabs = {};
+  const settings_tabs = { units_tab: [] };
   Object.entries(global_settings).forEach(([setting_name, setting_options], index) => {
     if (!settings_tabs.hasOwnProperty(setting_options["tab"])) settings_tabs[setting_options["tab"]] = [];
     settings_tabs[setting_options["tab"]].push({ name: setting_name, type: setting_options.type, data: setting_options.data });
@@ -121,6 +173,7 @@ function GlobalSettings({ user }) {
             <TabPanels>
               {Object.entries(settings_tabs).map(([tab_name, tab_settings], index) => (
                 <TabPanel key={tab_name}>
+                  {tab_name === "units_tab" && <UnitsForm model_units={localUnits} onChange={setLocalUnits} />}
                   {tab_settings.some((setting) => solverCredentials.isUserScoped(setting.name)) && (
                     <FormControl>
                       <FormHelperText mt={0} mb={2}>
@@ -135,7 +188,11 @@ function GlobalSettings({ user }) {
                       case "password":
                         setting_block = (
                           <FormControl key={setting.name} isDisabled={!user && solverCredentials.isUserScoped(setting.name)}>
-                            <FormLabel>{localGetDisplayCopy(setting.name)}</FormLabel>
+                            <FormLabel>
+                              {localGetDisplayCopy(setting.name)}
+                              {global_settings[setting.name].quantity &&
+                                ` (${units.formatUnit(units.getQuantityUnit(global_settings[setting.name].quantity), localUnits)})`}
+                            </FormLabel>
                             <Input
                               type={setting.type}
                               name={`paramele_setting_${setting.name}`}

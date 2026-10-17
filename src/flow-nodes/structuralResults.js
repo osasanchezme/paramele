@@ -3,6 +3,7 @@ import utils from "../utils";
 import getState from "../getState";
 import structural_utils from "../structural_utils";
 import state from "../state";
+import units from "../js/units";
 
 function localGetCopy(node_name) {
   return utils.getDisplayCopy("nodes", node_name);
@@ -43,9 +44,10 @@ function NodeResultExec(args, data) {
     let result_type = "node";
     if (result_value !== undefined && result_type !== undefined && result_direction !== undefined) {
       if (!Array.isArray(nodes)) nodes = [nodes]; // Support single node as input
+      let { factor } = structural_utils.getResultUnit(results, result_value, 0, units.repairUnits(getState("settings").units));
       nodes.forEach((node_id) => {
         let node_result = structural_utils.getResult(results, result_value, result_direction, result_type, node_id, 0);
-        y.push(node_result);
+        y.push(structural_utils.scaleResult(node_result, factor));
       });
     }
     if (Object.keys(iterating_node_data).length > 0) {
@@ -55,8 +57,9 @@ function NodeResultExec(args, data) {
       x = nodes;
       xaxis_title = utils.getDisplayCopy("tags", "node");
     }
-    let result_label = utils.getDisplayCopy("tags", result_value);
-    let plot_title = `${result_label} (${result_direction})`;
+    let unit_label = structural_utils.getResultUnit(results, result_value, 0, units.repairUnits(getState("settings").units)).label;
+    let result_label = `${utils.getDisplayCopy("tags", result_value)}${unit_label ? ` [${unit_label}]` : ""}`;
+    let plot_title = `${utils.getDisplayCopy("tags", result_value)} (${result_direction})`;
     plotly_data[0] = { x, y, xaxis_title, yaxis_title: result_label, title: plot_title };
   }
   return {
@@ -104,8 +107,12 @@ function MemberResultExec(args, data) {
     let result_direction = data["direction-value"];
     if (result_value !== undefined && result_type !== undefined && result_direction !== undefined) {
       if (!Array.isArray(members)) members = [members]; // Support single member as input
+      let { factor } = structural_utils.getResultUnit(results, result_value, 0, units.repairUnits(getState("settings").units));
       members.forEach((member_id) => {
-        let member_result = structural_utils.getResult(results, result_value, result_direction, result_type, member_id, 0);
+        let member_result = structural_utils.scaleResult(
+          structural_utils.getResult(results, result_value, result_direction, result_type, member_id, 0),
+          factor
+        );
         if (member_result === undefined) return; // No results for this member (e.g. results from an older model)
         if (isNaN(Number(member_result))) {
           x_y_data.push(member_result);
@@ -129,17 +136,19 @@ function MemberResultExec(args, data) {
         return dataset;
       });
     }
-    let result_label = utils.getDisplayCopy("tags", result_value);
+    let result_name = utils.getDisplayCopy("tags", result_value);
+    let unit_label = structural_utils.getResultUnit(results, result_value, 0, units.repairUnits(getState("settings").units)).label;
+    let result_label = `${result_name}${unit_label ? ` [${unit_label}]` : ""}`;
     let position_label = utils.getDisplayCopy("tags", "position");
     if (y.length > 0) {
-      let plot_title = `${result_label} (${result_direction}) @ ${utils.getDisplayCopy("tags", result_type)}`;
+      let plot_title = `${result_name} (${result_direction}) @ ${utils.getDisplayCopy("tags", result_type)}`;
       plotly_data[0] = { x, y, xaxis_title: iterating_node_data.node_label, yaxis_title: result_label, title: plot_title };
     } else if (x_y_data.length > 0) {
       plotly_data = [];
       x_y_data.forEach((dataset) => {
         if (dataset) {
           let { x, y, name } = dataset;
-          let plot_title = `${result_label} (${result_direction})`;
+          let plot_title = `${result_name} (${result_direction})`;
           plotly_data.push({ x, y, name, xaxis_title: position_label, yaxis_title: result_label, title: plot_title });
         }
       });

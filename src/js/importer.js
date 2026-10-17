@@ -1,4 +1,6 @@
 import file from "./file";
+import getState from "../getState";
+import units from "./units";
 import state from "../state";
 import { parsers } from "../submodulesAPI";
 import generateParametricModel from "./generateParametricModel";
@@ -207,12 +209,27 @@ const importFile = async (user_file, onStatus, onReplaceModel = () => {}) => {
   try {
     onReplaceModel();
     file.newFile();
+    s3d_model = adoptFileUnits(s3d_model);
     await waitForEmptyEditor();
     let process_response = await new Promise((resolve) => generateParametricModel(s3d_model, resolve));
     return process_response.success ? getProcessResponseObject("success", "", { summary, skipped }) : process_response;
   } catch {
     return getProcessResponseObject("error", "parametricGenerator/generic_fail");
   }
+};
+
+/**
+ * The new model takes the units of the imported file (from one system: the ones of another system are converted)
+ * @param {object} s3d_model
+ * @returns {object} The model in the units of the new model
+ */
+const adoptFileUnits = (s3d_model) => {
+  let file_units = units.fromS3DUnits(s3d_model.settings?.units);
+  if (!file_units) return s3d_model;
+  let settings = getState("settings");
+  settings.units = file_units;
+  state.setState(settings, "settings");
+  return units.convertStructure(s3d_model, { ...file_units, ...units.readS3DUnits(s3d_model.settings.units) }, file_units);
 };
 
 const importer = { IMPORT_FILE_TYPES, importFile, isSupportedFileName, detectFileType, getS3DModel };

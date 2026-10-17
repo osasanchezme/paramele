@@ -29,6 +29,27 @@ import SearchableDropdown from "../../components/searchable_dropdown";
 import Plot from "../../components/Plot";
 import { updateNodeDataKey } from "../../components/VisualEditor";
 import { AppModeContext } from "../../Context";
+import UnitChip, { getHandleUnit } from "../../components/unit_chip";
+/**
+ * Whether a handle of a type of box takes a unit picked by the user (see the unit declarations of the boxes)
+ * @param {string} [node_type]
+ * @param {string} handle_id
+ */
+function isAdaptiveHandle(node_type, handle_id) {
+  return Boolean(node_type && utils.getNodesLibrary()?.units[node_type]?.adaptive?.includes(handle_id));
+}
+
+/**
+ * Tooltip of a handle: its type, its unit and its value
+ * @param {string} type
+ * @param {string} unit_label
+ * @param {any} value
+ */
+function getHandleTooltip(type, unit_label, value) {
+  let type_copy = utils.getDisplayCopy("types", type);
+  return `${type_copy}${unit_label ? ` (${unit_label})` : ""} [${value}]`;
+}
+
 /**
  *
  * @param {Object} props Properties object to create the node
@@ -116,11 +137,13 @@ function GenericInOutNode({ data, id, node_label, target_ids = [], source_ids = 
     let input_value = label_obj.default_value;
     if (data.input) input_value = data.input[label_obj.name];
     let display_copy = utils.getDisplayCopy("tags", label_obj.name);
-    target_copies.push(display_copy);
+    let unit_label = getHandleUnit(id, target_id).label;
+    target_copies.push(unit_label ? `${display_copy} ${unit_label}` : display_copy);
     return (
-      <Tooltip label={`${utils.getDisplayCopy("types", label_obj.type)} [${input_value}]`} key={target_id + "-tooltip"} placement={"right"}>
+      <Tooltip label={getHandleTooltip(label_obj.type, unit_label, input_value)} key={target_id + "-tooltip"} placement={"right"}>
         <Tag size={"sm"} key={target_id + "-label"} style={target_label_style} variant={"target"}>
           {display_copy}
+          {unit_label && <span className="handle-unit">{unit_label}</span>}
         </Tag>
       </Tooltip>
     );
@@ -139,11 +162,13 @@ function GenericInOutNode({ data, id, node_label, target_ids = [], source_ids = 
     top_pos_source += 20;
     let output_value = data[source_id];
     let display_copy = utils.getDisplayCopy("tags", label_obj.name);
-    source_copies.push(display_copy);
+    let unit_label = getHandleUnit(id, source_id).label;
+    source_copies.push(unit_label ? `${display_copy} ${unit_label}` : display_copy);
     return (
-      <Tooltip label={`${utils.getDisplayCopy("types", label_obj.type)} [${output_value}]`} key={source_id + "-tooltip"} placement={"right"}>
+      <Tooltip label={getHandleTooltip(label_obj.type, unit_label, output_value)} key={source_id + "-tooltip"} placement={"right"}>
         <Tag size={"sm"} key={source_id + "-label"} style={source_label_style} variant={"source"}>
           {display_copy}
+          {unit_label && <span className="handle-unit">{unit_label}</span>}
         </Tag>
       </Tooltip>
     );
@@ -180,6 +205,11 @@ function GenericInOutNode({ data, id, node_label, target_ids = [], source_ids = 
     updateNodeDataKey(id, data_key, evt.target.value);
     state.updateStateFromFlow();
   };
+  // Number and slider boxes take the unit the user picks, or the one of their links
+  const onUnitChange = (quantity) => {
+    updateNodeDataKey(id, "unit", quantity);
+    state.updateStateFromFlow();
+  };
   let top_pos_editable_inputs = Math.max(top_pos_source, top_pos_target) - 8;
   let input_label_style = {
     position: "absolute",
@@ -206,11 +236,23 @@ function GenericInOutNode({ data, id, node_label, target_ids = [], source_ids = 
               value={data[data_key] === undefined ? "" : data[data_key]}
               autoComplete="off"
               isDisabled={data.model_locked}
+              // Room for the unit chip, as wide as its text
+              pr={isAdaptiveHandle(node_type, data_key) ? `${(getHandleUnit(id, data_key).label || "—").length * 6 + 18}px` : undefined}
             />
-            <InputRightElement width="2.5rem">
-              <Tag size="sm" variant={"source"} style={input_label_style}>
-                {utils.getDisplayCopy("tags", editable_data.name)}
-              </Tag>
+            <InputRightElement width="auto">
+              {isAdaptiveHandle(node_type, data_key) ? (
+                <UnitChip
+                  node_id={id}
+                  handle_id={data_key}
+                  pinned={data.unit}
+                  isDisabled={data.model_locked}
+                  onChange={(quantity) => onUnitChange(quantity)}
+                />
+              ) : (
+                <Tag size="sm" variant={"source"} style={input_label_style}>
+                  {utils.getDisplayCopy("tags", editable_data.name)}
+                </Tag>
+              )}
             </InputRightElement>
           </InputGroup>
         );
@@ -222,25 +264,29 @@ function GenericInOutNode({ data, id, node_label, target_ids = [], source_ids = 
         let slider_value = data[data_key] === undefined ? Math.floor((min + max) / 2 / step) * step : Number(data[data_key]);
         top_pos_editable_inputs += 1;
         input_component = (
-          <Slider
-            value={slider_value}
-            min={min}
-            max={max}
-            step={step}
-            key={editable_data.name + "-slider"}
-            colorScheme="gray"
-            top={top_pos_editable_inputs}
-            onChange={(value) => onChange({ target: { value: value } }, data_key)}
-            isDisabled={data.model_locked}
-          >
-            <SliderTrack>
-              <Box position="relative" right={10} />
-              <SliderFilledTrack />
-            </SliderTrack>
-            <SliderThumb boxSize={4}>
-              <Box color="gray" as={MdCode} />
-            </SliderThumb>
-          </Slider>
+          <Box key={editable_data.name + "-slider-row"} display="flex" alignItems="center" gap={1} position="relative" top={top_pos_editable_inputs}>
+            <Slider
+              flex={1}
+              value={slider_value}
+              min={min}
+              max={max}
+              step={step}
+              colorScheme="gray"
+              onChange={(value) => onChange({ target: { value: value } }, data_key)}
+              isDisabled={data.model_locked}
+            >
+              <SliderTrack>
+                <Box position="relative" right={10} />
+                <SliderFilledTrack />
+              </SliderTrack>
+              <SliderThumb boxSize={4}>
+                <Box color="gray" as={MdCode} />
+              </SliderThumb>
+            </Slider>
+            {isAdaptiveHandle(node_type, data_key) && (
+              <UnitChip node_id={id} handle_id={data_key} pinned={data.unit} isDisabled={data.model_locked} onChange={onUnitChange} />
+            )}
+          </Box>
         );
         break;
       case "dropdown":
@@ -358,34 +404,42 @@ function GenericInOutNode({ data, id, node_label, target_ids = [], source_ids = 
       let { xaxis_title, yaxis_title, title } = plotable_data;
       let table_width_candidate = (xaxis_title ? xaxis_title.length * 12 : 0) + (yaxis_title ? yaxis_title.length * 12 : 0);
       if (table_width_candidate > table_width) table_width = table_width_candidate;
-      let title_height = name != undefined && name != '' ? 10 : 0;
+      let title_height = name != undefined && name != "" ? 10 : 0;
       let table_spacing = 15;
       table_height += (x.length + 1) * 33 + (index > 0 ? title_height + table_spacing : 0);
       table_top_pos += index > 0 ? (raw_data_to_plot[index - 1].x.length + 1) * 33 + title_height + table_spacing : title_height;
       let title_top_pos = table_top_pos - 20;
       return (
         <Fragment key={`fragment_${index}`}>
-        <Text style={{position: "absolute", top: title_top_pos, right: table_width / 2}} fontWeight={"bold"}>
-        {name}
-        </Text>
-        <TableContainer style={{position: "absolute", top: table_top_pos}}>
-          <Table size="sm">
-            <Thead>
-              <Tr>
-                <Th key={`head_1`} style={{textAlign: 'center'}}>{xaxis_title}</Th>
-                <Th key={`head_2`} style={{textAlign: 'center'}}>{yaxis_title}</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {x.map((x_value, x_index) => (
-                <Tr key={`row_${x_index}`}>
-                  <Td key={`cell_${x_index}_1`} style={{textAlign: 'center'}}>{utils.print(x_value)}</Td>
-                  <Td key={`cell_${x_index}_2`} style={{textAlign: 'center'}}>{utils.print(y[x_index])}</Td>
+          <Text style={{ position: "absolute", top: title_top_pos, right: table_width / 2 }} fontWeight={"bold"}>
+            {name}
+          </Text>
+          <TableContainer style={{ position: "absolute", top: table_top_pos }}>
+            <Table size="sm">
+              <Thead>
+                <Tr>
+                  <Th key={`head_1`} style={{ textAlign: "center" }}>
+                    {xaxis_title}
+                  </Th>
+                  <Th key={`head_2`} style={{ textAlign: "center" }}>
+                    {yaxis_title}
+                  </Th>
                 </Tr>
-              ))}
-            </Tbody>
-          </Table>
-        </TableContainer>
+              </Thead>
+              <Tbody>
+                {x.map((x_value, x_index) => (
+                  <Tr key={`row_${x_index}`}>
+                    <Td key={`cell_${x_index}_1`} style={{ textAlign: "center" }}>
+                      {utils.print(x_value)}
+                    </Td>
+                    <Td key={`cell_${x_index}_2`} style={{ textAlign: "center" }}>
+                      {utils.print(y[x_index])}
+                    </Td>
+                  </Tr>
+                ))}
+              </Tbody>
+            </Table>
+          </TableContainer>
         </Fragment>
       );
     });

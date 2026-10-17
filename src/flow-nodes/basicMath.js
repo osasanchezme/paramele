@@ -122,12 +122,32 @@ function MathRootExec(args) {
 }
 
 const BasicMathNodes = {
-  MathSumNode: { Node: MathSum, Exec: MathSumExec },
-  MathMultiplyNode: { Node: MathMultiply, Exec: MathMultiplyExec },
-  MathDivideNode: { Node: MathDivide, Exec: MathDivideExec },
-  MathRoundNode: { Node: MathRound, Exec: MathRoundExec },
-  MathPowerNode: { Node: MathPower, Exec: MathPowerExec },
-  MathRootNode: { Node: MathRoot, Exec: MathRootExec },
+  MathSumNode: { Node: MathSum, Exec: MathSumExec, units: { rule: { type: "same", inputs: sum_target_ids, output: "result_out-value" } } },
+  MathMultiplyNode: {
+    Node: MathMultiply,
+    Exec: MathMultiplyExec,
+    units: { rule: { type: "multiply", inputs: multiply_target_ids, output: "result_out-value" } },
+  },
+  MathDivideNode: {
+    Node: MathDivide,
+    Exec: MathDivideExec,
+    units: { rule: { type: "divide", inputs: divide_target_ids, output: "result_out-value" } },
+  },
+  MathRoundNode: {
+    Node: MathRound,
+    Exec: MathRoundExec,
+    units: { handles: { "round_to-value": "dimensionless" }, rule: { type: "same", inputs: ["number-value"], output: "result_out-value" } },
+  },
+  MathPowerNode: {
+    Node: MathPower,
+    Exec: MathPowerExec,
+    units: { rule: { type: "power", inputs: ["base-value-0"], exponent: "power-value-1", output: "result_out-value" } },
+  },
+  MathRootNode: {
+    Node: MathRoot,
+    Exec: MathRootExec,
+    units: { rule: { type: "root", inputs: ["base-value-1"], exponent: "root-value-2", output: "result_out-value" } },
+  },
 };
 
 export default BasicMathNodes;

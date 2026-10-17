@@ -61,9 +61,9 @@ function VariableRange({ data, id, type }) {
 }
 
 const BasicInputNodes = {
-  InputNumberNode: { Node: InputNumber },
+  InputNumberNode: { Node: InputNumber, units: { adaptive: ["value-value"] } },
   InputStringNode: { Node: InputString },
-  VariableRangeNode: { Node: VariableRange },
+  VariableRangeNode: { Node: VariableRange, units: { adaptive: ["slider-value"] } },
 };
 
 export default BasicInputNodes;

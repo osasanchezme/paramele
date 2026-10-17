@@ -3,6 +3,7 @@ import utils from "../utils";
 import settings_template from "./../settings_template.json";
 import solverCredentials from "./solverCredentials";
 import { units } from "../submodulesAPI";
+import modelUnits from "./units";
 
 function repairModel(model) {
   model.nodes.forEach((node) => {
@@ -39,17 +40,20 @@ function repairSettings(settings) {
       if (should_update_all || !settings[global_key].hasOwnProperty(setting_key)) settings[global_key][setting_key] = setting.default;
     });
   });
+  // Units from one unit system, the metric defaults for older files
+  settings.units = modelUnits.repairUnits(settings.units);
   // Older files carry the SkyCiv credentials, which now belong to the user (see solverCredentials.js)
   solverCredentials.removeFromSettings(settings.global);
   return settings;
 }
 
 /**
- *
+ * Structure ready for a solver or an export, in the units they take (units.SOLVER_UNITS) whatever the units of the model
  * @param {import("../submodules/paramele-parsers/types").s3d_model} structure
  * @param {import("../submodules/paramele-parsers/types").solver_engine} solver_engine
  */
 function repairStructuralModel(structure, solver_engine) {
+  structure = modelUnits.convertStructure(structure, modelUnits.getStructureUnits(structure), modelUnits.SOLVER_UNITS);
   let used_section_ids = [...new Set(Object.values(structure.members).map(({ section_id }) => section_id))];
   let used_material_ids = [
     ...new Set([

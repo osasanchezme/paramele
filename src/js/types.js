@@ -384,3 +384,25 @@ exports.unused = {};
  * @property {string[]} section_node_ids Section boxes that use it
  * @property {string[]} plate_ids Structural plates that use it
  */
+
+/**
+ * @typedef {object} ParamEleUnit A unit as powers of the setting quantities (and a constant for the fixed units, e.g. radians)
+ * @property {Object<string, number>} terms Power of each setting quantity
+ * @property {number} scale Constant factor to SI, on top of the setting quantities
+ * @property {string} [quantity] Quantity it was declared as, if any
+ */
+
+/**
+ * @typedef {object} ParamEleUnitDeclaration How a type of box handles units
+ * @property {Object<string, string>} [handles] Quantity (see units.QUANTITIES) or fixed unit ("unit:rad") of its value handles
+ * @property {string[]} [adaptive] Source handles of numbers the user types: they take data.unit or adapt to their links
+ * @property {{type: "same"|"multiply"|"divide"|"power"|"root", inputs: string[], output: string, exponent?: string}} [rule]
+ */
+
+/**
+ * @typedef {object} ParamEleUnitInference
+ * @property {Object<string, ParamEleUnit>} handles Unit of each value handle by `${node_id}|${handle_id}`
+ * @property {Object<string, {factor: number, error: boolean, source_unit: object, target_unit: object}>} edges By edge ID
+ * @property {Object<string, "pinned"|"inferred"|"free">} adaptive State of each adaptive handle by key
+ * @property {boolean} has_errors
+ */

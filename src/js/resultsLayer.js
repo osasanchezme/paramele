@@ -1,7 +1,7 @@
 import getState from "../getState";
 import state from "../state";
 import utils from "../utils";
-import { units as units_converter } from "../submodulesAPI";
+import units from "./units";
 
 // Blue → cyan → green → yellow → red, the usual scale of displacement contours, readable on a white background
 const DISPLACEMENT_COLORSCALE = [
@@ -46,11 +46,14 @@ function localGetCopy(key) {
 }
 
 /**
- * Geometry the results were solved with, to know if they still belong to the structure
+ * Geometry the results were solved with, to know if they still belong to the structure. The coordinates are taken in the units
+ * of the solvers, so the results stay when the units of the model change
  * @param {object} structure
  */
 function getGeometrySignature(structure) {
-  const nodes = Object.entries(structure.nodes || {}).map(([id, { x, y, z }]) => [id, x, y, z]);
+  const to_solver = units.convertQuantity(1, "length", units.getStructureUnits(structure), units.SOLVER_UNITS);
+  const coordinate = (value) => Number((Number(value) * to_solver).toPrecision(9));
+  const nodes = Object.entries(structure.nodes || {}).map(([id, { x, y, z }]) => [id, coordinate(x), coordinate(y), coordinate(z)]);
   const members = Object.entries(structure.members || {}).map(([id, { node_A, node_B }]) => [id, node_A, node_B]);
   const quads = Object.entries(structure.meshed_plates || {}).map(([id, { node_A, node_B, node_C, node_D }]) => [id, node_A, node_B, node_C, node_D]);
   return JSON.stringify([nodes, members, quads]);
@@ -64,15 +67,15 @@ function getGeometrySignature(structure) {
  */
 function tagResults(results, structure, solver_engine) {
   state.setGlobalVariable("results_geometry", getGeometrySignature(structure));
-  const { units } = structure.settings;
+  const structure_units = structure.settings.units;
   // PyNite works in the length units of the model, SkyCiv returns translations in their own units
-  const displacement_unit = solver_engine === "skyciv" ? units.translation : units.length;
+  const displacement_unit = solver_engine === "skyciv" ? structure_units.translation : structure_units.length;
   // Its forces are in the force units of the model, and so its moments in force by length units
-  const moment_unit = solver_engine === "skyciv" ? units.moment : `${units.force}-${units.length}`;
+  const moment_unit = solver_engine === "skyciv" ? structure_units.moment : `${structure_units.force}-${structure_units.length}`;
   Object.values(results || {}).forEach((lc_results) => {
     if (!lc_results || typeof lc_results !== "object") return;
     if (!lc_results.displacement_unit) lc_results.displacement_unit = displacement_unit;
-    if (!lc_results.force_unit) lc_results.force_unit = units.force;
+    if (!lc_results.force_unit) lc_results.force_unit = structure_units.force;
     if (!lc_results.moment_unit) lc_results.moment_unit = moment_unit;
   });
 }
@@ -173,12 +176,12 @@ function getDisplacementResults(structure, lc_results) {
   const { members, quads } = getDisplacedElements(structure, lc_results);
   if (Object.keys(members).length === 0 && Object.keys(quads).length === 0) return null;
 
-  const units = structure.settings.units;
+  const model_units = units.getStructureUnits(structure);
   const engine = getState("settings").global.solver_engine;
-  const results_unit = lc_results.displacement_unit || (engine === "skyciv" ? units.translation : units.length);
-  const display_unit = units.translation || results_unit;
-  const to_length = units_converter.convert(1, results_unit, units.length);
-  const to_display = units_converter.convert(1, results_unit, display_unit);
+  const results_unit = lc_results.displacement_unit || (engine === "skyciv" ? units.SOLVER_UNITS.translation : units.SOLVER_UNITS.length);
+  const display_unit = units.formatUnit(units.getQuantityUnit("translation"), model_units);
+  const to_length = units.getResultFactor(results_unit, "length", model_units);
+  const to_display = units.getResultFactor(results_unit, "translation", model_units);
   // Largest value of each component, with its sign
   const extremes = { sum: 0, x: 0, y: 0, z: 0 };
   const points = [...Object.values(members).flat(), ...Object.values(quads).flat()];
@@ -224,15 +227,23 @@ function getForceResults(structure, lc_results) {
     });
   });
   if (Object.keys(members).length === 0) return null;
+  // The solvers return them in their units (see tagResults), they are shown in the units of the model
+  const model_units = units.getStructureUnits(structure);
+  const factor_by_kind = {
+    force: units.getResultFactor(lc_results.force_unit || units.SOLVER_UNITS.force, "force", model_units),
+    moment: units.getResultFactor(lc_results.moment_unit || `${units.SOLVER_UNITS.force}-${units.SOLVER_UNITS.length}`, "moment", model_units),
+  };
+  Object.values(members).forEach((stations) =>
+    stations.forEach(({ f }) => result_names.forEach((name) => (f[name] *= factor_by_kind[FORCE_RESULTS[name].kind])))
+  );
   const extremes = {};
   result_names.forEach((name) => {
     const values = Object.values(members).flatMap((stations) => stations.map(({ f }) => f[name]));
     extremes[name] = { min: Math.min(0, ...values), max: Math.max(0, ...values) };
   });
-  const { units } = structure.settings;
   const unit_by_kind = {
-    force: formatUnit(lc_results.force_unit || units.force),
-    moment: formatUnit(lc_results.moment_unit || units.moment || `${units.force}-${units.length}`),
+    force: units.formatUnit(units.getQuantityUnit("force"), model_units),
+    moment: units.formatUnit(units.getQuantityUnit("moment"), model_units),
   };
   const result_units = {};
   result_names.forEach((name) => (result_units[name] = unit_by_kind[FORCE_RESULTS[name].kind]));
@@ -247,17 +258,6 @@ function getForceResults(structure, lc_results) {
     auto_scale[name] = largest > 0 ? target / largest : 1;
   });
   return { members, results: result_names, units: result_units, extremes, auto_scale };
-}
-
-/**
- * Units as they are written in the results (kn-m) to show them (kN·m)
- * @param {string} unit
- */
-function formatUnit(unit) {
-  return String(unit || "")
-    .split("-")
-    .map((atom) => ({ kn: "kN", n: "N", kip: "kip", lb: "lb" }[atom] || atom))
-    .join("·");
 }
 
 function getMemberLength(structure, member_id) {
@@ -484,7 +484,7 @@ function getDiagramTraces(structure, force_results, view) {
   const { result, scale } = view;
   const { axis, sign } = FORCE_RESULTS[result];
   const unit = force_results.units[result];
-  const length_unit = structure.settings.units.length;
+  const length_unit = units.formatUnit(units.getQuantityUnit("length"), units.getStructureUnits(structure));
   const factor = sign * force_results.auto_scale[result] * scale;
   const { min, max } = force_results.extremes[result];
   const largest = Math.max(Math.abs(min), Math.abs(max));

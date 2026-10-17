@@ -133,3 +133,47 @@
   margin: 0 3px;
   background: var(--chakra-colors-gray-200);
 }
+
+/* Links between handles of different dimensions (see unitInference.js) */
+.react-flow__edge.unit-error .react-flow__edge-path {
+  stroke: var(--chakra-colors-red-500);
+  stroke-dasharray: 5 3;
+}
+.react-flow__edge.unit-error.selected .react-flow__edge-path {
+  stroke: var(--chakra-colors-red-700);
+}
+/* Handles a link being drawn cannot go into, because of their units */
+.react-flow__handle.react-flow__handle-connecting:not(.valid) {
+  background-color: var(--chakra-colors-red-500);
+  outline: 2px solid var(--chakra-colors-red-200);
+}
+.react-flow__handle.react-flow__handle-connecting.valid {
+  background-color: var(--chakra-colors-brand-500);
+}
+
+/* Unit of a handle, after its name */
+.handle-unit {
+  margin-left: 4px;
+  opacity: 0.6;
+  font-weight: normal;
+}
+/* Unit of a number or slider box: outlined while it adapts to its links, solid when the user picked it */
+.unit-chip {
+  font-size: 10px !important;
+  min-height: 16px !important;
+  padding-inline: 5px !important;
+  margin-right: 2px;
+}
+.unit-chip-adaptive {
+  font-style: italic;
+  color: var(--chakra-colors-gray-500) !important;
+  background: transparent !important;
+  box-shadow: inset 0 0 0 1px var(--chakra-colors-gray-300) !important;
+}
+.unit-chip-adaptive:hover {
+  box-shadow: inset 0 0 0 1px var(--chakra-colors-gray-500) !important;
+}
+/* The link being drawn, over a handle of another dimension */
+.react-flow__connection.invalid .react-flow__connection-path {
+  stroke: var(--chakra-colors-red-500);
+}

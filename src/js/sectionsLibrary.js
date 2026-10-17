@@ -3,6 +3,7 @@ import state from "../state";
 import utils from "../utils";
 import drawing from "./drawing";
 import { notify } from "../components/notification";
+import units from "./units";
 
 // Sections and materials as the renderer shows them: each section or material box is one entry, even when the model has ranges
 // and the box makes several sections. Assigning them only changes the links of the boxes, as the drawing tools do
@@ -12,7 +13,8 @@ const PALETTE = ["#2B6CB0", "#DD6B20", "#2F855A", "#C53030", "#6B46C1", "#B7791F
 // Members whose section is not made by any box (the solver gets a default one)
 const DEFAULT_SECTION_COLOR = "#A0AEC0";
 const SHAPE_TYPES = { rectangle: "structuralRectangleSection", circle: "structuralCircularSection" };
-// Values of the new sections and materials, in the units of the model (mm for sections, MPa and kg/m³ for materials)
+// Values of the new sections and materials in the units of the solvers (mm for sections, MPa and kg/m³ for materials), see
+// getShapeDefaults and getMaterialPreset for them in the units of the model
 const SHAPE_DEFAULTS = { rectangle: { base: 300, height: 500 }, circle: { diameter: 400 } };
 const SHAPE_PARAMETERS = { base: "b", height: "h", diameter: "D" };
 const MATERIAL_PRESETS = {
@@ -105,8 +107,53 @@ function formatNumber(value) {
   return Number.isFinite(number) ? String(Number(number.toPrecision(6))) : String(value);
 }
 
+/**
+ * How the units of the sections and materials of the model are written, e.g. {section_length: "mm"}
+ * @returns {{section_length: string, material_strength: string, density: string}}
+ */
 function getUnits() {
-  return getState("structure").settings?.units || {};
+  let model_units = units.getStructureUnits(getState("structure"));
+  return {
+    section_length: units.getUnitLabel("section_length", model_units.section_length),
+    material_strength: units.getUnitLabel("material_strength", model_units.material_strength),
+    density: units.getUnitLabel("density", model_units.density),
+  };
+}
+
+/**
+ * A preset value in the units of the model, rounded as a user would type it
+ * @param {number} value In the units of the solvers
+ * @param {string} quantity
+ */
+function toModelUnits(value, quantity) {
+  let model_units = units.getStructureUnits(getState("structure"));
+  return Number(units.convertQuantity(value, quantity, units.SOLVER_UNITS, model_units).toPrecision(4));
+}
+
+/**
+ * Dimensions of the new sections of each shape, in the units of the model
+ * @returns {Object<string, Object<string, number>>}
+ */
+function getShapeDefaults() {
+  return Object.fromEntries(
+    Object.entries(SHAPE_DEFAULTS).map(([shape, values]) => [
+      shape,
+      Object.fromEntries(Object.entries(values).map(([key, value]) => [key, toModelUnits(value, "section_length")])),
+    ])
+  );
+}
+
+/**
+ * Values of a material preset in the units of the model
+ * @param {"concrete"|"steel"} preset
+ */
+function getMaterialPreset(preset) {
+  let { elasticity_modulus, poissons_ratio, density } = MATERIAL_PRESETS[preset];
+  return {
+    elasticity_modulus: toModelUnits(elasticity_modulus, "material_strength"),
+    poissons_ratio,
+    density: toModelUnits(density, "density"),
+  };
 }
 
 /**
@@ -302,9 +349,10 @@ function createSection({ shape, dimensions, material_node_id = null, label = "" 
   let type = SHAPE_TYPES[shape];
   let transaction = new drawing.DrawingTransaction();
   // The section has parameters of its own, so changing it does not change other sections with the same dimensions
-  let sources = Object.keys(SHAPE_DEFAULTS[shape]).map((key) => ({
+  let shape_defaults = getShapeDefaults()[shape];
+  let sources = Object.keys(shape_defaults).map((key) => ({
     key,
-    ...transaction.addParameter(SHAPE_PARAMETERS[key], Number(dimensions[key] ?? SHAPE_DEFAULTS[shape][key])),
+    ...transaction.addParameter(SHAPE_PARAMETERS[key], Number(dimensions[key] ?? shape_defaults[key])),
   }));
   let section_id = transaction.addBox(type, "sections", { custom_label: label.trim() || getNewSectionLabel(shape, dimensions) });
   sources.forEach(({ key, source, source_handle }) => transaction.connect(source, source_handle, section_id, `${key}-value-1`));
@@ -320,7 +368,7 @@ function createSection({ shape, dimensions, material_node_id = null, label = "" 
 }
 
 function getNewSectionLabel(shape, dimensions) {
-  let values = { ...SHAPE_DEFAULTS[shape], ...dimensions };
+  let values = { ...getShapeDefaults()[shape], ...dimensions };
   return shape === "circle" ? `Ø${formatNumber(values.diameter)}` : `${formatNumber(values.base)}×${formatNumber(values.height)}`;
 }
 
@@ -333,7 +381,7 @@ function getNewSectionLabel(shape, dimensions) {
  * @returns {string} ID of the new box
  */
 function createMaterial({ preset, label = "" }, target_node_ids = []) {
-  let values = MATERIAL_PRESETS[preset];
+  let values = getMaterialPreset(preset);
   let name = label.trim() || localGetCopy(preset);
   let transaction = new drawing.DrawingTransaction();
   let sources = Object.keys(MATERIAL_HANDLES).map((key) => ({ key, ...transaction.addParameter(MATERIAL_PARAMETERS[key], values[key]) }));
@@ -374,7 +422,7 @@ function renameBox(node_id, label) {
 
 const sectionsLibrary = {
   DEFAULT_SECTION_COLOR,
-  SHAPE_DEFAULTS,
+  getShapeDefaults,
   getSectionColors,
   getMemberColor,
   getSections,

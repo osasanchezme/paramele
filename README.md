@@ -12,6 +12,7 @@ An open-source node based editor for graphical programming.
     - [ ] Create the node renderer itself
     - [ ] Create the execution function for the node
     - [ ] Handle how it is added to the global structural model in the global Logic Runner
+    - [ ] Declare the quantity of its value handles (`units` next to `Node` and `Exec`, see `src/js/unitInference.js`)
     - [ ] Add it to the handler of nodes
     - [ ] Add support for it in the renderer itself (Plotly.js)
 

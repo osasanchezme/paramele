@@ -203,13 +203,13 @@ function NewSectionForm({ materials, onCreate, onCancel }) {
   const [shape, setShape] = useState("rectangle");
   const [dimensions, setDimensions] = useState(() =>
     Object.fromEntries(
-      Object.entries(sectionsLibrary.SHAPE_DEFAULTS).flatMap(([, values]) => Object.entries(values).map(([key, number]) => [key, String(number)]))
+      Object.entries(sectionsLibrary.getShapeDefaults()).flatMap(([, values]) => Object.entries(values).map(([key, number]) => [key, String(number)]))
     )
   );
   const [material_node_id, setMaterialNodeId] = useState(materials[0]?.node_id || null);
   const [label, setLabel] = useState("");
   const unit = sectionsLibrary.getUnits().section_length || "";
-  const keys = Object.keys(sectionsLibrary.SHAPE_DEFAULTS[shape]);
+  const keys = Object.keys(sectionsLibrary.getShapeDefaults()[shape]);
   const is_valid = keys.every((key) => isPositiveNumber(dimensions[key]));
   const labels = { base: "b", height: "h", diameter: "D" };
 

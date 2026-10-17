@@ -1,6 +1,6 @@
 // Solids of the 3D view: the sections extruded along the members and the plates with their thickness. Section dimensions and
 // plate thicknesses are in section_length units (mm, as in SkyCiv), the nodes in length units.
-import { units } from "../submodulesAPI";
+import units from "./units";
 import mesher from "./mesher";
 import resultsLayer from "./resultsLayer";
 
@@ -14,11 +14,9 @@ const SOLID_LIGHTING = { ambient: 0.65, diffuse: 0.5, specular: 0.05, roughness:
  */
 function getSectionScale(model_units) {
   if (!model_units?.section_length || !model_units?.length) return 1;
-  try {
-    return units.convert(1, model_units.section_length, model_units.length);
-  } catch {
-    return 1;
-  }
+  let structure_units = units.fromS3DUnits(model_units);
+  if (!structure_units) return 1;
+  return units.getConversionFactor(units.getQuantityUnit("section_length"), units.getQuantityUnit("length"), structure_units);
 }
 
 /**

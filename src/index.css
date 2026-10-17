@@ -176,6 +176,13 @@ div.dock-panel.parameters-panel {
   flex-shrink: 0;
   text-align: right;
 }
+/* Unit of a favorite number, as its box takes it (see unitInference) */
+.parameters-panel-unit {
+  min-width: 2.5em;
+  font-size: var(--chakra-fontSizes-xs);
+  color: var(--chakra-colors-gray-500);
+  white-space: nowrap;
+}
 
 .parameters-panel-note,
 .parameters-panel-empty,

@@ -12,15 +12,9 @@ import sectionPicker from "./section_picker";
 const STORAGE_KEY = "paramele_sections_panel_open";
 // Swatches shown on the closed panel
 const MAX_SWATCHES = 8;
-// How the units of the model are written
-const UNIT_LABELS = { mpa: "MPa", kpa: "kPa", gpa: "GPa", "kg/m3": "kg/m³", psi: "psi", ksi: "ksi", "lb/ft3": "lb/ft³" };
 
 function localGetCopy(copy_key) {
   return utils.getDisplayCopy("sections", copy_key);
-}
-
-function getUnitLabel(unit) {
-  return UNIT_LABELS[unit] || unit || "";
 }
 
 function formatNumber(value) {
@@ -115,7 +109,7 @@ function BoxFields({ node_id, units, isDisabled }) {
 
 function SectionRow({ section, is_expanded, is_highlighted, is_painting, onToggle, onPaint, model_locked }) {
   const units = { base: "", height: "", diameter: "" };
-  const section_unit = getUnitLabel(sectionsLibrary.getUnits().section_length);
+  const section_unit = sectionsLibrary.getUnits().section_length;
   Object.keys(units).forEach((key) => (units[key] = section_unit));
   const count = section.member_ids.length;
   return (
@@ -181,7 +175,7 @@ function SectionRow({ section, is_expanded, is_highlighted, is_painting, onToggl
 
 function MaterialRow({ material, is_expanded, is_highlighted, is_painting, onToggle, onPaint, model_locked }) {
   const model_units = sectionsLibrary.getUnits();
-  const units = { elasticity_modulus: getUnitLabel(model_units.material_strength), poissons_ratio: "", density: getUnitLabel(model_units.density) };
+  const units = { elasticity_modulus: model_units.material_strength, poissons_ratio: "", density: model_units.density };
   const elasticity = material.fields.find(({ key }) => key === "elasticity_modulus");
   const uses = [
     material.section_node_ids.length > 0 &&

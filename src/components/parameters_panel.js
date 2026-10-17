@@ -27,6 +27,7 @@ import state from "../state";
 import favorites from "../js/favorites";
 import { FavoritesContext } from "../Context";
 import dockPanel from "./dock_panel";
+import { getHandleUnit } from "./unit_chip";
 
 // Evaluating the model on every slider tick is too slow on large models
 const SLIDER_COMMIT_INTERVAL = 150;
@@ -215,6 +216,7 @@ function FavoriteRow({ favorite, node, kind, model_locked }) {
 
 function NumberControl({ favorite, node, kind, value, label, model_locked }) {
   const { node_id, data_key } = favorite;
+  const unit_label = getHandleUnit(node_id, data_key).label;
   const [slider_draft, setSliderDraft] = useState(null);
   const [text_draft, setTextDraft] = useState(null);
   const commitValue = useMemo(
@@ -299,6 +301,7 @@ function NumberControl({ favorite, node, kind, value, label, model_locked }) {
           autoComplete="off"
           aria-label={label}
         />
+        {unit_label && <Text className="parameters-panel-unit">{unit_label}</Text>}
       </HStack>
       {is_iterating && <Text className="parameters-panel-note">{localGetCopy("iterating")}</Text>}
     </>
