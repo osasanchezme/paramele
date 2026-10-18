@@ -254,6 +254,24 @@ function getChangeFactor(unit, from_units, to_units) {
   return getFactor(unit, from_units) / getFactor(unit, to_units);
 }
 
+// Largest relative error a converted value is rounded by
+const ROUNDING_TOLERANCE = 1e-9;
+
+/**
+ * A converted number with the fewest significant digits that keep it within ROUNDING_TOLERANCE, so it is written short
+ * (1.640419948 ft for 0.5 m) and converting it back lands on the number it came from (0.5000000002 m is 0.5 m)
+ * @param {number} value
+ * @returns {number}
+ */
+function roundConverted(value) {
+  if (!Number.isFinite(value) || value === 0) return value;
+  for (let digits = 1; digits < 17; digits++) {
+    const rounded = Number(value.toPrecision(digits));
+    if (Math.abs(rounded - value) <= ROUNDING_TOLERANCE * Math.abs(value)) return rounded;
+  }
+  return value;
+}
+
 /**
  * Factor of a quantity from some model units to others
  * @param {string} quantity
@@ -521,6 +539,7 @@ const units = {
   getConversionFactor,
   getChangeFactor,
   convertQuantity,
+  roundConverted,
   formatUnit,
   getUnitLabel,
   getUnitOptions,

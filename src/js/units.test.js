@@ -79,6 +79,35 @@ describe("units", () => {
   });
 });
 
+describe("rounding of converted values", () => {
+  const convertBack = (value, quantity, path) => {
+    let current = value;
+    for (let i = 1; i < path.length; i++) current = units.roundConverted(units.convertQuantity(current, quantity, path[i - 1], path[i]));
+    return current;
+  };
+  const with_units = (changes) => ({ ...metric, ...changes });
+
+  test("writes converted values short", () => {
+    expect(units.roundConverted(0.5 / 0.3048)).toBe(1.640419948);
+    expect(units.roundConverted(0.30480000000000002)).toBe(0.3048);
+    expect(units.roundConverted(0)).toBe(0);
+  });
+
+  test("lands back on the original value after a round trip", () => {
+    expect(convertBack(0.5, "length", [metric, imperial, metric])).toBe(0.5);
+    expect(convertBack(2, "length", [metric, imperial, with_units({ length: "mm" }), metric])).toBe(2);
+    expect(convertBack(12, "length", [metric, with_units({ length: "cm" }), imperial, metric])).toBe(12);
+    expect(convertBack(-1, "distributed_force", [metric, imperial, with_units({ length: "mm" }), metric])).toBe(-1);
+    expect(convertBack(17.5, "moment", [metric, imperial, metric, imperial, metric])).toBe(17.5);
+  });
+
+  test("keeps converted values within the tolerance", () => {
+    const value = units.roundConverted(units.convertQuantity(123.456789, "force", metric, imperial));
+    const exact = units.convertQuantity(123.456789, "force", metric, imperial);
+    expect(Math.abs(value - exact) / exact).toBeLessThanOrEqual(1e-9);
+  });
+});
+
 describe("unit inference", () => {
   test("a number takes the unit of the input it goes into", () => {
     let model = { nodes: [number("n1", "3"), box("s1", "structuralNode")], edges: [link("e1", "n1", "value-value", "s1", "x-value")] };

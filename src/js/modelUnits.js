@@ -30,7 +30,7 @@ function convertValue(value, factor) {
   if (value === null || value === undefined || value === "") return value;
   const number = Number(value);
   if (!Number.isFinite(number)) return value;
-  const converted = Number((number * factor).toPrecision(9));
+  const converted = units.roundConverted(number * factor);
   return typeof value === "string" ? String(converted) : converted;
 }
 
