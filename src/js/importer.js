@@ -1,6 +1,7 @@
 import file from "./file";
 import getState from "../getState";
 import units from "./units";
+import modelUnits from "./modelUnits";
 import state from "../state";
 import { parsers } from "../submodulesAPI";
 import generateParametricModel from "./generateParametricModel";
@@ -227,6 +228,8 @@ const adoptFileUnits = (s3d_model) => {
   let file_units = units.fromS3DUnits(s3d_model.settings?.units);
   if (!file_units) return s3d_model;
   let settings = getState("settings");
+  // The settings that are lengths (the mesh size...) keep their size in the new units
+  modelUnits.convertGlobalSettings(settings.global, units.repairUnits(settings.units), file_units);
   settings.units = file_units;
   state.setState(settings, "settings");
   return units.convertStructure(s3d_model, { ...file_units, ...units.readS3DUnits(s3d_model.settings.units) }, file_units);

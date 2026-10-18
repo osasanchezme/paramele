@@ -107,6 +107,6 @@ function changeModelUnits(new_units) {
   return count;
 }
 
-const modelUnits = { getModelUnits, changeModelUnits, convertModelValues };
+const modelUnits = { getModelUnits, changeModelUnits, convertModelValues, convertGlobalSettings };
 
 export default modelUnits;
