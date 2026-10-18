@@ -28,7 +28,6 @@ function setInitialState() {
       current_resizer: "",
       selected_handles: [],
       user_interaction_step: "none", // Can be "none", "wait", "done"
-      structure_nodes_shift: 0,
       iterating_node_data: {},
     },
     language,

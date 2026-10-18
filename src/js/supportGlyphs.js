@@ -7,6 +7,8 @@
 //   are the same marks, wavy. A rotation without a mark is fixed.
 
 const SUPPORT_SIZE = 0.6;
+// How far below its node the symbol of a support can reach (spring, pyramid, rollers and ground)
+const SUPPORT_DEPTH = 1.65 * SUPPORT_SIZE;
 const SOLID_COLOR = "#A0AEC0";
 const LINE_COLOR = "#2D3748";
 const ROTATION_COLOR = "#2B6CB0";
@@ -317,5 +319,5 @@ function getTraces(builder) {
   return traces;
 }
 
-const supportGlyphs = { createBuilder, addSupport, getTraces, parseRestraintCode };
+const supportGlyphs = { createBuilder, addSupport, getTraces, parseRestraintCode, SUPPORT_DEPTH };
 export default supportGlyphs;

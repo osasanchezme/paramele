@@ -129,7 +129,6 @@
         "sliders_mode": "Para rangos calcular...",
         "sliders_all": "Todas las posibilidades",
         "sliders_single": "Una posibilidad",
-        "spacing_between_combinations": "Espaciamiento entre combinaciones",
         "physical_load_size": "Tamaño físico para escalar cargas",
         "show_proportional_loads": "Mostrar cargas proporcionales",
         "mesh_plates": "Mallar las placas",

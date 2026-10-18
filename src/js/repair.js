@@ -22,6 +22,8 @@ function repairModel(model) {
 function repairSettings(settings) {
   // Older files have auto_update (removed) and mini_map (now a global setting) under general
   let { general } = settings;
+  // The spacing between possibilities is now calculated from their heights (see globalLogicRunner.stackCombination)
+  if (settings.global) delete settings.global.spacing_between_combinations;
   if (general) {
     delete general.auto_update;
     if (general.hasOwnProperty("mini_map")) {

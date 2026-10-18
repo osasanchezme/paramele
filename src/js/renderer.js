@@ -347,7 +347,7 @@ function getData(drawing_state, results_view) {
     plotly_data.push(mm);
     drawingLayer.pushHandle(handles, "moments", mm_id, { x: mm.x[0], y: mm.y[0], z: mm.z[0] });
   });
-  plotly_data.push(...getCombinationsFrames(structure.nodes, state.getGlobalVariable("structure_combinations"), global_settings));
+  plotly_data.push(...getCombinationsFrames(structure.nodes, state.getGlobalVariable("structure_combinations"), plotly_data));
   plotly_data.push(...drawingLayer.getHandlesTraces(handles, tool));
   return plotly_data;
 }
@@ -447,37 +447,71 @@ function getMeshLinesTrace(structural_nodes, quads) {
 }
 
 /**
- * Faint wireframe boxes around each possibility, all with the size of the largest one, labeled with the value of the iterated node
+ * Faint wireframe boxes around each possibility, labeled with the value of the iterated node. Each box wraps everything
+ * drawn for its possibility (supports, loads and results included), with the plan of the widest one so they line up.
  * @param {object} structural_nodes
  * @param {import("./types").ParamEleStructureCombination[]} [combinations]
- * @param {object} global_settings
+ * @param {object[]} plotly_data Traces drawn so far
  */
-function getCombinationsFrames(structural_nodes, combinations, global_settings) {
+function getCombinationsFrames(structural_nodes, combinations, plotly_data) {
   if (!combinations || combinations.length === 0) return [];
   const axes = ["x", "y", "z"];
-  const bounds = combinations.map((combination) => {
-    const min = { x: Infinity, y: Infinity, z: Infinity };
-    const max = { x: -Infinity, y: -Infinity, z: -Infinity };
+  const bounds = combinations.map(() => ({ min: { x: Infinity, y: Infinity, z: Infinity }, max: { x: -Infinity, y: -Infinity, z: -Infinity } }));
+  const addPoint = (bound, x, y, z) => {
+    const point = { x, y, z };
+    axes.forEach((axis) => {
+      bound.min[axis] = Math.min(bound.min[axis], point[axis]);
+      bound.max[axis] = Math.max(bound.max[axis], point[axis]);
+    });
+  };
+  combinations.forEach((combination, i) => {
     combination.node_ids.forEach((node_id) => {
       const node = structural_nodes[node_id];
-      if (!node) return;
-      axes.forEach((axis) => {
-        min[axis] = Math.min(min[axis], node[axis]);
-        max[axis] = Math.max(max[axis], node[axis]);
-      });
+      if (node) addPoint(bounds[i], node.x, node.y, node.z);
     });
-    return min.x === Infinity ? null : { min, max };
   });
+  // The possibilities are stacked, so a drawn point belongs to the one whose height range holds it
+  const slabs = combinations
+    .map((combination, i) => (combination.drawn_z ? { ...combination.drawn_z, bound: bounds[i] } : null))
+    .filter(Boolean)
+    .sort((a, b) => a.bottom - b.bottom);
+  const tolerance = 1e-6 * Math.max(1, ...slabs.map(({ top }) => Math.abs(top)));
+  const findSlab = (z) => {
+    let low = 0;
+    let high = slabs.length - 1;
+    while (low <= high) {
+      const middle = (low + high) >> 1;
+      if (z < slabs[middle].bottom - tolerance) high = middle - 1;
+      else if (z > slabs[middle].top + tolerance) low = middle + 1;
+      else return slabs[middle];
+    }
+    return null;
+  };
+  if (slabs.length > 0) {
+    plotly_data.forEach((trace) => {
+      if (!trace.x || !trace.y || !trace.z || trace.visible === false) return;
+      for (let i = 0; i < trace.z.length; i++) {
+        const z = trace.z[i];
+        if (z === null || z === undefined || !Number.isFinite(trace.x[i]) || !Number.isFinite(trace.y[i])) continue;
+        const slab = findSlab(z);
+        if (slab) addPoint(slab.bound, trace.x[i], trace.y[i], z);
+      }
+    });
+  }
+  const drawn_bounds = bounds.map((bound) => (bound.min.x === Infinity ? null : bound));
   const size = { x: 0, y: 0, z: 0 };
-  bounds.forEach((bound) => {
+  drawn_bounds.forEach((bound) => {
     if (bound) axes.forEach((axis) => (size[axis] = Math.max(size[axis], bound.max[axis] - bound.min[axis])));
   });
-  // The margin around the largest possibility stays under half the spacing, so neighbor boxes of the same size do not touch
-  const spacing = Number(global_settings["spacing_between_combinations"]) || 0;
-  const margin = Math.min(0.1 * Math.max(size.x, size.y, size.z, 1), 0.4 * spacing);
-  axes.forEach((axis) => (size[axis] += 2 * margin));
+  // The margin stays under half the smallest gap, so neighbor boxes do not touch
+  const stacked = drawn_bounds.filter(Boolean);
+  let min_gap = Infinity;
+  stacked.forEach((bound, i) => {
+    if (i > 0) min_gap = Math.min(min_gap, bound.min.z - stacked[i - 1].max.z);
+  });
+  const margin = Math.max(0, Math.min(0.05 * Math.max(size.x, size.y, size.z, 1), 0.4 * min_gap));
 
-  const frames = { x: [], y: [], z: [], type: "scatter3d", mode: "lines", hoverinfo: "none", opacity: 0.25, line: { width: 1, color: "#718096" } };
+  const frames = { x: [], y: [], z: [], type: "scatter3d", mode: "lines", hoverinfo: "none", opacity: 0.35, line: { width: 1, color: "#718096" } };
   const labels = {
     x: [],
     y: [],
@@ -486,8 +520,8 @@ function getCombinationsFrames(structural_nodes, combinations, global_settings) 
     type: "scatter3d",
     mode: "text",
     hoverinfo: "none",
-    textposition: "top right",
-    textfont: { color: "#718096", size: 11 },
+    textposition: "middle right",
+    textfont: { color: "#4A5568", size: 12 },
   };
   // Edges of a unit box as pairs of corners
   const corners = [
@@ -506,19 +540,21 @@ function getCombinationsFrames(structural_nodes, combinations, global_settings) 
     [2, 6],
     [3, 7],
   ];
-  bounds.forEach((bound, i) => {
+  drawn_bounds.forEach((bound, i) => {
     if (!bound) return;
     // Centered on its possibility
+    const frame_size = { x: size.x + 2 * margin, y: size.y + 2 * margin, z: bound.max.z - bound.min.z + 2 * margin };
     const origin = {};
-    axes.forEach((axis) => (origin[axis] = (bound.min[axis] + bound.max[axis]) / 2 - size[axis] / 2));
+    axes.forEach((axis) => (origin[axis] = (bound.min[axis] + bound.max[axis]) / 2 - frame_size[axis] / 2));
     edges.forEach((edge) => {
-      edge.forEach((corner_i) => axes.forEach((axis, axis_i) => frames[axis].push(origin[axis] + corners[corner_i][axis_i] * size[axis])));
+      edge.forEach((corner_i) => axes.forEach((axis, axis_i) => frames[axis].push(origin[axis] + corners[corner_i][axis_i] * frame_size[axis])));
       axes.forEach((axis) => frames[axis].push(null));
     });
+    // Halfway up the vertical edge at the right of the default camera (it looks from +X +Y), so it is clear which box it names
     const combination = combinations[i];
     labels.x.push(origin.x);
-    labels.y.push(origin.y);
-    labels.z.push(origin.z + size.z);
+    labels.y.push(origin.y + frame_size.y);
+    labels.z.push(origin.z + frame_size.z / 2);
     labels.text.push(`${combination.node_label} = ${Number(combination.value.toFixed(10))}`);
   });
   return [frames, labels];

@@ -721,8 +721,7 @@
             "renderer_right": 70
         },
         "global": {
-            "sliders_mode": "sliders_all",
-            "spacing_between_combinations": 1
+            "sliders_mode": "sliders_all"
         }
     }
 }
