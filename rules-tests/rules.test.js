@@ -138,6 +138,20 @@ describe("users solver credentials (finding 3)", () => {
   });
 });
 
+describe("users last seen version", () => {
+  const user_doc = (uid) => db(uid).collection("users").doc(uid);
+  test("a user can store the last app version they saw", async () => {
+    await assertSucceeds(user_doc(STRANGER).set({ email: `${STRANGER}@example.com`, last_seen_version: "1.4.2" }, { merge: true }));
+  });
+  test("it must be a short string", async () => {
+    await assertFails(user_doc(STRANGER).set({ email: `${STRANGER}@example.com`, last_seen_version: 142 }, { merge: true }));
+    await assertFails(user_doc(STRANGER).set({ email: `${STRANGER}@example.com`, last_seen_version: "1".repeat(51) }, { merge: true }));
+  });
+  test("nobody can set it for someone else", async () => {
+    await assertFails(db(STRANGER).collection("users").doc(OWNER).set({ email: `${STRANGER}@example.com`, last_seen_version: "1.4.2" }, { merge: true }));
+  });
+});
+
 describe("history edits (finding 7)", () => {
   test("an editor can add one version authored by them", async () => {
     await assertSucceeds(project(EDITOR).update(newVersion(EDITOR, 3000)));

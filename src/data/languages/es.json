@@ -149,7 +149,8 @@
         "visibility_more": "Toda la configuración",
         "close_visibility_panel": "Cerrar",
         "visibility_hidden_by_results": "Las secciones y el espesor de las placas no se dibujan mientras se muestra un resultado.",
-        "units_tab": "Unidades"
+        "units_tab": "Unidades",
+        "about_tab": "Acerca de"
     },
     "solver_status": {
         "server_checking": "Verificando si el servidor local está activo...",
@@ -697,5 +698,36 @@
         "chip_pinned": "clic para cambiarla",
         "chip_inferred": "Unidad tomada de sus conexiones",
         "chip_free": "Aún sin unidad: toma la de lo que se conecte. Clic para darle una"
+    },
+    "releases": {
+        "version_label": "ParamEle {v}",
+        "badge_tooltip": "Novedades de ParamEle",
+        "badge_tooltip_new": "Versión nueva: mira las novedades",
+        "toast_updated_title": "ParamEle se actualizó a la versión {v}",
+        "toast_welcome_title": "Estás usando ParamEle {v}",
+        "toast_action": "Ver novedades",
+        "dismiss": "Descartar",
+        "drawer_title": "Novedades",
+        "drawer_since": "Cambios desde la versión {v}",
+        "drawer_current": "En esta versión",
+        "more_changes": "{n} cambios más en la línea de tiempo completa",
+        "more_changes_one": "1 cambio más en la línea de tiempo completa",
+        "full_timeline": "Ver la línea de tiempo completa",
+        "learn_more": "Más información",
+        "released_on": "Publicada el {date}",
+        "built_on": "compilada el {date}",
+        "source_code": "Código fuente",
+        "type_feature": "Función nueva",
+        "type_improvement": "Mejora",
+        "type_fix": "Corrección",
+        "type_critical": "Corrección crítica",
+        "count_feature": "{n} nuevas",
+        "count_feature_one": "{n} nueva",
+        "count_improvement": "{n} mejoras",
+        "count_improvement_one": "{n} mejora",
+        "count_fix": "{n} correcciones",
+        "count_fix_one": "{n} corrección",
+        "count_critical": "{n} críticas",
+        "count_critical_one": "{n} crítica"
     }
 }

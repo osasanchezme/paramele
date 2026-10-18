@@ -38,6 +38,7 @@ import Firebase from "../js/firebase";
 import { notify } from "./notification";
 import units from "../js/units";
 import modelUnits from "../js/modelUnits";
+import { AboutPanel, openWhatsNew } from "./whats_new";
 
 function localGetDisplayCopy(copy_key) {
   return utils.getDisplayCopy("settings", copy_key);
@@ -157,6 +158,7 @@ function GlobalSettings({ user }) {
     if (!settings_tabs.hasOwnProperty(setting_options["tab"])) settings_tabs[setting_options["tab"]] = [];
     settings_tabs[setting_options["tab"]].push({ name: setting_name, type: setting_options.type, data: setting_options.data });
   });
+  settings_tabs.about_tab = [];
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="2xl">
       <ModalOverlay />
@@ -174,6 +176,14 @@ function GlobalSettings({ user }) {
               {Object.entries(settings_tabs).map(([tab_name, tab_settings], index) => (
                 <TabPanel key={tab_name}>
                   {tab_name === "units_tab" && <UnitsForm model_units={localUnits} onChange={setLocalUnits} />}
+                  {tab_name === "about_tab" && (
+                    <AboutPanel
+                      onOpenWhatsNew={() => {
+                        onClose();
+                        openWhatsNew();
+                      }}
+                    />
+                  )}
                   {tab_settings.some((setting) => solverCredentials.isUserScoped(setting.name)) && (
                     <FormControl>
                       <FormHelperText mt={0} mb={2}>

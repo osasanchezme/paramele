@@ -77,8 +77,61 @@ div.status-bar {
   padding-left: 10px;
   padding-right: 10px;
   white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.status-bar-hint {
+  flex: 1;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* App version at the right of the status bar, it opens What's new */
+.version-badge {
+  position: relative;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-family: var(--chakra-fonts-mono);
+  color: var(--chakra-colors-gray-600);
+  padding: 0 6px;
+  border-radius: 4px;
+  line-height: 19px;
+}
+
+.version-badge:hover {
+  color: var(--chakra-colors-gray-800);
+  background: var(--chakra-colors-gray-200);
+}
+
+.version-badge:focus-visible {
+  outline: 2px solid var(--chakra-colors-brand-500);
+}
+
+/* Unseen version */
+.version-badge-dot {
+  position: absolute;
+  top: 1px;
+  right: -1px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--chakra-colors-red-500);
+}
+
+.release-entry-description p + p {
+  margin-top: 0.5em;
+}
+
+.release-entry-description a {
+  color: var(--chakra-colors-brand-600);
+  text-decoration: underline;
+}
+
+.release-entry-description ul {
+  padding-left: 1.2em;
 }
 
 div.renderer-container,
