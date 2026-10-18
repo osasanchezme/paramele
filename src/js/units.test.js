@@ -34,6 +34,10 @@ describe("units", () => {
 
   test("writes derived units with the units of the model", () => {
     expect(units.formatUnit(units.getQuantityUnit("moment"), metric)).toBe("kN·m");
+    expect(units.formatUnit(units.getQuantityUnit("unit:rad"), metric)).toBe("rad");
+    expect(units.formatUnit(units.getQuantityUnit("unit:deg"), metric)).toBe("°");
+    expect(units.formatUnit(units.getQuantityUnit("angle"), metric)).toBe("°");
+    expect(units.formatUnit(units.getQuantityUnit("dimensionless"), metric)).toBe("");
     expect(units.formatUnit(units.getQuantityUnit("distributed_force"), imperial)).toBe("kip/ft");
     expect(units.formatUnit(units.getQuantityUnit("inertia"), metric)).toBe("mm⁴");
     expect(units.formatUnit(units.multiplyUnits(units.getQuantityUnit("length"), units.getQuantityUnit("length")), metric)).toBe("m²");

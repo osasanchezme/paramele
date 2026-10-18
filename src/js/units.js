@@ -158,11 +158,11 @@ function makeUnit(terms, scale = 1, quantity) {
 }
 
 const DIMENSIONLESS = makeUnit({});
-// Units that do not follow the settings (the trigonometric boxes always work in radians)
+// Units that do not follow the settings (the trigonometric boxes always work in radians), with how they are written
 const FIXED_UNITS = {
-  rad: makeUnit({}),
-  deg: makeUnit({}, Math.PI / 180),
-  percent: makeUnit({}),
+  rad: { ...makeUnit({}), label: "rad" },
+  deg: { ...makeUnit({}, Math.PI / 180), label: "°" },
+  percent: { ...makeUnit({}), label: "%" },
 };
 
 /**
@@ -297,6 +297,7 @@ const superscript = (power) =>
  */
 function formatUnit(unit, model_units) {
   if (!unit) return "";
+  if (unit.label) return unit.label;
   if (Object.keys(unit.terms).length === 0) {
     if (Math.abs(unit.scale - Math.PI / 180) < SI_TOLERANCE) return "°";
     return "";

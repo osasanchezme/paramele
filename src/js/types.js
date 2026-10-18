@@ -392,6 +392,7 @@ exports.unused = {};
  * @property {Object<string, number>} terms Power of each setting quantity
  * @property {number} scale Constant factor to SI, on top of the setting quantities
  * @property {string} [quantity] Quantity it was declared as, if any
+ * @property {string} [label] How a fixed unit is written ("rad", "°")
  */
 
 /**
