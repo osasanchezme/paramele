@@ -109,7 +109,9 @@ function stackCombination(node_ids, previous_box) {
  * @returns {{bottom: number, top: number}}
  */
 function getDrawnZRange(structure, node_ids, min_z, max_z) {
-  const load_size = Number(getState("settings")["global"]["physical_load_size"]) || 0;
+  const settings = getState("settings");
+  const load_size = Number(settings["global"]["physical_load_size"]) || 0;
+  const support_depth = supportGlyphs.getDepth(units.repairUnits(settings.units));
   let bottom = min_z;
   let top = max_z;
   const has = (node_id) => node_ids.has(String(node_id));
@@ -123,7 +125,7 @@ function getDrawnZRange(structure, node_ids, min_z, max_z) {
     top = Math.max(top, tail_z);
   };
   Object.values(structure.supports).forEach(({ node }) => {
-    if (has(node)) bottom = Math.min(bottom, structure.nodes[node].z - supportGlyphs.SUPPORT_DEPTH);
+    if (has(node)) bottom = Math.min(bottom, structure.nodes[node].z - support_depth);
   });
   // Forces point at their node and moments start from it
   Object.values(structure.point_loads).forEach(({ node, x_mag, y_mag, z_mag }) => {

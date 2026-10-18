@@ -9,6 +9,7 @@ import resultsLayer from "./resultsLayer";
 import sectionsLibrary from "./sectionsLibrary";
 import solidsLayer from "./solidsLayer";
 import supportGlyphs from "./supportGlyphs";
+import unitCatalog from "./units";
 
 const PLATE_COLOR = "#D2DDE8";
 const MESH_LINES_COLOR = "#5A6B7D";
@@ -33,6 +34,7 @@ function getData(drawing_state, results_view) {
   // Elements are named and carry their IDs, so a click in the renderer knows what was clicked
   const handles = drawingLayer.getEmptyHandles(tool);
   let units = structure.settings.units;
+  const model_units = unitCatalog.getStructureUnits(structure);
   let plotly_data = [];
   const global_settings = getState("settings")["global"];
   const physical_load_size = global_settings["physical_load_size"];
@@ -43,8 +45,8 @@ function getData(drawing_state, results_view) {
   const show_sections = Boolean(global_settings["show_sections"]) && !faded;
   const show_plate_thickness = Boolean(global_settings["show_plate_thickness"]) && !faded;
 
-  // Add axes
-  let axes_length = 2;
+  // Add axes, 2 m long in any units
+  let axes_length = unitCatalog.convertQuantity(2, "length", unitCatalog.SOLVER_UNITS, model_units);
   plotly_data.push({
     x: [0, axes_length],
     y: [0, 0],
@@ -150,7 +152,7 @@ function getData(drawing_state, results_view) {
   }
 
   // Supports
-  const support_builder = supportGlyphs.createBuilder();
+  const support_builder = supportGlyphs.createBuilder(model_units);
   Object.entries(structure.supports).forEach(([support_id, support_data]) => {
     let node = structure.nodes[support_data.node];
     if (!node) return;

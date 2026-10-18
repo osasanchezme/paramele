@@ -6,9 +6,12 @@
 // - Released rotations are marks around their axis at the node: arches over it for Rx and Ry, a ring for Rz. Rotational springs
 //   are the same marks, wavy. A rotation without a mark is fixed.
 
+import units from "./units";
+
+// Size of the symbols in meters, they keep it whatever the units of the model
 const SUPPORT_SIZE = 0.6;
-// How far below its node the symbol of a support can reach (spring, pyramid, rollers and ground)
-const SUPPORT_DEPTH = 1.65 * SUPPORT_SIZE;
+// How far below its node the symbol of a support can reach (spring, pyramid, rollers and ground), as a ratio of its size
+const SUPPORT_DEPTH_RATIO = 1.65;
 const SOLID_COLOR = "#A0AEC0";
 const LINE_COLOR = "#2D3748";
 const ROTATION_COLOR = "#2B6CB0";
@@ -39,8 +42,32 @@ function parseRestraintCode(restraint_code) {
   return { t: { x: dof(0), y: dof(1), z: dof(2) }, r: { x: dof(3), y: dof(4), z: dof(5) } };
 }
 
-function createBuilder() {
-  return { mesh: { x: [], y: [], z: [], i: [], j: [], k: [] }, lines: { x: [], y: [], z: [] }, rotation_lines: { x: [], y: [], z: [] } };
+/**
+ * Size of the symbols in the length unit of the model
+ * @param {object} model_units Settings units
+ */
+function getSize(model_units) {
+  return units.convertQuantity(SUPPORT_SIZE, "length", units.SOLVER_UNITS, model_units);
+}
+
+/**
+ * How far below its node the symbol of a support can reach, in the length unit of the model
+ * @param {object} model_units Settings units
+ */
+function getDepth(model_units) {
+  return SUPPORT_DEPTH_RATIO * getSize(model_units);
+}
+
+/**
+ * @param {object} model_units Settings units, the symbols are drawn in their length unit
+ */
+function createBuilder(model_units) {
+  return {
+    size: getSize(model_units),
+    mesh: { x: [], y: [], z: [], i: [], j: [], k: [] },
+    lines: { x: [], y: [], z: [] },
+    rotation_lines: { x: [], y: [], z: [] },
+  };
 }
 
 function pushVertices(builder, points) {
@@ -138,7 +165,7 @@ function addBlock(builder, top, { u, v, w }, half, height) {
 function addGround(builder, center, { u, v, w }, half) {
   let corners = squareCorners(center, u, v, half);
   pushPolyline(builder.lines, [...corners, corners[0]]);
-  let hatch_length = 0.18 * SUPPORT_SIZE;
+  let hatch_length = 0.18 * builder.size;
   let hatches = 5;
   corners.forEach((corner, index) => {
     let next = corners[(index + 1) % 4];
@@ -201,22 +228,22 @@ function addBall(builder, center, radius) {
 }
 
 /** Coil from start along direction, its zigzag goes along side */
-function addSpring(lines, start, direction, side, length) {
+function addSpring(builder, start, direction, side, length) {
   let lead = 0.15 * length;
   let zigs = 6;
-  let amplitude = 0.12 * SUPPORT_SIZE;
+  let amplitude = 0.12 * builder.size;
   let points = [start, offset(start, direction, lead)];
   for (let z = 0; z < zigs; z++) {
     let t = lead + ((z + 0.5) / zigs) * (length - 2 * lead);
     points.push(offset(start, direction, t, side, z % 2 === 0 ? amplitude : -amplitude));
   }
   points.push(offset(start, direction, length - lead), offset(start, direction, length));
-  pushPolyline(lines, points);
+  pushPolyline(builder.lines, points);
 }
 
 /** Rollers between a support's base (centered at base) and the ground, along the released horizontal directions */
 function addRollers(builder, base, frame, half, free) {
-  let radius = 0.1 * SUPPORT_SIZE;
+  let radius = 0.1 * builder.size;
   let center = offset(base, frame.w, radius);
   // Rollers stick out of the body's footprint, so they can be seen from above
   if (free.x && free.y) {
@@ -232,7 +259,7 @@ function addRollers(builder, base, frame, half, free) {
 }
 
 function addRotationMarks(builder, node, rotations) {
-  let radius = 0.3 * SUPPORT_SIZE;
+  let radius = 0.3 * builder.size;
   AXES.forEach((axis) => {
     if (rotations[axis] === "F") return;
     let [a, b] = perpendicular(axis);
@@ -250,7 +277,7 @@ function addRotationMarks(builder, node, rotations) {
  */
 function addSupport(builder, restraint_code, node) {
   let { t, r } = parseRestraintCode(restraint_code);
-  let size = SUPPORT_SIZE;
+  let size = builder.size;
   let half = size / 2;
   let origin = [node.x, node.y, node.z];
   let handle = origin;
@@ -261,7 +288,7 @@ function addSupport(builder, restraint_code, node) {
     let frame = FRAMES.z;
     let top = origin;
     if (t.z === "S") {
-      addSpring(builder.lines, origin, frame.w, frame.u, 0.5 * size);
+      addSpring(builder, origin, frame.w, frame.u, 0.5 * size);
       top = offset(origin, frame.w, 0.5 * size);
     }
     let body_height = any_rotation_released ? 0.75 * size : 0.4 * size;
@@ -277,7 +304,7 @@ function addSupport(builder, restraint_code, node) {
       if (t[axis] !== "S") return;
       let side_frame = FRAMES[axis];
       let start = offset(top, frame.w, body_height * 0.8, side_frame.w, half * 0.8);
-      addSpring(builder.lines, start, side_frame.w, frame.w, 0.6 * size);
+      addSpring(builder, start, side_frame.w, frame.w, 0.6 * size);
       addGround(builder, offset(start, side_frame.w, 0.6 * size), side_frame, half * 0.4);
     });
     return { x: handle[0], y: handle[1], z: handle[2] };
@@ -289,7 +316,7 @@ function addSupport(builder, restraint_code, node) {
     let frame = FRAMES[axis];
     let length = t[axis] === "F" ? 0.6 * size : size;
     if (t[axis] === "F") addPyramid(builder, origin, frame, length, half * 0.7);
-    else addSpring(builder.lines, origin, frame.w, frame.v, length);
+    else addSpring(builder, origin, frame.w, frame.v, length);
     addGround(builder, offset(origin, frame.w, length), frame, half * 0.7);
     if (!drawn) handle = offset(origin, frame.w, length / 2);
     drawn = true;
@@ -319,5 +346,5 @@ function getTraces(builder) {
   return traces;
 }
 
-const supportGlyphs = { createBuilder, addSupport, getTraces, parseRestraintCode, SUPPORT_DEPTH };
+const supportGlyphs = { createBuilder, addSupport, getTraces, parseRestraintCode, getDepth };
 export default supportGlyphs;
