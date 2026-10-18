@@ -1,6 +1,6 @@
 {
   "name": "paramele",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "dependencies": {
     "@chakra-ui/react": "^2.5.4",
@@ -21,19 +21,28 @@
     "react-plotly.js": "^2.6.0",
     "react-scripts": "5.0.1",
     "reactflow": "^11.10.3",
+    "semver": "^7.8.5",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
     "deploy": "npm run build && firebase deploy --only hosting --project paramele-prod",
     "deploy:rules": "firebase deploy --only firestore,storage --project paramele-prod",
     "deploy:cors": "gcloud storage buckets update gs://paramele-prod.firebasestorage.app --cors-file=cors.json --project=paramele-prod",
+    "prestart": "npm run changelog",
     "start": "cross-env BROWSER=none react-scripts start",
+    "prebuild": "npm run changelog",
     "build": "cross-env GENERATE_SOURCEMAP=false react-scripts build",
+    "pretest": "npm run changelog",
     "test": "react-scripts test",
     "test:rules": "firebase emulators:exec --only firestore,storage --project demo-paramele \"node --test rules-tests/rules.test.js\"",
     "eject": "react-scripts eject",
     "theme": "chakra-cli tokens src/theme.js",
-    "samples": "node scripts/build_samples.mjs"
+    "samples": "node scripts/build_samples.mjs",
+    "changelog": "node scripts/build_changelog.mjs",
+    "changelog:check": "node scripts/build_changelog.mjs --check",
+    "changelog:history": "node scripts/changelog_history.mjs",
+    "test:changelog": "node --test \"scripts/changelog/*.test.mjs\"",
+    "release": "node scripts/release.mjs"
   },
   "eslintConfig": {
     "extends": [
@@ -55,6 +64,9 @@
   },
   "devDependencies": {
     "@chakra-ui/cli": "^2.3.0",
-    "@firebase/rules-unit-testing": "^5.0.2"
+    "@firebase/rules-unit-testing": "^5.0.2",
+    "marked": "^18.1.1",
+    "yaml": "^2.9.1",
+    "zod": "^4.6.7"
   }
 }

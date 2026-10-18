@@ -408,3 +408,41 @@ exports.unused = {};
  * @property {Object<string, "pinned"|"inferred"|"free">} adaptive State of each adaptive handle by key
  * @property {boolean} has_errors
  */
+
+/**
+ * @typedef {{es: string, en: string}} ParamEleLocalizedText
+ */
+
+/**
+ * @typedef {object} ParamEleReleaseEntry A change in a release (changelog/<version>.md, see changelog/README.md)
+ * @property {string} id Stable slug, used in deep links
+ * @property {"feature"|"improvement"|"fix"} type
+ * @property {"critical"|"normal"} [severity] Fixes only
+ * @property {string[]} area
+ * @property {ParamEleLocalizedText} title
+ * @property {ParamEleLocalizedText} [description] HTML, compiled from Markdown
+ * @property {string} [media] Screenshot or GIF
+ * @property {boolean} highlight Shown in What's new
+ * @property {string[]} links
+ */
+
+/**
+ * @typedef {object} ParamEleReleaseCounts
+ * @property {number} feature
+ * @property {number} improvement
+ * @property {number} fix
+ * @property {number} critical Critical fixes, also counted in fix
+ */
+
+/**
+ * @typedef {object} ParamEleRelease
+ * @property {string} version SemVer
+ * @property {string} date YYYY-MM-DD
+ * @property {ParamEleLocalizedText} [title]
+ * @property {ParamEleLocalizedText} summary
+ * @property {boolean} milestone
+ * @property {"stable"|"beta"} channel
+ * @property {"major"|"minor"|"patch"} kind
+ * @property {ParamEleReleaseCounts} counts
+ * @property {ParamEleReleaseEntry[]} entries
+ */

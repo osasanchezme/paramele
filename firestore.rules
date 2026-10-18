@@ -1,7 +1,7 @@
 rules_version = '2';
 
 // Data model (see src/js/firebase.js):
-// - users/{uid}                    Private profile, including the SkyCiv credentials (solver)
+// - users/{uid}                    Private profile, including the SkyCiv credentials (solver) and the last app version seen (last_seen_version)
 // - users/{uid}/folders/{folderId} File manager folders
 // - profiles/{uid}                 Public contact data (username, email) shown in sharing and version history
 // - email_index/{email}            Email (lowercase) -> uid, used to share files by email
@@ -31,9 +31,10 @@ service cloud.firestore {
     match /users/{uid} {
       allow read, delete: if isUser(uid);
       allow create, update: if isUser(uid)
-        && request.resource.data.keys().hasOnly(["name", "username", "email", "company", "industry", "solver"])
+        && request.resource.data.keys().hasOnly(["name", "username", "email", "company", "industry", "solver", "last_seen_version"])
         && request.resource.data.email == request.auth.token.email
-        && (!("solver" in request.resource.data) || isValidSolver(request.resource.data.solver));
+        && (!("solver" in request.resource.data) || isValidSolver(request.resource.data.solver))
+        && (!("last_seen_version" in request.resource.data) || isShortString(request.resource.data.last_seen_version, 50));
 
       function isValidSolver(solver) {
         return solver is map

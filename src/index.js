@@ -33,6 +33,7 @@ import SharingManager from "./components/sharing_manager";
 import SampleGallery from "./components/sample_gallery";
 import samples from "./js/samples";
 import StatusBar from "./components/status_bar";
+import WhatsNew from "./components/whats_new";
 import ViewSwitch from "./components/view_switch";
 import boxes from "./js/boxes";
 import modelLinks from "./js/modelLinks";
@@ -665,6 +666,7 @@ class ParamEle extends React.Component {
                     panel_dock={this.state.panel_dock}
                   ></Renderer>
                   <GlobalSettings user={this.state.user}></GlobalSettings>
+                  <WhatsNew></WhatsNew>
                   <Authentication
                     user={this.state.user}
                     is_auth_form_open={this.state.is_auth_form_open}

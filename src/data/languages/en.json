@@ -149,7 +149,8 @@
         "visibility_more": "All the settings",
         "close_visibility_panel": "Close",
         "visibility_hidden_by_results": "The sections and the plate thickness are not drawn while a result is shown.",
-        "units_tab": "Units"
+        "units_tab": "Units",
+        "about_tab": "About"
     },
     "solver_status": {
         "server_checking": "Checking whether the local server is running...",
@@ -695,5 +696,36 @@
         "chip_pinned": "click to change it",
         "chip_inferred": "Unit taken from its links",
         "chip_free": "No unit yet: it takes the one of what it is linked to. Click to give it one"
+    },
+    "releases": {
+        "version_label": "ParamEle {v}",
+        "badge_tooltip": "What's new in ParamEle",
+        "badge_tooltip_new": "New version: see what's new",
+        "toast_updated_title": "ParamEle updated to {v}",
+        "toast_welcome_title": "You're on ParamEle {v}",
+        "toast_action": "See what's new",
+        "dismiss": "Dismiss",
+        "drawer_title": "What's new",
+        "drawer_since": "Changes since version {v}",
+        "drawer_current": "In this version",
+        "more_changes": "{n} more changes in the full timeline",
+        "more_changes_one": "1 more change in the full timeline",
+        "full_timeline": "See full timeline",
+        "learn_more": "Learn more",
+        "released_on": "Released {date}",
+        "built_on": "built {date}",
+        "source_code": "Source code",
+        "type_feature": "New feature",
+        "type_improvement": "Improvement",
+        "type_fix": "Bug fix",
+        "type_critical": "Critical fix",
+        "count_feature": "{n} new",
+        "count_feature_one": "{n} new",
+        "count_improvement": "{n} improved",
+        "count_improvement_one": "{n} improved",
+        "count_fix": "{n} fixed",
+        "count_fix_one": "{n} fixed",
+        "count_critical": "{n} critical",
+        "count_critical_one": "{n} critical"
     }
 }

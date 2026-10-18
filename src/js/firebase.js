@@ -34,6 +34,7 @@ import { notify } from "../components/notification";
 import file from "./file";
 import { getProcessResponseObject } from "./processResponse";
 import solverCredentials from "./solverCredentials";
+import lastSeenVersion from "./lastSeenVersion";
 
 // Web app configuration of the paramele-prod project (Project settings > General > Your apps). These values are not secret
 const firebaseConfig = {
@@ -208,13 +209,32 @@ function ensureEmailIndex(user) {
 }
 
 /**
- * Loads the SkyCiv credentials of the user (users/{uid}.solver) into solverCredentials
+ * Loads the private document of the user: the SkyCiv credentials (users/{uid}.solver) into solverCredentials and the last app
+ * version they saw (users/{uid}.last_seen_version) into lastSeenVersion
  * @param {import("firebase/auth").User} user
  */
-function loadSolverCredentials(user) {
+function loadUserDocument(user) {
   getDoc(doc(db, "users", user.uid))
-    .then((snapshot) => solverCredentials.setCredentials(snapshot.exists() ? snapshot.data().solver : undefined))
-    .catch((error) => handleDatabaseError(error));
+    .then((snapshot) => {
+      let data = snapshot.exists() ? snapshot.data() : {};
+      solverCredentials.setCredentials(data.solver);
+      lastSeenVersion.setFromAccount(data.last_seen_version);
+    })
+    .catch((error) => {
+      lastSeenVersion.setFromAccount(null);
+      handleDatabaseError(error);
+    });
+}
+
+/**
+ * Saves the last app version the signed-in user saw in their private document, it does nothing when logged out
+ * @param {string} version
+ */
+function saveLastSeenVersion(version) {
+  let user = auth.currentUser;
+  if (!user) return;
+  // email is required by the rules when the document does not exist yet
+  setDoc(doc(db, "users", user.uid), { last_seen_version: version, email: user.email }, { merge: true }).catch((error) => handleDatabaseError(error));
 }
 
 /**
@@ -682,10 +702,11 @@ function attachToAuthChangeFirebaseEvent(function_to_attach) {
   onAuthStateChanged(auth, (user) => {
     if (!user) {
       solverCredentials.setCredentials();
+      lastSeenVersion.setFromAccount(null);
       function_to_attach(user);
       return;
     }
-    loadSolverCredentials(user);
+    loadUserDocument(user);
     // The cached user does not know the email was verified in another tab, reload it before reading emailVerified
     let reload_promise = user.emailVerified ? Promise.resolve() : user.reload().catch(() => {});
     reload_promise.then(() => {
@@ -737,6 +758,7 @@ const Firebase = {
   getContactInformationFromDataBase,
   resendVerificationEmail,
   saveSolverCredentials,
+  saveLastSeenVersion,
   leaveSharedFile,
 };
 
