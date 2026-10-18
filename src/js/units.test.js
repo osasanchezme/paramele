@@ -137,6 +137,17 @@ describe("unit inference", () => {
     expect([inference.edges.e1.error, inference.edges.e2.error].sort()).toEqual([false, true]);
   });
 
+  test("counts the unit errors of a model and of its group boxes", () => {
+    const conflicted = () => ({
+      nodes: [number("n1", "3"), box("s1", "structuralNode"), box("p1", "structuralPointLoad")],
+      edges: [link("e1", "n1", "value-value", "s1", "x-value"), link("e2", "n1", "value-value", "p1", "x_mag-value")],
+    });
+    const group = { id: "g1", type: "nodesWrapper", data: { internal_logic: conflicted(), input_handles: [], output_handles: [] } };
+    expect(unitInference.countUnitErrors(conflicted(), DECLARATIONS, metric)).toBe(1);
+    expect(unitInference.countUnitErrors({ nodes: [group], edges: [] }, DECLARATIONS, metric)).toBe(1);
+    expect(unitInference.countUnitErrors({ nodes: [number("n1", "3"), box("s1", "structuralNode")], edges: [] }, DECLARATIONS, metric)).toBe(0);
+  });
+
   test("a sum works in the unit of its first input and converts the second", () => {
     let model = {
       nodes: [number("a", "2", "length"), number("b", "500", "section_length"), box("sum", "sumNumbers"), box("s1", "structuralNode")],

@@ -122,6 +122,19 @@ function GlobalSettings({ user }) {
     setLocalSettings((currentSettings) => ({ ...currentSettings, [id]: new_value }));
   }
   function saveSettings() {
+    // A number linked to two dimensions cannot be converted to the new units, the links have to be fixed first
+    const units_changed = JSON.stringify(units.repairUnits(localUnits)) !== JSON.stringify(modelUnits.getModelUnits());
+    const unit_errors = units_changed ? modelUnits.countUnitErrors() : 0;
+    if (unit_errors > 0) {
+      notify(
+        "error",
+        utils.getDisplayCopy("notifications", "units_blocked_title"),
+        utils.getDisplayCopy("notifications", "units_blocked_desc").replace("{n}", unit_errors),
+        false,
+        8000
+      );
+      return;
+    }
     let model_settings = {};
     let credentials = {};
     Object.entries(localSettings).forEach(([setting_name, value]) => {

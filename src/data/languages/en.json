@@ -377,7 +377,9 @@
         "sample_load_failed_title": "Could not open the sample",
         "sample_load_failed_desc": "Check your connection and try again.",
         "units_converted_title": "Units changed",
-        "units_converted_desc": "The numbers of the boxes were converted to the new units."
+        "units_converted_desc": "The numbers of the boxes were converted to the new units.",
+        "units_blocked_title": "The units were not changed",
+        "units_blocked_desc": "The model has {n} links with unit errors (red). Fix them first, a number linked to two kinds of quantities cannot be converted."
     },
     "navigator":{
         "model": "Main model"

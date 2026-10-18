@@ -87,6 +87,15 @@ function convertGlobalSettings(global_settings, from_units, to_units) {
 }
 
 /**
+ * Links with a unit error in the whole model (group boxes included). The units cannot change while there are any: a number
+ * linked to two dimensions would be converted as one of them, changing the value the other link gets
+ * @returns {number}
+ */
+function countUnitErrors() {
+  return unitInference.countUnitErrors(getState().model, utils.getNodesLibrary().units, getModelUnits());
+}
+
+/**
  * Changes the units of the model, converting the values of its boxes and settings
  * @param {object} new_units Settings units
  * @returns {number} How many boxes were converted
@@ -95,6 +104,7 @@ function changeModelUnits(new_units) {
   const from_units = getModelUnits();
   const to_units = units.repairUnits(new_units);
   if (JSON.stringify(from_units) === JSON.stringify(to_units)) return 0;
+  if (countUnitErrors() > 0) throw new Error("The units cannot change while the model has links with unit errors");
   const full_state = getState();
   const count = convertModelValues(full_state.model, from_units, to_units);
   convertGlobalSettings(full_state.settings.global, from_units, to_units);
@@ -107,6 +117,6 @@ function changeModelUnits(new_units) {
   return count;
 }
 
-const modelUnits = { getModelUnits, changeModelUnits, convertModelValues, convertGlobalSettings };
+const modelUnits = { getModelUnits, changeModelUnits, convertModelValues, convertGlobalSettings, countUnitErrors };
 
 export default modelUnits;

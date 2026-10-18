@@ -260,6 +260,22 @@ function isValidConnection(model, connection, declarations, model_units) {
 }
 
 /**
+ * Links with a unit error in a model and in the inner models of its group boxes
+ * @param {{nodes: object[], edges: object[]}} model
+ * @param {Object<string, import("./types").ParamEleUnitDeclaration>} declarations
+ * @param {object} model_units
+ * @returns {number}
+ */
+function countUnitErrors(model, declarations, model_units) {
+  const inference = inferUnits(model, declarations, model_units);
+  let count = Object.values(inference.edges).filter(({ error }) => error).length;
+  (model?.nodes || []).forEach((node) => {
+    if (node.type === WRAPPER_TYPE && node.data?.internal_logic) count += countUnitErrors(node.data.internal_logic, declarations, model_units);
+  });
+  return count;
+}
+
+/**
  * Number boxes and sliders of a model (and of its group boxes) with the unit they were resolved to, to convert their values
  * when the units of the model change
  * @param {{nodes: object[], edges: object[]}} model
@@ -278,6 +294,6 @@ function forEachAdaptiveValue(model, declarations, model_units, callback) {
   });
 }
 
-const unitInference = { inferUnits, isValidConnection, forEachAdaptiveValue, handleKey, isValueHandle };
+const unitInference = { inferUnits, isValidConnection, forEachAdaptiveValue, countUnitErrors, handleKey, isValueHandle };
 
 export default unitInference;

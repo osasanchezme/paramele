@@ -364,7 +364,9 @@
         "sample_load_failed_title": "No se pudo abrir el ejemplo",
         "sample_load_failed_desc": "Revisa tu conexión e inténtalo de nuevo.",
         "units_converted_title": "Unidades cambiadas",
-        "units_converted_desc": "Los números de las cajas se convirtieron a las nuevas unidades."
+        "units_converted_desc": "Los números de las cajas se convirtieron a las nuevas unidades.",
+        "units_blocked_title": "Las unidades no se cambiaron",
+        "units_blocked_desc": "El modelo tiene {n} conexiones con errores de unidades (en rojo). Corrígelas primero, un número conectado a dos tipos de magnitudes no se puede convertir."
     },
     "navigator": {
         "model": "Modelo principal"
