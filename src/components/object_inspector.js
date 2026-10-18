@@ -20,11 +20,12 @@ function getPrintableJSON(object) {
       Object.entries(object).forEach(([key, val]) => {
         tag_str = key + " : ";
         let child_tags = [];
-        if (typeof val === "object") {
+        // null is an object too, it is printed as a value
+        if (typeof val === "object" && val !== null) {
           let child_str;
           Object.entries(val).forEach(([key_1, val_1]) => {
             child_str = key_1 + " : ";
-            if (typeof val_1 === "object") {
+            if (typeof val_1 === "object" && val_1 !== null) {
               child_str += " object";
             } else {
               child_str += String(val_1);
