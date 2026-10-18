@@ -88,6 +88,16 @@ const removeMesh = () => {
   notify("info", "mesh_removed", undefined, true);
 };
 
+/**
+ * Sections used by members that PyNite cannot take (it only builds rectangular ones)
+ * @param {object} structure
+ * @returns {string[]} Their IDs
+ */
+const getUnsupportedPyNiteSections = (structure) => {
+  const used = new Set(Object.values(structure.members).map(({ section_id }) => String(section_id)));
+  return [...used].filter((section_id) => structure.sections[section_id]?.info?.shape !== "rectangle");
+};
+
 const solveStructure = () => {
   let global_settings = getState("settings")["global"];
   const { solver_engine } = global_settings;
@@ -105,6 +115,20 @@ const solveStructure = () => {
     notifySkippedPlates(structure_mesh);
   }
   let structure = repair.repairStructuralModel(getState("structure"), solver_engine);
+  // PyNite only builds rectangular sections, members with other sections would be left without one
+  if (solver_engine === "pynite" || solver_engine === "pynite_wasm") {
+    const unsupported = getUnsupportedPyNiteSections(structure);
+    if (unsupported.length > 0) {
+      notification.notify(
+        "error",
+        utils.getDisplayCopy("notifications", "pynite_unsupported_sections_title"),
+        utils.getDisplayCopy("notifications", "pynite_unsupported_sections_desc").replace("{sections}", unsupported.join(", ")),
+        false,
+        10000
+      );
+      return;
+    }
+  }
   if (solver_engine !== "pynite_wasm") notification.notify("info", "requested_solve", "", true, 90000);
   function setResults(results) {
     // The renderer only draws the results on the geometry they were solved with
