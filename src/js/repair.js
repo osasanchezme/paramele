@@ -115,11 +115,12 @@ function repairStructuralModel(structure, solver_engine) {
         return [plate_id, converted];
       })
     );
-    // Generic sections have no dimensions to convert (PyNite only takes rectangular ones, see structure.solveStructure)
-    const shapeless_sections = Object.entries(structure.sections).filter(([, section]) => !section.info?.dimensions);
-    shapeless_sections.forEach(([section_id]) => delete structure.sections[section_id]);
+    // PyNite builds its sections from their shape, so generic ones are left out (members that use them are reported by
+    // structure.solveStructure before solving)
+    Object.entries(structure.sections).forEach(([section_id, section]) => {
+      if (!section.info?.dimensions) delete structure.sections[section_id];
+    });
     structure = convertModel(structure, { section_length: "m" });
-    shapeless_sections.forEach(([section_id, section]) => (structure.sections[section_id] = section));
     // PyNite takes consistent units: with forces in kN and lengths in m, the elasticity modulus goes in kN/m2 (kPa), not in MPa
     let { material_strength, force } = structure.settings.units;
     let consistent_strength = force === "kn" ? "kpa" : "pa";
