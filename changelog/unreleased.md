@@ -45,6 +45,16 @@ entries:
     description:
       en: Long labels, such as L = 12000 in a model in mm, were drawn at half the size of short ones.
       es: Las etiquetas largas, como L = 12000 en un modelo en mm, se dibujaban a la mitad del tamaño de las cortas.
+  - id: drawing-view-fits-everything
+    type: fix
+    severity: normal
+    area: [modeling, ui]
+    title:
+      en: The drawing tools no longer cut off supports, loads or variant frames
+      es: Las herramientas de dibujo ya no recortan apoyos, cargas ni marcos de variantes
+    description:
+      en: The view of the drawing tools only fitted the nodes, so whatever stuck out of them, such as the frames and labels of the variants, was hidden.
+      es: La vista de las herramientas de dibujo solo abarcaba los nodos, así que lo que sobresalía de ellos, como los marcos y etiquetas de las variantes, quedaba oculto.
   - id: import-converts-settings
     type: fix
     severity: normal
