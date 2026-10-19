@@ -360,28 +360,26 @@ def solve(model_data, sparse=True):
 
     used_load_cases = []
 
+    # Distributed loads in global X, Y and Z, by unit length of the member (as SkyCiv's global axes), linear from A to B
+    # over the part of the member between position_A and position_B (percent of its length)
     distributed_loads = model_data.get("distributed_loads", {})
     for dl_id, dl_data in distributed_loads.items():
-        load_z_A = dl_data["z_mag_A"]
-        load_z_B = dl_data["z_mag_B"]
-        load_y_A = dl_data["y_mag_A"]
-        load_y_B = dl_data["y_mag_B"]
-        load_x_A = dl_data["x_mag_A"]
-        load_x_B = dl_data["x_mag_B"]
         member_id = dl_data["member"]
+        axes = dl_data.get("axes", "global")
+        if axes != "global":
+            raise Exception(f"Distributed load {dl_id} is in {axes} axes, only global axes are supported")
+        member = model.members[f"M{member_id}"]
+        length = member.L()
+        x1 = float(dl_data.get("position_A") or 0) / 100 * length
+        x2 = float(dl_data.get("position_B") if dl_data.get("position_B") not in (None, "") else 100) / 100 * length
         load_case = dl_data["load_group"]
         if not load_case in used_load_cases:
             used_load_cases.append(load_case)
-        if load_z_A != 0 or load_z_B != 0:
-            model.add_member_dist_load(
-                member_name=f"M{member_id}",
-                case=load_case,
-                direction="FZ",
-                w1=load_z_A,
-                w2=load_z_B,
-            )
-        if load_x_A != 0 or load_x_B != 0 or load_y_A != 0 or load_y_B != 0:
-            raise Exception(f"Distributed loads in X and Y are not supported yet")
+        for axis in ("x", "y", "z"):
+            w1 = float(dl_data.get(f"{axis}_mag_A") or 0)
+            w2 = float(dl_data.get(f"{axis}_mag_B") or 0)
+            if w1 != 0 or w2 != 0:
+                model.add_member_dist_load(f"M{member_id}", f"F{axis.upper()}", w1, w2, x1, x2, case=load_case)
 
     point_loads = model_data.get("point_loads", {})
     for pl_id, pl_data in point_loads.items():

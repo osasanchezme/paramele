@@ -105,6 +105,29 @@
       "thumbnail": "verification-simply-supported-beam.webp"
     },
     {
+      "id": "verification-cantilever-column",
+      "title": {
+        "es": "Verificación 2: columna en voladizo",
+        "en": "Verification 2: cantilever column"
+      },
+      "description": {
+        "es": "Modelo de verificación de la tesis: columna empotrada en la base con una carga puntual gravitacional y una carga lateral trapezoidal.",
+        "en": "Thesis verification model: column fixed at its base with a gravity point load and a trapezoidal lateral load."
+      },
+      "tags": {
+        "es": [
+          "Verificación",
+          "Columna"
+        ],
+        "en": [
+          "Verification",
+          "Column"
+        ]
+      },
+      "boxes": 26,
+      "thumbnail": "verification-cantilever-column.webp"
+    },
+    {
       "id": "verification-multi-span-frame",
       "title": {
         "es": "Verificación 3: pórtico plano de varias luces",
