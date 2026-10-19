@@ -12,8 +12,8 @@ entries:
       en: Thesis verification models in the samples
       es: Modelos de verificación de la tesis en los ejemplos
     description:
-      en: A simply supported beam, a cantilever column with a trapezoidal lateral load, a multi-span plane frame and a rectangular plate supported along its edges. They solve with Pynite and SkyCiv with the same results.
-      es: Una viga simplemente apoyada, una columna en voladizo con carga lateral trapezoidal, un pórtico plano de varias luces y una placa rectangular apoyada en sus bordes. Se resuelven con Pynite y SkyCiv con los mismos resultados.
+      en: A simply supported beam, a cantilever column with a trapezoidal lateral load, a multi-span plane frame, a rectangular plate supported along its edges and a retaining wall on piles. They solve with Pynite and SkyCiv with the same results.
+      es: Una viga simplemente apoyada, una columna en voladizo con carga lateral trapezoidal, un pórtico plano de varias luces, una placa rectangular apoyada en sus bordes y un muro de contención sobre pilotes. Se resuelven con Pynite y SkyCiv con los mismos resultados.
   - id: pynite-distributed-loads-any-direction
     type: feature
     area: [analysis]
@@ -121,6 +121,15 @@ entries:
       en: PyNite solves models with unused generic sections and reports the others
       es: PyNite resuelve modelos con secciones genéricas sin usar y avisa de las demás
     description:
-      en: PyNite only builds rectangular sections. A generic section in the model, even if no member used it, made the solve fail without a message. Now only members that use one stop the solve, with a notice that lists those sections.
-      es: PyNite solo construye secciones rectangulares. Una sección genérica en el modelo, aunque ninguna barra la usara, hacía fallar el cálculo sin mensaje. Ahora solo lo detienen las barras que usan una, con un aviso que lista esas secciones.
+      en: PyNite builds its sections from their shape (rectangular or circular). A generic section in the model, even if no member used it, made the solve fail without a message. Now only members that use one stop the solve, with a notice that lists those sections.
+      es: PyNite construye sus secciones a partir de su forma (rectangular o circular). Una sección genérica en el modelo, aunque ninguna barra la usara, hacía fallar el cálculo sin mensaje. Ahora solo lo detienen las barras que usan una, con un aviso que lista esas secciones.
+  - id: pynite-circular-sections
+    type: feature
+    area: [analysis]
+    title:
+      en: Pynite solves members with circular sections
+      es: Pynite resuelve elementos con secciones circulares
+    description:
+      en: Circular sections no longer stop the solve with Pynite, with the same results as SkyCiv.
+      es: Las secciones circulares ya no detienen el análisis con Pynite, con los mismos resultados que SkyCiv.
 ---

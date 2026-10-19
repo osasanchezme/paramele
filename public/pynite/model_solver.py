@@ -7,7 +7,7 @@ can run inside Pyodide. No file IO here; section properties come from section_pr
 import re
 import numpy as np
 from Pynite import FEModel3D, Analysis
-from section_properties import rectangleProperties
+from section_properties import circleProperties, rectangleProperties
 
 SUPPORT_KEYS = ["support_DX", "support_DY", "support_DZ", "support_RX", "support_RY", "support_RZ"]
 DOF_NAMES = ["translation X", "translation Y", "translation Z", "rotation X", "rotation Y", "rotation Z"]
@@ -304,18 +304,21 @@ def solve(model_data, sparse=True):
     sections = model_data.get("sections", {})
     for section_id, section_data in sections.items():
         shape = section_data["info"]["shape"]
+        dimensions = section_data["info"]["dimensions"]
         if shape == "rectangle":
-            h = section_data["info"]["dimensions"]["h"]
-            b = section_data["info"]["dimensions"]["b"]
-            props = rectangleProperties(b, h)
-            # Iy/Iz are swapped on purpose, see "Axis convention gotchas" in CLAUDE.md
-            model.add_section(
-                f"Sec{section_id}",
-                A=props["A"],
-                Iz=props["iyy"],
-                Iy=props["ixx"],
-                J=props["J"],
-            )
+            props = rectangleProperties(dimensions["b"], dimensions["h"])
+        elif shape == "circle":
+            props = circleProperties(dimensions["D"])
+        else:
+            raise Exception(f"Section {section_id} is a {shape}, PyNite only takes rectangular and circular sections")
+        # Iy/Iz are swapped on purpose, see "Axis convention gotchas" in CLAUDE.md
+        model.add_section(
+            f"Sec{section_id}",
+            A=props["A"],
+            Iz=props["iyy"],
+            Iy=props["ixx"],
+            J=props["J"],
+        )
 
     # Add materials to the model
     materials = model_data.get("materials", {})

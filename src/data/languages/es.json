@@ -366,7 +366,7 @@
         "units_converted_title": "Unidades cambiadas",
         "units_converted_desc": "Los números de las cajas se convirtieron a las nuevas unidades.",
         "pynite_unsupported_sections_title": "Secciones que PyNite no admite",
-        "pynite_unsupported_sections_desc": "PyNite solo admite secciones rectangulares y algunos elementos usan otras (secciones {sections}). Asígnales secciones rectangulares o resuelve con SkyCiv.",
+        "pynite_unsupported_sections_desc": "PyNite solo admite secciones rectangulares y circulares, y algunos elementos usan otras (secciones {sections}). Asígnales secciones rectangulares o circulares, o resuelve con SkyCiv.",
         "units_blocked_title": "Las unidades no se cambiaron",
         "units_blocked_desc": "El modelo tiene {n} conexiones con errores de unidades (en rojo). Corrígelas primero, un número conectado a dos tipos de magnitudes no se puede convertir."
     },

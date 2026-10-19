@@ -24,3 +24,10 @@ def rectangleProperties(b, h):
     )
     J = long_side * short_side**3 / 3 * (1 - 192 / math.pi**5 * (short_side / long_side) * series)
     return {"A": b * h, "ixx": b * h**3 / 12, "iyy": h * b**3 / 12, "J": J}
+
+
+def circleProperties(D):
+    """Solid circle of diameter D. Exact: I = pi D^4 / 64 about any centroidal axis, and J is the polar moment
+    pi D^4 / 32 (a circle does not warp)."""
+    inertia = math.pi * D**4 / 64
+    return {"A": math.pi * D**2 / 4, "ixx": inertia, "iyy": inertia, "J": 2 * inertia}

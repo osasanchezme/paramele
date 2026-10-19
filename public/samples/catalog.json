@@ -172,6 +172,31 @@
       },
       "boxes": 127,
       "thumbnail": "verification-rectangular-plate.webp"
+    },
+    {
+      "id": "verification-retaining-wall-on-piles",
+      "title": {
+        "es": "Verificación 6: muro de contención sobre pilotes",
+        "en": "Verification 6: retaining wall on piles"
+      },
+      "description": {
+        "es": "Modelo de verificación de la tesis: muro sobre una viga de cimentación y dos pilotes circulares empotrados en la punta, con un empuje de tierras trapezoidal en su cara.",
+        "en": "Thesis verification model: a wall on a foundation beam and two circular piles fixed at their tips, with a trapezoidal earth pressure on its face."
+      },
+      "tags": {
+        "es": [
+          "Verificación",
+          "Muro",
+          "Placa"
+        ],
+        "en": [
+          "Verification",
+          "Wall",
+          "Plate"
+        ]
+      },
+      "boxes": 50,
+      "thumbnail": "verification-retaining-wall-on-piles.webp"
     }
   ]
 }

@@ -379,7 +379,7 @@
         "units_converted_title": "Units changed",
         "units_converted_desc": "The numbers of the boxes were converted to the new units.",
         "pynite_unsupported_sections_title": "Sections not supported by PyNite",
-        "pynite_unsupported_sections_desc": "PyNite only takes rectangular sections, and some members use others (sections {sections}). Give them rectangular sections or solve with SkyCiv.",
+        "pynite_unsupported_sections_desc": "PyNite only takes rectangular and circular sections, and some members use others (sections {sections}). Give them rectangular or circular sections or solve with SkyCiv.",
         "units_blocked_title": "The units were not changed",
         "units_blocked_desc": "The model has {n} links with unit errors (red). Fix them first, a number linked to two kinds of quantities cannot be converted."
     },

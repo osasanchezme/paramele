@@ -89,13 +89,14 @@ const removeMesh = () => {
 };
 
 /**
- * Sections used by members that PyNite cannot take (it only builds rectangular ones)
+ * Sections used by members that PyNite cannot take (it only builds rectangular and circular ones)
  * @param {object} structure
  * @returns {string[]} Their IDs
  */
+const PYNITE_SECTION_SHAPES = ["rectangle", "circle"];
 const getUnsupportedPyNiteSections = (structure) => {
   const used = new Set(Object.values(structure.members).map(({ section_id }) => String(section_id)));
-  return [...used].filter((section_id) => structure.sections[section_id]?.info?.shape !== "rectangle");
+  return [...used].filter((section_id) => !PYNITE_SECTION_SHAPES.includes(structure.sections[section_id]?.info?.shape));
 };
 
 const solveStructure = () => {
@@ -115,7 +116,7 @@ const solveStructure = () => {
     notifySkippedPlates(structure_mesh);
   }
   let structure = repair.repairStructuralModel(getState("structure"), solver_engine);
-  // PyNite only builds rectangular sections, members with other sections would be left without one
+  // PyNite only builds rectangular and circular sections, members with other sections would be left without one
   if (solver_engine === "pynite" || solver_engine === "pynite_wasm") {
     const unsupported = getUnsupportedPyNiteSections(structure);
     if (unsupported.length > 0) {
