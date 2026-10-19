@@ -67,7 +67,13 @@
         "restraint_code": "fijación",
         "plate_id": "placa",
         "axes": "ejes",
-        "pressure": "presión"
+        "pressure": "presión",
+        "tx": "resorte X",
+        "ty": "resorte Y",
+        "tz": "resorte Z",
+        "rx": "resorte rot. X",
+        "ry": "resorte rot. Y",
+        "rz": "resorte rot. Z"
     },
     "types": {
         "id": "ID",
@@ -97,6 +103,7 @@
         "structuralFixedSupport": "Apoyo empotrado",
         "structuralPinSupport": "Apoyo articulado",
         "structuralGenericSupport": "Apoyo genérico",
+        "structuralSpringSupport": "Apoyo elástico",
         "structuralPointLoad": "Carga puntual",
         "structuralDistributedLoad": "Carga distribuida",
         "structuralPlate": "Placa",
@@ -693,6 +700,8 @@
         "force": "Fuerza",
         "moment": "Momento",
         "distributed_force": "Carga distribuida",
+        "translational_stiffness": "Rigidez de resorte",
+        "rotational_stiffness": "Rigidez de resorte rotacional",
         "pressure": "Presión",
         "material_strength": "Resistencia del material",
         "density": "Densidad",

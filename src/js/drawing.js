@@ -23,6 +23,7 @@ const ESTIMATED_HEIGHTS = {
   structuralMember: 130,
   structuralPlate: 100,
   structuralGenericSupport: 130,
+  structuralSpringSupport: 290,
   structuralPointLoad: 150,
   structuralMoment: 150,
   structuralDistributedLoad: 330,
@@ -39,6 +40,7 @@ const DEPENDENT_TYPES = new Set([
   "structuralFixedSupport",
   "structuralPinSupport",
   "structuralGenericSupport",
+  "structuralSpringSupport",
   "structuralPointLoad",
   "structuralMoment",
   "structuralDistributedLoad",
@@ -48,7 +50,7 @@ const DEPENDENT_TYPES = new Set([
 // Inputs that take the section of a member and the material of a section or a plate
 const SECTION_HANDLE = "section_id-id-1";
 const MATERIAL_HANDLE = "material_id-id-1";
-const SUPPORT_TYPES = new Set(["structuralFixedSupport", "structuralPinSupport", "structuralGenericSupport"]);
+const SUPPORT_TYPES = new Set(["structuralFixedSupport", "structuralPinSupport", "structuralGenericSupport", "structuralSpringSupport"]);
 
 /** @type {{before: {nodes: object[], edges: object[]}, after_signature: string}[]} */
 let undo_stack = [];
@@ -654,6 +656,14 @@ const ENTITY_FIELDS = {
       element_key: "restraint_code",
     },
   ],
+  // Stiffness of each spring, kx..kz for the translations and kθx..kθz for the rotations
+  structuralSpringSupport: ["tx", "ty", "tz", "rx", "ry", "rz"].map((key) => ({
+    key,
+    label: `k${key[0] === "r" ? "θ" : ""}${key[1]}`,
+    handles: [`${key}-value`],
+    param_key: `k${key[0] === "r" ? "θ" : ""}${key[1]}`,
+    element_key: key,
+  })),
 };
 const ENTITY_STRUCTURE_KEYS = {
   structuralNode: "nodes",
@@ -664,6 +674,7 @@ const ENTITY_STRUCTURE_KEYS = {
   structuralTrapezoidalPressure: "pressures",
   structuralPlate: "plates",
   structuralGenericSupport: "supports",
+  structuralSpringSupport: "supports",
   structuralFixedSupport: "supports",
   structuralPinSupport: "supports",
   structuralMember: "members",

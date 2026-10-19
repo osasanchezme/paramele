@@ -11,6 +11,9 @@ from section_properties import circleProperties, rectangleProperties
 
 SUPPORT_KEYS = ["support_DX", "support_DY", "support_DZ", "support_RX", "support_RY", "support_RZ"]
 DOF_NAMES = ["translation X", "translation Y", "translation Z", "rotation X", "rotation Y", "rotation Z"]
+SPRING_DOFS = ["DX", "DY", "DZ", "RX", "RY", "RZ"]
+# Stiffness of each degree of freedom of a SkyCiv support, used where its restraint code has an S (spring)
+SPRING_STIFFNESS_KEYS = ["tx", "ty", "tz", "rx", "ry", "rz"]
 
 
 def checkNodalStability(model, K):
@@ -39,15 +42,10 @@ def getIndex(pynite_id):
 
 
 def nodeRestrained(node_data):
-    restrained_keys = [
-        "support_DX",
-        "support_DY",
-        "support_DZ",
-        "support_RX",
-        "support_RY",
-        "support_RZ",
-    ]
-    return any(getattr(node_data, key) for key in restrained_keys)
+    """Supported nodes (fixed or on springs in any degree of freedom), the ones with reactions"""
+    fixed = any(getattr(node_data, key) for key in SUPPORT_KEYS)
+    springs = any(getattr(node_data, f"spring_{dof}")[0] is not None for dof in SPRING_DOFS)
+    return fixed or springs
 
 
 def getObjResultsFromArray(array_results, member_length, factor=1):
@@ -348,18 +346,19 @@ def solve(model_data, sparse=True):
             material_name=f"Mat{material_id}",
         )
 
+    # Restraint codes as SkyCiv's: F fixed, R released and S spring, whose stiffness is in tx..rz (force / length for
+    # translations, moment / radian for rotations). Springs act both ways
     supports = model_data.get("supports", {})
     for support_id, support_data in supports.items():
-        node_id = support_data["node"]
-        model.def_support(
-            node_name=f"N{node_id}",
-            support_DX=support_data["restraint_code"][0] == "F",
-            support_DY=support_data["restraint_code"][1] == "F",
-            support_DZ=support_data["restraint_code"][2] == "F",
-            support_RX=support_data["restraint_code"][3] == "F",
-            support_RY=support_data["restraint_code"][4] == "F",
-            support_RZ=support_data["restraint_code"][5] == "F",
-        )
+        node_name = f"N{support_data['node']}"
+        code = str(support_data["restraint_code"]).upper()
+        model.def_support(node_name, *[letter == "F" for letter in code[:6]])
+        for letter, dof, key in zip(code, SPRING_DOFS, SPRING_STIFFNESS_KEYS):
+            if letter == "S":
+                stiffness = float(support_data.get(key) or 0)
+                if stiffness < 0:
+                    raise Exception(f"Support {support_id} has a negative spring stiffness ({key})")
+                model.def_support_spring(node_name, dof, stiffness)
 
     used_load_cases = []
 

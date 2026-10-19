@@ -132,4 +132,13 @@ entries:
     description:
       en: Circular sections no longer stop the solve with Pynite, with the same results as SkyCiv.
       es: Las secciones circulares ya no detienen el análisis con Pynite, con los mismos resultados que SkyCiv.
+  - id: spring-supports
+    type: feature
+    area: [modeling, analysis]
+    title:
+      en: Spring supports, solved with Pynite and SkyCiv
+      es: Apoyos elásticos, resueltos con Pynite y SkyCiv
+    description:
+      en: The new Spring support box takes a stiffness for each direction where its restraint code has an S (kN/m for translations, kN·m/rad for rotations).
+      es: La nueva caja Apoyo elástico recibe una rigidez en cada dirección donde su código de restricción tiene una S (kN/m para traslaciones, kN·m/rad para rotaciones).
 ---

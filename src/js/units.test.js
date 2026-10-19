@@ -41,6 +41,9 @@ describe("units", () => {
     expect(units.formatUnit(units.getQuantityUnit("dimensionless"), metric)).toBe("");
     expect(units.formatUnit(units.getQuantityUnit("distributed_force"), imperial)).toBe("kip/ft");
     expect(units.formatUnit(units.getQuantityUnit("inertia"), metric)).toBe("mm⁴");
+    expect(units.formatUnit(units.getQuantityUnit("translational_stiffness"), metric)).toBe("kN/m");
+    expect(units.formatUnit(units.getQuantityUnit("rotational_stiffness"), metric)).toBe("kN·m/rad");
+    expect(units.formatUnit(units.getQuantityUnit("rotational_stiffness"), imperial)).toBe("kip·ft/rad");
     expect(units.formatUnit(units.multiplyUnits(units.getQuantityUnit("length"), units.getQuantityUnit("length")), metric)).toBe("m²");
     expect(units.formatUnit(units.getQuantityUnit("dimensionless"), metric)).toBe("");
   });
@@ -71,6 +74,7 @@ describe("units", () => {
       materials: { 1: { elasticity_modulus: 29000, density: 490 } },
       point_loads: { 1: { x_mag: 1, y_mag: 0, z_mag: -10 } },
       distributed_loads: { 1: { x_mag_A: 1, position_A: 0, position_B: 100 } },
+      supports: { 1: { node: 1, restraint_code: "SSSSSS", tz: 100, ry: 1000 } },
     };
     let converted = units.convertStructure(structure, imperial, units.SOLVER_UNITS);
     close(converted.nodes[1].x, 3.048);
@@ -80,6 +84,8 @@ describe("units", () => {
     close(converted.point_loads[1].z_mag, -44.482216152605);
     close(converted.distributed_loads[1].x_mag_A, 4.4482216152605 / 0.3048);
     expect(converted.distributed_loads[1].position_B).toBe(100);
+    close(converted.supports[1].tz, (100 * 4.4482216152605) / 0.3048);
+    close(converted.supports[1].ry, 1000 * 4.4482216152605 * 0.3048);
     expect(converted.settings.units.length).toBe("m");
   });
 });

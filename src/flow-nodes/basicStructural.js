@@ -162,6 +162,40 @@ function StructuralGenericSupportExec(args) {
   };
 }
 
+// Spring support: restraint code as SkyCiv's (F fixed, R released, S spring) and the stiffness of each spring, by unit of
+// translation (tx, ty, tz) or by radian of rotation (rx, ry, rz). Stiffnesses of degrees of freedom that are not S are left out
+const spring_support_target_ids = ["node-id", "restraint_code-string-SSSSSS", "tx-value", "ty-value", "tz-value", "rx-value", "ry-value", "rz-value"];
+function StructuralSpringSupport({ data, id }) {
+  return (
+    <GenericInOutNode
+      node_label={localGetCopy("structuralSpringSupport")}
+      data={data}
+      id={id}
+      target_ids={spring_support_target_ids}
+      source_ids={["support_out-id"]}
+    ></GenericInOutNode>
+  );
+}
+
+function StructuralSpringSupportExec(args) {
+  let structural_args = utils.convertNodeToStructuralArgs(args, spring_support_target_ids);
+  let restraint_code = String(structural_args.restraint_code).trim().toUpperCase();
+  let stiffness = {};
+  ["tx", "ty", "tz", "rx", "ry", "rz"].forEach((key, i) => {
+    let value = Number(structural_args[key]);
+    stiffness[key] = restraint_code[i] === "S" && Number.isFinite(value) ? value : 0;
+  });
+  return {
+    "support_out-id": {
+      node: structural_args.node,
+      restraint_code,
+      direction_code: "BBBBBB",
+      ...stiffness,
+      type: "node",
+    },
+  };
+}
+
 // Point load
 function StructuralPointLoad({ data, id }) {
   return (
@@ -396,6 +430,20 @@ const BasicStructuralNodes = {
   StructuralFixedSupportNode: { Node: StructuralFixedSupport, Exec: StructuralFixedSupportExec },
   StructuralPinSupportNode: { Node: StructuralPinSupport, Exec: StructuralPinSupportExec },
   StructuralGenericSupportNode: { Node: StructuralGenericSupport, Exec: StructuralGenericSupportExec },
+  StructuralSpringSupportNode: {
+    Node: StructuralSpringSupport,
+    Exec: StructuralSpringSupportExec,
+    units: {
+      handles: {
+        "tx-value": "translational_stiffness",
+        "ty-value": "translational_stiffness",
+        "tz-value": "translational_stiffness",
+        "rx-value": "rotational_stiffness",
+        "ry-value": "rotational_stiffness",
+        "rz-value": "rotational_stiffness",
+      },
+    },
+  },
   StructuralPointLoadNode: {
     Node: StructuralPointLoad,
     Exec: StructuralPointLoadExec,

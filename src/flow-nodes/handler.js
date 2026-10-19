@@ -37,6 +37,7 @@ function createNodesLibrary() {
     structuralFixedSupport: { node_component: BasicStructuralNodes.StructuralFixedSupportNode, label: localGetCopy("structuralFixedSupport") },
     structuralPinSupport: { node_component: BasicStructuralNodes.StructuralPinSupportNode, label: localGetCopy("structuralPinSupport") },
     structuralGenericSupport: { node_component: BasicStructuralNodes.StructuralGenericSupportNode, label: localGetCopy("structuralGenericSupport") },
+    structuralSpringSupport: { node_component: BasicStructuralNodes.StructuralSpringSupportNode, label: localGetCopy("structuralSpringSupport") },
     structuralPointLoad: { node_component: BasicStructuralNodes.StructuralPointLoadNode, label: localGetCopy("structuralPointLoad") },
     structuralDistributedLoad: {
       node_component: BasicStructuralNodes.StructuralDistributedLoadNode,

@@ -67,7 +67,13 @@
         "restraint_code": "restraint",
         "plate_id": "plate",
         "axes": "axes",
-        "pressure": "pressure"
+        "pressure": "pressure",
+        "tx": "X spring",
+        "ty": "Y spring",
+        "tz": "Z spring",
+        "rx": "X rot. spring",
+        "ry": "Y rot. spring",
+        "rz": "Z rot. spring"
     },
     "types": {
         "id": "ID",
@@ -97,6 +103,7 @@
         "structuralFixedSupport": "Fixed Support",
         "structuralPinSupport": "Pin Support",
         "structuralGenericSupport": "Generic Support",
+        "structuralSpringSupport": "Spring support",
         "structuralPointLoad": "Point load",
         "structuralDistributedLoad": "Distributed load",
         "structuralPlate": "Plate",
@@ -691,6 +698,8 @@
         "force": "Force",
         "moment": "Moment",
         "distributed_force": "Distributed load",
+        "translational_stiffness": "Spring stiffness",
+        "rotational_stiffness": "Rotational spring stiffness",
         "pressure": "Pressure",
         "material_strength": "Material strength",
         "density": "Density",

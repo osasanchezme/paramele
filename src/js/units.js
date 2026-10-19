@@ -122,11 +122,16 @@ const QUANTITIES = {
   force: { force: 1 },
   moment: { force: 1, length: 1 },
   distributed_force: { force: 1, length: -1 },
+  // Stiffness of a spring by unit of translation, and by radian of rotation (a moment, written with /rad)
+  translational_stiffness: { force: 1, length: -1 },
+  rotational_stiffness: { force: 1, length: 1 },
   pressure: { pressure: 1 },
   material_strength: { material_strength: 1 },
   density: { density: 1 },
   angle: { angle: 1 },
 };
+// Written after the unit of their terms (a rotational stiffness is kN·m/rad)
+const QUANTITY_SUFFIXES = { rotational_stiffness: "/rad" };
 // Quantities a number box can be given, in the order they are offered
 const PICKABLE_QUANTITIES = [
   "length",
@@ -134,6 +139,8 @@ const PICKABLE_QUANTITIES = [
   "force",
   "moment",
   "distributed_force",
+  "translational_stiffness",
+  "rotational_stiffness",
   "pressure",
   "material_strength",
   "density",
@@ -321,7 +328,7 @@ function formatUnit(unit, model_units) {
   });
   let text = numerator.length > 0 ? numerator.join("·") : "1";
   if (denominator.length > 0) text += `/${denominator.join("·")}`;
-  return text;
+  return text + (QUANTITY_SUFFIXES[unit.quantity] || "");
 }
 
 /**
@@ -425,6 +432,8 @@ const STRUCTURE_FIELDS = [
   ["pressures", ["x_mag", "y_mag", "z_mag", "p1_magnitude", "p2_magnitude", "p3_magnitude"], "pressure"],
   ["area_loads", ["mag"], "pressure"],
   ["settlements", ["tx", "ty", "tz"], "translation"],
+  ["supports", ["tx", "ty", "tz"], "translational_stiffness"],
+  ["supports", ["rx", "ry", "rz"], "rotational_stiffness"],
 ];
 
 /**
