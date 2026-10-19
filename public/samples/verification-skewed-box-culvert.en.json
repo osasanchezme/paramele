@@ -1,0 +1,1018 @@
+{
+  "model": {
+    "nodes": [
+      {
+        "id": "node-1",
+        "type": "inputNumber",
+        "position": {
+          "x": 0,
+          "y": 0
+        },
+        "data": {
+          "value-value": "0",
+          "custom_label": "Origin (0)",
+          "unit": "length"
+        }
+      },
+      {
+        "id": "node-2",
+        "type": "inputNumber",
+        "position": {
+          "x": 0,
+          "y": 85
+        },
+        "data": {
+          "value-value": "3.3",
+          "custom_label": "Span between wall axes [m]",
+          "unit": "length"
+        }
+      },
+      {
+        "id": "node-3",
+        "type": "inputNumber",
+        "position": {
+          "x": 0,
+          "y": 170
+        },
+        "data": {
+          "value-value": "2.7",
+          "custom_label": "Height between slab axes [m]",
+          "unit": "length"
+        }
+      },
+      {
+        "id": "node-4",
+        "type": "inputNumber",
+        "position": {
+          "x": 0,
+          "y": 255
+        },
+        "data": {
+          "value-value": "8",
+          "custom_label": "Length (Y axis) [m]",
+          "unit": "length"
+        }
+      },
+      {
+        "id": "node-5",
+        "type": "inputNumber",
+        "position": {
+          "x": 0,
+          "y": 340
+        },
+        "data": {
+          "value-value": "30",
+          "custom_label": "Skew angle [°]",
+          "unit": "angle"
+        }
+      },
+      {
+        "id": "node-6",
+        "type": "inputNumber",
+        "position": {
+          "x": 0,
+          "y": 425
+        },
+        "data": {
+          "value-value": "300",
+          "custom_label": "Top slab thickness [mm]",
+          "unit": "section_length"
+        }
+      },
+      {
+        "id": "node-7",
+        "type": "inputNumber",
+        "position": {
+          "x": 0,
+          "y": 510
+        },
+        "data": {
+          "value-value": "300",
+          "custom_label": "Wall thickness [mm]",
+          "unit": "section_length"
+        }
+      },
+      {
+        "id": "node-8",
+        "type": "inputNumber",
+        "position": {
+          "x": 0,
+          "y": 595
+        },
+        "data": {
+          "value-value": "350",
+          "custom_label": "Bottom slab thickness [mm]",
+          "unit": "section_length"
+        }
+      },
+      {
+        "id": "node-9",
+        "type": "inputNumber",
+        "position": {
+          "x": 0,
+          "y": 680
+        },
+        "data": {
+          "value-value": "-28.5",
+          "custom_label": "Fill pressure [kPa]",
+          "unit": "pressure"
+        }
+      },
+      {
+        "id": "node-10",
+        "type": "inputNumber",
+        "position": {
+          "x": 0,
+          "y": 765
+        },
+        "data": {
+          "value-value": "-10",
+          "custom_label": "Traffic surcharge [kPa]",
+          "unit": "pressure"
+        }
+      },
+      {
+        "id": "node-11",
+        "type": "inputNumber",
+        "position": {
+          "x": 0,
+          "y": 850
+        },
+        "data": {
+          "value-value": "30000",
+          "custom_label": "Subgrade modulus ks [kN/m³]",
+          "unit": "subgrade_modulus"
+        }
+      },
+      {
+        "id": "node-12",
+        "type": "inputNumber",
+        "position": {
+          "x": 0,
+          "y": 935
+        },
+        "data": {
+          "value-value": "0.5",
+          "custom_label": "Bottom slab mesh size [m]",
+          "unit": "length"
+        }
+      },
+      {
+        "id": "node-13",
+        "type": "structuralMaterial",
+        "position": {
+          "x": 210,
+          "y": 1020
+        },
+        "data": {
+          "custom_label": "Concrete"
+        }
+      },
+      {
+        "id": "node-14",
+        "type": "inputNumber",
+        "position": {
+          "x": 0,
+          "y": 1020
+        },
+        "data": {
+          "value-value": "24870",
+          "custom_label": "Concrete E [MPa]"
+        }
+      },
+      {
+        "id": "node-15",
+        "type": "inputNumber",
+        "position": {
+          "x": 0,
+          "y": 1105
+        },
+        "data": {
+          "value-value": "2400",
+          "custom_label": "Density [kg/m³]"
+        }
+      },
+      {
+        "id": "node-16",
+        "type": "inputNumber",
+        "position": {
+          "x": 0,
+          "y": 1190
+        },
+        "data": {
+          "value-value": "0.2",
+          "custom_label": "Poisson's ratio"
+        }
+      },
+      {
+        "id": "node-17",
+        "type": "deg2rad",
+        "position": {
+          "x": 210,
+          "y": 0
+        },
+        "data": {
+          "custom_label": "Skew [rad]"
+        }
+      },
+      {
+        "id": "node-18",
+        "type": "tan",
+        "position": {
+          "x": 210,
+          "y": 120
+        },
+        "data": {
+          "custom_label": "tan(skew)"
+        }
+      },
+      {
+        "id": "node-19",
+        "type": "multiplyNumbers",
+        "position": {
+          "x": 210,
+          "y": 240
+        },
+        "data": {
+          "custom_label": "Offset B tan(skew)"
+        }
+      },
+      {
+        "id": "node-20",
+        "type": "sumNumbers",
+        "position": {
+          "x": 210,
+          "y": 360
+        },
+        "data": {
+          "custom_label": "Offset + length"
+        }
+      },
+      {
+        "id": "node-21",
+        "type": "structuralNode",
+        "position": {
+          "x": 420,
+          "y": 0
+        },
+        "data": {
+          "custom_label": "Corner A bottom"
+        }
+      },
+      {
+        "id": "node-22",
+        "type": "structuralNode",
+        "position": {
+          "x": 420,
+          "y": 120
+        },
+        "data": {
+          "custom_label": "Corner B bottom"
+        }
+      },
+      {
+        "id": "node-23",
+        "type": "structuralNode",
+        "position": {
+          "x": 420,
+          "y": 240
+        },
+        "data": {
+          "custom_label": "Corner C bottom"
+        }
+      },
+      {
+        "id": "node-24",
+        "type": "structuralNode",
+        "position": {
+          "x": 420,
+          "y": 360
+        },
+        "data": {
+          "custom_label": "Corner D bottom"
+        }
+      },
+      {
+        "id": "node-25",
+        "type": "structuralNode",
+        "position": {
+          "x": 420,
+          "y": 480
+        },
+        "data": {
+          "custom_label": "Corner A top"
+        }
+      },
+      {
+        "id": "node-26",
+        "type": "structuralNode",
+        "position": {
+          "x": 420,
+          "y": 600
+        },
+        "data": {
+          "custom_label": "Corner B top"
+        }
+      },
+      {
+        "id": "node-27",
+        "type": "structuralNode",
+        "position": {
+          "x": 420,
+          "y": 720
+        },
+        "data": {
+          "custom_label": "Corner C top"
+        }
+      },
+      {
+        "id": "node-28",
+        "type": "structuralNode",
+        "position": {
+          "x": 420,
+          "y": 840
+        },
+        "data": {
+          "custom_label": "Corner D top"
+        }
+      },
+      {
+        "id": "node-29",
+        "type": "structuralPlate",
+        "position": {
+          "x": 630,
+          "y": 0
+        },
+        "data": {
+          "custom_label": "Bottom slab"
+        }
+      },
+      {
+        "id": "node-30",
+        "type": "structuralPlate",
+        "position": {
+          "x": 630,
+          "y": 140
+        },
+        "data": {
+          "custom_label": "Wall x = 0"
+        }
+      },
+      {
+        "id": "node-31",
+        "type": "structuralPlate",
+        "position": {
+          "x": 630,
+          "y": 280
+        },
+        "data": {
+          "custom_label": "Wall x = B"
+        }
+      },
+      {
+        "id": "node-32",
+        "type": "structuralPlate",
+        "position": {
+          "x": 630,
+          "y": 420
+        },
+        "data": {
+          "custom_label": "Top slab"
+        }
+      },
+      {
+        "id": "node-33",
+        "type": "structuralPressure",
+        "position": {
+          "x": 840,
+          "y": 420
+        },
+        "data": {
+          "custom_label": "Fill"
+        }
+      },
+      {
+        "id": "node-34",
+        "type": "structuralPressure",
+        "position": {
+          "x": 840,
+          "y": 600
+        },
+        "data": {
+          "custom_label": "Traffic surcharge"
+        }
+      },
+      {
+        "id": "node-35",
+        "type": "structuralMesh",
+        "position": {
+          "x": 840,
+          "y": 0
+        },
+        "data": {
+          "custom_label": "Bottom slab mesh"
+        }
+      },
+      {
+        "id": "node-36",
+        "type": "structuralSurfaceSupport",
+        "position": {
+          "x": 840,
+          "y": 140
+        },
+        "data": {
+          "custom_label": "Foundation soil"
+        }
+      },
+      {
+        "id": "node-37",
+        "type": "structuralNodeResult",
+        "position": {
+          "x": 1050,
+          "y": 0
+        },
+        "data": {
+          "custom_label": "Soil reactions",
+          "result-value": "reaction",
+          "direction-value": "z"
+        }
+      },
+      {
+        "id": "node-38",
+        "type": "dataDisplay2DPlot",
+        "position": {
+          "x": 1310,
+          "y": 0
+        },
+        "data": {
+          "custom_label": "Soil reactions"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-node-14-value-value-node-13-elasticity_modulus-value-20000",
+        "source": "node-14",
+        "sourceHandle": "value-value",
+        "target": "node-13",
+        "targetHandle": "elasticity_modulus-value-20000"
+      },
+      {
+        "id": "e-node-15-value-value-node-13-density-value",
+        "source": "node-15",
+        "sourceHandle": "value-value",
+        "target": "node-13",
+        "targetHandle": "density-value"
+      },
+      {
+        "id": "e-node-16-value-value-node-13-poissons_ratio-value-0.3",
+        "source": "node-16",
+        "sourceHandle": "value-value",
+        "target": "node-13",
+        "targetHandle": "poissons_ratio-value-0.3"
+      },
+      {
+        "id": "e-node-5-value-value-node-17-num-value",
+        "source": "node-5",
+        "sourceHandle": "value-value",
+        "target": "node-17",
+        "targetHandle": "num-value"
+      },
+      {
+        "id": "e-node-17-result_out-value-node-18-num-value",
+        "source": "node-17",
+        "sourceHandle": "result_out-value",
+        "target": "node-18",
+        "targetHandle": "num-value"
+      },
+      {
+        "id": "e-node-2-value-value-node-19-num_1-value",
+        "source": "node-2",
+        "sourceHandle": "value-value",
+        "target": "node-19",
+        "targetHandle": "num_1-value"
+      },
+      {
+        "id": "e-node-18-result_out-value-node-19-num_2-value",
+        "source": "node-18",
+        "sourceHandle": "result_out-value",
+        "target": "node-19",
+        "targetHandle": "num_2-value"
+      },
+      {
+        "id": "e-node-19-result_out-value-node-20-num_1-value",
+        "source": "node-19",
+        "sourceHandle": "result_out-value",
+        "target": "node-20",
+        "targetHandle": "num_1-value"
+      },
+      {
+        "id": "e-node-4-value-value-node-20-num_2-value",
+        "source": "node-4",
+        "sourceHandle": "value-value",
+        "target": "node-20",
+        "targetHandle": "num_2-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-21-x-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-21",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-21-y-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-21",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-21-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-21",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-2-value-value-node-22-x-value",
+        "source": "node-2",
+        "sourceHandle": "value-value",
+        "target": "node-22",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-19-result_out-value-node-22-y-value",
+        "source": "node-19",
+        "sourceHandle": "result_out-value",
+        "target": "node-22",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-22-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-22",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-2-value-value-node-23-x-value",
+        "source": "node-2",
+        "sourceHandle": "value-value",
+        "target": "node-23",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-20-result_out-value-node-23-y-value",
+        "source": "node-20",
+        "sourceHandle": "result_out-value",
+        "target": "node-23",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-23-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-23",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-24-x-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-24",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-4-value-value-node-24-y-value",
+        "source": "node-4",
+        "sourceHandle": "value-value",
+        "target": "node-24",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-24-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-24",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-25-x-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-25",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-25-y-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-25",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-3-value-value-node-25-z-value",
+        "source": "node-3",
+        "sourceHandle": "value-value",
+        "target": "node-25",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-2-value-value-node-26-x-value",
+        "source": "node-2",
+        "sourceHandle": "value-value",
+        "target": "node-26",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-19-result_out-value-node-26-y-value",
+        "source": "node-19",
+        "sourceHandle": "result_out-value",
+        "target": "node-26",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-3-value-value-node-26-z-value",
+        "source": "node-3",
+        "sourceHandle": "value-value",
+        "target": "node-26",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-2-value-value-node-27-x-value",
+        "source": "node-2",
+        "sourceHandle": "value-value",
+        "target": "node-27",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-20-result_out-value-node-27-y-value",
+        "source": "node-20",
+        "sourceHandle": "result_out-value",
+        "target": "node-27",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-3-value-value-node-27-z-value",
+        "source": "node-3",
+        "sourceHandle": "value-value",
+        "target": "node-27",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-28-x-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-28",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-4-value-value-node-28-y-value",
+        "source": "node-4",
+        "sourceHandle": "value-value",
+        "target": "node-28",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-3-value-value-node-28-z-value",
+        "source": "node-3",
+        "sourceHandle": "value-value",
+        "target": "node-28",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-21-node_out-id-node-29-nodes-ids",
+        "source": "node-21",
+        "sourceHandle": "node_out-id",
+        "target": "node-29",
+        "targetHandle": "nodes-ids"
+      },
+      {
+        "id": "e-node-22-node_out-id-node-29-nodes-ids",
+        "source": "node-22",
+        "sourceHandle": "node_out-id",
+        "target": "node-29",
+        "targetHandle": "nodes-ids"
+      },
+      {
+        "id": "e-node-23-node_out-id-node-29-nodes-ids",
+        "source": "node-23",
+        "sourceHandle": "node_out-id",
+        "target": "node-29",
+        "targetHandle": "nodes-ids"
+      },
+      {
+        "id": "e-node-24-node_out-id-node-29-nodes-ids",
+        "source": "node-24",
+        "sourceHandle": "node_out-id",
+        "target": "node-29",
+        "targetHandle": "nodes-ids"
+      },
+      {
+        "id": "e-node-8-value-value-node-29-thickness-value",
+        "source": "node-8",
+        "sourceHandle": "value-value",
+        "target": "node-29",
+        "targetHandle": "thickness-value"
+      },
+      {
+        "id": "e-node-13-material_out-id-node-29-material_id-id-1",
+        "source": "node-13",
+        "sourceHandle": "material_out-id",
+        "target": "node-29",
+        "targetHandle": "material_id-id-1"
+      },
+      {
+        "id": "e-node-21-node_out-id-node-30-nodes-ids",
+        "source": "node-21",
+        "sourceHandle": "node_out-id",
+        "target": "node-30",
+        "targetHandle": "nodes-ids"
+      },
+      {
+        "id": "e-node-24-node_out-id-node-30-nodes-ids",
+        "source": "node-24",
+        "sourceHandle": "node_out-id",
+        "target": "node-30",
+        "targetHandle": "nodes-ids"
+      },
+      {
+        "id": "e-node-28-node_out-id-node-30-nodes-ids",
+        "source": "node-28",
+        "sourceHandle": "node_out-id",
+        "target": "node-30",
+        "targetHandle": "nodes-ids"
+      },
+      {
+        "id": "e-node-25-node_out-id-node-30-nodes-ids",
+        "source": "node-25",
+        "sourceHandle": "node_out-id",
+        "target": "node-30",
+        "targetHandle": "nodes-ids"
+      },
+      {
+        "id": "e-node-7-value-value-node-30-thickness-value",
+        "source": "node-7",
+        "sourceHandle": "value-value",
+        "target": "node-30",
+        "targetHandle": "thickness-value"
+      },
+      {
+        "id": "e-node-13-material_out-id-node-30-material_id-id-1",
+        "source": "node-13",
+        "sourceHandle": "material_out-id",
+        "target": "node-30",
+        "targetHandle": "material_id-id-1"
+      },
+      {
+        "id": "e-node-22-node_out-id-node-31-nodes-ids",
+        "source": "node-22",
+        "sourceHandle": "node_out-id",
+        "target": "node-31",
+        "targetHandle": "nodes-ids"
+      },
+      {
+        "id": "e-node-23-node_out-id-node-31-nodes-ids",
+        "source": "node-23",
+        "sourceHandle": "node_out-id",
+        "target": "node-31",
+        "targetHandle": "nodes-ids"
+      },
+      {
+        "id": "e-node-27-node_out-id-node-31-nodes-ids",
+        "source": "node-27",
+        "sourceHandle": "node_out-id",
+        "target": "node-31",
+        "targetHandle": "nodes-ids"
+      },
+      {
+        "id": "e-node-26-node_out-id-node-31-nodes-ids",
+        "source": "node-26",
+        "sourceHandle": "node_out-id",
+        "target": "node-31",
+        "targetHandle": "nodes-ids"
+      },
+      {
+        "id": "e-node-7-value-value-node-31-thickness-value",
+        "source": "node-7",
+        "sourceHandle": "value-value",
+        "target": "node-31",
+        "targetHandle": "thickness-value"
+      },
+      {
+        "id": "e-node-13-material_out-id-node-31-material_id-id-1",
+        "source": "node-13",
+        "sourceHandle": "material_out-id",
+        "target": "node-31",
+        "targetHandle": "material_id-id-1"
+      },
+      {
+        "id": "e-node-25-node_out-id-node-32-nodes-ids",
+        "source": "node-25",
+        "sourceHandle": "node_out-id",
+        "target": "node-32",
+        "targetHandle": "nodes-ids"
+      },
+      {
+        "id": "e-node-26-node_out-id-node-32-nodes-ids",
+        "source": "node-26",
+        "sourceHandle": "node_out-id",
+        "target": "node-32",
+        "targetHandle": "nodes-ids"
+      },
+      {
+        "id": "e-node-27-node_out-id-node-32-nodes-ids",
+        "source": "node-27",
+        "sourceHandle": "node_out-id",
+        "target": "node-32",
+        "targetHandle": "nodes-ids"
+      },
+      {
+        "id": "e-node-28-node_out-id-node-32-nodes-ids",
+        "source": "node-28",
+        "sourceHandle": "node_out-id",
+        "target": "node-32",
+        "targetHandle": "nodes-ids"
+      },
+      {
+        "id": "e-node-6-value-value-node-32-thickness-value",
+        "source": "node-6",
+        "sourceHandle": "value-value",
+        "target": "node-32",
+        "targetHandle": "thickness-value"
+      },
+      {
+        "id": "e-node-13-material_out-id-node-32-material_id-id-1",
+        "source": "node-13",
+        "sourceHandle": "material_out-id",
+        "target": "node-32",
+        "targetHandle": "material_id-id-1"
+      },
+      {
+        "id": "e-node-32-plate_out-id-node-33-plate_id-id",
+        "source": "node-32",
+        "sourceHandle": "plate_out-id",
+        "target": "node-33",
+        "targetHandle": "plate_id-id"
+      },
+      {
+        "id": "e-node-9-value-value-node-33-z_mag-value",
+        "source": "node-9",
+        "sourceHandle": "value-value",
+        "target": "node-33",
+        "targetHandle": "z_mag-value"
+      },
+      {
+        "id": "e-node-32-plate_out-id-node-34-plate_id-id",
+        "source": "node-32",
+        "sourceHandle": "plate_out-id",
+        "target": "node-34",
+        "targetHandle": "plate_id-id"
+      },
+      {
+        "id": "e-node-10-value-value-node-34-z_mag-value",
+        "source": "node-10",
+        "sourceHandle": "value-value",
+        "target": "node-34",
+        "targetHandle": "z_mag-value"
+      },
+      {
+        "id": "e-node-29-plate_out-id-node-35-plates-ids",
+        "source": "node-29",
+        "sourceHandle": "plate_out-id",
+        "target": "node-35",
+        "targetHandle": "plates-ids"
+      },
+      {
+        "id": "e-node-12-value-value-node-35-mesh_size-value",
+        "source": "node-12",
+        "sourceHandle": "value-value",
+        "target": "node-35",
+        "targetHandle": "mesh_size-value"
+      },
+      {
+        "id": "e-node-35-mesh_out-mesh-node-36-mesh-mesh",
+        "source": "node-35",
+        "sourceHandle": "mesh_out-mesh",
+        "target": "node-36",
+        "targetHandle": "mesh-mesh"
+      },
+      {
+        "id": "e-node-11-value-value-node-36-ks-value",
+        "source": "node-11",
+        "sourceHandle": "value-value",
+        "target": "node-36",
+        "targetHandle": "ks-value"
+      },
+      {
+        "id": "e-node-35-node_list_out-ids-node-37-nodes-ids",
+        "source": "node-35",
+        "sourceHandle": "node_list_out-ids",
+        "target": "node-37",
+        "targetHandle": "nodes-ids"
+      },
+      {
+        "id": "e-node-37-plotable_out-plotly_data-node-38-plotable-plotly_data",
+        "source": "node-37",
+        "sourceHandle": "plotable_out-plotly_data",
+        "target": "node-38",
+        "targetHandle": "plotable-plotly_data"
+      }
+    ],
+    "favorites": [
+      {
+        "node_id": "node-2",
+        "data_key": "value-value",
+        "min": 1.5,
+        "max": 6,
+        "step": 0.1
+      },
+      {
+        "node_id": "node-3",
+        "data_key": "value-value",
+        "min": 1.5,
+        "max": 5,
+        "step": 0.1
+      },
+      {
+        "node_id": "node-4",
+        "data_key": "value-value",
+        "min": 4,
+        "max": 20,
+        "step": 0.5
+      },
+      {
+        "node_id": "node-5",
+        "data_key": "value-value",
+        "min": 0,
+        "max": 45,
+        "step": 5
+      },
+      {
+        "node_id": "node-6",
+        "data_key": "value-value",
+        "min": 200,
+        "max": 600,
+        "step": 25
+      },
+      {
+        "node_id": "node-7",
+        "data_key": "value-value",
+        "min": 200,
+        "max": 600,
+        "step": 25
+      },
+      {
+        "node_id": "node-8",
+        "data_key": "value-value",
+        "min": 200,
+        "max": 600,
+        "step": 25
+      },
+      {
+        "node_id": "node-9",
+        "data_key": "value-value",
+        "min": -100,
+        "max": 0,
+        "step": 0.5
+      },
+      {
+        "node_id": "node-10",
+        "data_key": "value-value",
+        "min": -50,
+        "max": 0,
+        "step": 1
+      },
+      {
+        "node_id": "node-11",
+        "data_key": "value-value",
+        "min": 5000,
+        "max": 120000,
+        "step": 1000
+      }
+    ]
+  },
+  "settings": {
+    "general": {
+      "auto_update": true,
+      "mini_map": false,
+      "show_nodes": true,
+      "side_by_side": true,
+      "show_properties_panel": false,
+      "show_parameters_panel": true
+    },
+    "layout": {
+      "renderer_width": 45,
+      "editor_width": 55,
+      "panel_width": 0,
+      "renderer_right": 55
+    },
+    "global": {
+      "sliders_mode": "sliders_single",
+      "solver_engine": "pynite_wasm",
+      "mesh_plates": true,
+      "mesh_size": 0.5
+    }
+  }
+}
