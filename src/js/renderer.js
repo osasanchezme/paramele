@@ -23,6 +23,15 @@ function localGetCopy(node_name) {
   return utils.getDisplayCopy("renderer", node_name);
 }
 
+// Labels of the last data, drawn as annotations of the scene: Plotly draws the text of 3D traces smaller the longer it is
+// ("L = 12000" at half the size of "L = 12"), annotations keep the size of their font
+let scene_annotations = [];
+
+/** @returns {object[]} Annotations of the scene for the last `getData` */
+function getSceneAnnotations() {
+  return scene_annotations;
+}
+
 /**
  * @param {import("./types").ParamEleDrawingState} [drawing_state] Adds what the drawing tools need: clickable elements, the work plane grid...
  * @param {{results: import("./types").ParamEleResults, result: string, scale: number}|null} [results_view] Draws a result (the deformed
@@ -349,7 +358,9 @@ function getData(drawing_state, results_view) {
     plotly_data.push(mm);
     drawingLayer.pushHandle(handles, "moments", mm_id, { x: mm.x[0], y: mm.y[0], z: mm.z[0] });
   });
-  plotly_data.push(...getCombinationsFrames(structure.nodes, state.getGlobalVariable("structure_combinations"), plotly_data));
+  const combination_frames = getCombinationsFrames(structure.nodes, state.getGlobalVariable("structure_combinations"), plotly_data);
+  if (combination_frames.frames) plotly_data.push(combination_frames.frames);
+  scene_annotations = combination_frames.labels || [];
   plotly_data.push(...drawingLayer.getHandlesTraces(handles, tool));
   return plotly_data;
 }
@@ -454,9 +465,10 @@ function getMeshLinesTrace(structural_nodes, quads) {
  * @param {object} structural_nodes
  * @param {import("./types").ParamEleStructureCombination[]} [combinations]
  * @param {object[]} plotly_data Traces drawn so far
+ * @returns {{frames?: object, labels?: object[]}} The trace of the boxes and their labels (scene annotations), nothing without combinations
  */
 function getCombinationsFrames(structural_nodes, combinations, plotly_data) {
-  if (!combinations || combinations.length === 0) return [];
+  if (!combinations || combinations.length === 0) return {};
   const axes = ["x", "y", "z"];
   const bounds = combinations.map(() => ({ min: { x: Infinity, y: Infinity, z: Infinity }, max: { x: -Infinity, y: -Infinity, z: -Infinity } }));
   const addPoint = (bound, x, y, z) => {
@@ -514,17 +526,7 @@ function getCombinationsFrames(structural_nodes, combinations, plotly_data) {
   const margin = Math.max(0, Math.min(0.05 * Math.max(size.x, size.y, size.z, 1), 0.4 * min_gap));
 
   const frames = { x: [], y: [], z: [], type: "scatter3d", mode: "lines", hoverinfo: "none", opacity: 0.35, line: { width: 1, color: "#718096" } };
-  const labels = {
-    x: [],
-    y: [],
-    z: [],
-    text: [],
-    type: "scatter3d",
-    mode: "text",
-    hoverinfo: "none",
-    textposition: "middle right",
-    textfont: { color: "#4A5568", size: 12 },
-  };
+  const labels = [];
   // Edges of a unit box as pairs of corners
   const corners = [
     [0, 0, 0],
@@ -554,12 +556,18 @@ function getCombinationsFrames(structural_nodes, combinations, plotly_data) {
     });
     // Halfway up the vertical edge at the right of the default camera (it looks from +X +Y), so it is clear which box it names
     const combination = combinations[i];
-    labels.x.push(origin.x);
-    labels.y.push(origin.y + frame_size.y);
-    labels.z.push(origin.z + frame_size.z / 2);
-    labels.text.push(`${combination.node_label} = ${Number(combination.value.toFixed(10))}`);
+    labels.push({
+      x: origin.x,
+      y: origin.y + frame_size.y,
+      z: origin.z + frame_size.z / 2,
+      text: `${combination.node_label} = ${Number(combination.value.toFixed(10))}`,
+      showarrow: false,
+      xanchor: "left",
+      xshift: 4,
+      font: { color: "#4A5568", size: 12 },
+    });
   });
-  return [frames, labels];
+  return { frames, labels };
 }
 
 function getLayout() {
@@ -761,6 +769,6 @@ function createPressure(plate_nodes, rot_z, pressure_data, nodes, max_abs_mag, p
   return { trace, handle: getTail(surface.centroid) };
 }
 
-const renderer = { SETTINGS_HIDDEN_BY_RESULTS, getData, getLayout, getConfig };
+const renderer = { SETTINGS_HIDDEN_BY_RESULTS, getData, getSceneAnnotations, getLayout, getConfig };
 
 export default renderer;

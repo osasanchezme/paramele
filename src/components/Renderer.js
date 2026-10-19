@@ -364,6 +364,9 @@ class Renderer extends React.Component {
     let structure = getState("structure");
     this.length_unit = structure.settings?.units?.length || "";
     let overlay = drawingLayer.getOverlayTraces(this.drawing_state, structure);
+    let annotations = renderer.getSceneAnnotations();
+    // On the latest layout, the scene ranges may have been set in this same update
+    this.setState(({ layout }) => ({ layout: { ...layout, scene: { ...layout.scene, annotations } } }));
     this.setState({
       data: [...this.base_data, ...overlay],
       drawing_state: this.drawing_state,
