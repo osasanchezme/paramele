@@ -150,4 +150,14 @@ entries:
     description:
       en: The new Mesh box meshes its plates with its own size, whatever Structure > Mesh plates is, and gives the list of their mesh nodes. The new Surface spring support box puts a plate of that mesh on soil (a Winkler foundation) from its modulus of subgrade reaction ks (kN/m³), a spring k = ks · A on each mesh node along the directions with an S in its restraint code. Solved with Pynite and SkyCiv with the same results.
       es: La nueva caja Malla malla sus placas con su propio tamaño, sin importar Estructura > Mallar placas, y entrega la lista de sus nodos. La nueva caja Apoyo elástico de superficie apoya una placa de esa malla sobre el suelo (fundación de Winkler) a partir de su módulo de balasto ks (kN/m³), con un resorte k = ks · A en cada nodo de la malla en las direcciones con S en su código de restricción. Se resuelve con Pynite y SkyCiv con los mismos resultados.
+  - id: skyciv-unsmoothed-plate-results
+    type: fix
+    severity: normal
+    area: [analysis]
+    title:
+      en: Plate forces from SkyCiv agree with Pynite's
+      es: Las fuerzas en placas de SkyCiv coinciden con las de Pynite
+    description:
+      en: SkyCiv averaged the plate results at each node over the elements around it, Pynite gives each element its own values. Now SkyCiv gives them per element too, so the plate forces of both engines agree, also next to point loads, supports and plates meeting at an angle.
+      es: SkyCiv promediaba los resultados de las placas en cada nodo entre los elementos que lo rodean, Pynite da a cada elemento sus propios valores. Ahora SkyCiv también los da por elemento, así que las fuerzas en placas de ambos motores coinciden, también junto a cargas puntuales, apoyos y placas que se encuentran en ángulo.
 ---

@@ -96,6 +96,9 @@ function repairStructuralModel(structure, solver_engine) {
   });
 
   if (solver_engine === "skyciv") {
+    // Plate results at each node of each element, as PyNite gives them: averaged over the elements around the node, they
+    // differ from PyNite's wherever they jump (point loads, supports, plates meeting at an angle)
+    structure.settings = { ...structure.settings, smooth_plate_nodal_results: false };
     // Rotate all the member 90 degrees since the Z-axis is the vertical one
     structure.members = Object.fromEntries(
       Object.entries(structure.members).map(([key, member_data]) => [key, { ...member_data, rotation_angle: 90 }])
