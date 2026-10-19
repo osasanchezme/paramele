@@ -1,4 +1,5 @@
 import utils from "../utils";
+import units from "./units";
 
 // Plotly traces drawn on top of the structure for the drawing tools, and the picking of what is under the cursor
 
@@ -24,6 +25,16 @@ const TOOL_TARGETS = {
 };
 // The assign tool paints sections on members, or materials on plates
 const ASSIGN_TARGETS = { section: "members", material: "plates" };
+// Quantity of the values of the drawing tools that are in the model units
+const DRAWING_STATE_QUANTITIES = {
+  offset: "length",
+  spacing: "length",
+  thickness: "section_length",
+  force: "force",
+  distributed: "distributed_force",
+  moment: "moment",
+  pressure: "pressure",
+};
 // Load or support each tool adds
 const TOOL_HANDLE_KIND = {
   point_load: "point_loads",
@@ -404,7 +415,27 @@ function getOverlayTraces(drawing_state, structure) {
   return traces;
 }
 
+/**
+ * The values of the drawing tools in other model units, so the grid and the new elements keep their size when the units change
+ * (a spacing of 1 m is 1000 mm)
+ * @param {import("./types").ParamEleDrawingState} drawing_state
+ * @param {object} from_units
+ * @param {object} to_units
+ * @returns {import("./types").ParamEleDrawingState}
+ */
+function convertDrawingState(drawing_state, from_units, to_units) {
+  let converted = { ...drawing_state };
+  const convert = (value, quantity) => units.roundConverted(units.convertQuantity(value, quantity, from_units, to_units));
+  Object.entries(DRAWING_STATE_QUANTITIES).forEach(([key, quantity]) => {
+    let value = drawing_state[key];
+    if (typeof value === "number") converted[key] = convert(value, quantity);
+    else if (value) converted[key] = Object.fromEntries(Object.entries(value).map(([axis, magnitude]) => [axis, convert(magnitude, quantity)]));
+  });
+  return converted;
+}
+
 const drawingLayer = {
+  convertDrawingState,
   getPlaneAxes,
   isPointTool,
   isSnapKind,

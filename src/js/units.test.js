@@ -1,5 +1,6 @@
 import units from "./units";
 import unitInference from "./unitInference";
+import drawingLayer from "./drawingLayer";
 
 const metric = units.SYSTEM_DEFAULTS.metric;
 const imperial = units.SYSTEM_DEFAULTS.imperial;
@@ -220,5 +221,20 @@ describe("unit inference", () => {
     expect(unitInference.isValidConnection(model, connection, DECLARATIONS, metric)).toBe(false);
     model.nodes[0] = number("n1", "3");
     expect(unitInference.isValidConnection(model, connection, DECLARATIONS, metric)).toBe(true);
+  });
+});
+
+describe("drawing tools in the model units", () => {
+  const drawing_state = { tool: "member", offset: 3, spacing: 1, thickness: 200, force: { x: 0, y: 0, z: -10 }, moment: { x: 0, y: 0, z: 10 } };
+
+  test("keep the size of the grid and the new elements", () => {
+    const in_mm = drawingLayer.convertDrawingState(drawing_state, metric, { ...metric, length: "mm" });
+    expect(in_mm).toMatchObject({ tool: "member", offset: 3000, spacing: 1000, thickness: 200, force: { z: -10 }, moment: { z: 10000 } });
+  });
+
+  test("come back to the same values", () => {
+    const in_imperial = drawingLayer.convertDrawingState(drawing_state, metric, imperial);
+    expect(in_imperial.spacing).toBe(3.280839895);
+    expect(drawingLayer.convertDrawingState(in_imperial, imperial, metric)).toEqual(drawing_state);
   });
 });

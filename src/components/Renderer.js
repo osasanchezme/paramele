@@ -1,6 +1,7 @@
 import Plot from "./Plot";
 import renderer from "../js/renderer";
 import drawingLayer from "../js/drawingLayer";
+import units from "../js/units";
 import drawing from "../js/drawing";
 import modelLinks from "../js/modelLinks";
 import sectionsLibrary from "../js/sectionsLibrary";
@@ -110,6 +111,8 @@ class Renderer extends React.Component {
   constructor(props) {
     super(props);
     this.drawing_state = getInitialDrawingState();
+    // The initial values of the drawing tools are in the solver units
+    this.drawing_units = units.SOLVER_UNITS;
     /** @type {import("../js/types").ParamEleResultsView} */
     this.results_view = { result: "displacement_sum", scale: null, diagram_scale: 1, load_case: null };
     this.updateBaseData();
@@ -169,11 +172,23 @@ class Renderer extends React.Component {
     this.removeHighlightListener();
   }
   updateRenderer() {
+    this.followModelUnits();
     this.updateBaseData();
     if (this.scene_ranges || this.drawing_state.tool !== "none") this.updateSceneRanges();
     this.refreshEditor();
     this.refreshHighlight();
     this.updatePlotData();
+  }
+  /**
+   * The grid and the values of the drawing tools keep their size when the units of the model change
+   */
+  followModelUnits() {
+    let model_units = units.repairUnits(getState("settings").units);
+    let previous = this.drawing_units;
+    if (Object.keys(model_units).every((key) => model_units[key] === previous[key])) return;
+    this.drawing_units = model_units;
+    this.drawing_state = { ...drawingLayer.convertDrawingState(this.drawing_state, previous, model_units), points: [], hover_point: null };
+    this.pick_candidates = null;
   }
   /**
    * Another model was opened: Plotly fits the view to it again and the element being edited is gone
