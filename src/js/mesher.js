@@ -9,6 +9,8 @@
 //   quads in pairs, and every element is split into quads (quads into 4, triangles into 3), then smoothed.
 // Plates that share an edge get the same nodes on it, and the structural nodes that lie on a plate (on its edges or
 // inside it) become mesh nodes, so loads, supports and members there are connected to the plate.
+// Plates that are meshed already (by a mesh box) keep their mesh: the edges of its elements are taken as they are by the
+// plates meshed next to them.
 import cdt2d from "cdt2d";
 
 // Tolerance to find nodes on a plate, relative to the size of the plate
@@ -32,16 +34,31 @@ const cross2 = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0
 const dist2 = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
 
 /**
- * Meshes all the plates of a structural model. The model is not changed, a meshed copy is returned.
+ * Meshes the plates of a structural model that are not meshed yet. The model is not changed, a meshed copy is returned.
  * @param {import("../submodules/paramele-parsers/types").s3d_model} structure
- * @param {{mesh_size: number}} options mesh_size is the target element size, in length units
+ * @param {object} options
+ * @param {number} options.mesh_size Target element size, in length units
+ * @param {Object<string, number>} [options.plate_sizes] Size of some plates (from their mesh box), instead of mesh_size
+ * @param {string[]} [options.plate_ids] Plates to mesh, all the ones without a mesh by default
+ * @param {Set<string>} [options.node_ids] Nodes that can be on the plates (the ones of the possibility being calculated), all by default
  * @returns {import("./types").ParamEleMeshResult}
  */
-function meshStructure(structure, { mesh_size }) {
-  const meshed = { ...structure, nodes: { ...structure.nodes }, plates: { ...structure.plates }, meshed_plates: {} };
-  const result = { structure: meshed, node_ids: [], element_count: 0, meshed_plate_ids: [], skipped: [] };
-  const plate_ids = Object.keys(structure.plates);
-  if (plate_ids.length === 0 || !(mesh_size > 0)) return result;
+function meshStructure(structure, { mesh_size, plate_sizes = {}, plate_ids, node_ids: candidate_node_ids }) {
+  const existing_elements = structure.meshed_plates || {};
+  const meshed = { ...structure, nodes: { ...structure.nodes }, plates: { ...structure.plates }, meshed_plates: { ...existing_elements } };
+  const result = { structure: meshed, node_ids: [], element_count: 0, meshed_plate_ids: [], element_ids: {}, skipped: [] };
+  const already_meshed = new Set(Object.values(existing_elements).map(({ parent_plate }) => String(parent_plate)));
+  plate_ids = [...new Set((plate_ids || Object.keys(structure.plates)).map(String))].filter(
+    (plate_id) => structure.plates[plate_id] && !already_meshed.has(plate_id)
+  );
+  const getPlateSize = (plate_id) => (plate_sizes[plate_id] > 0 ? plate_sizes[plate_id] : mesh_size);
+  if (plate_ids.length === 0 || !plate_ids.every((plate_id) => getPlateSize(plate_id) > 0)) return result;
+  // Edges of the elements that are already there: the plates around take them whole, with no nodes in between
+  const locked_keys = new Set();
+  Object.values(existing_elements).forEach(({ node_A, node_B, node_C, node_D }) => {
+    const quad = [node_A, node_B, node_C, node_D].filter((node_id) => node_id !== null && node_id !== undefined).map(Number);
+    quad.forEach((a, k) => locked_keys.add(edgeKey(a, quad[(k + 1) % quad.length])));
+  });
 
   let next_node_id = Math.max(0, ...Object.keys(structure.nodes).map(Number).filter(Number.isFinite)) + 1;
   const addNode = (point) => {
@@ -51,7 +68,9 @@ function meshStructure(structure, { mesh_size }) {
     return node_id;
   };
   const getPoint = (node_id) => meshed.nodes[node_id];
-  const original_nodes = Object.entries(structure.nodes).map(([node_id, node]) => ({ id: Number(node_id), point: node }));
+  const original_nodes = Object.entries(structure.nodes)
+    .filter(([node_id]) => !candidate_node_ids || candidate_node_ids.has(node_id))
+    .map(([node_id, node]) => ({ id: Number(node_id), point: node }));
 
   // 1. Geometry of every plate, and the segments of its edges between the nodes found on them
   const plates = [];
@@ -74,6 +93,7 @@ function meshStructure(structure, { mesh_size }) {
     return breakpoints[key];
   };
   const addBreakpoint = (segment, point_3d) => {
+    if (locked_keys.has(segment.key)) return false;
     const entry = getSegmentBreakpoints(segment);
     const point_a = getPoint(entry.a);
     const vector = sub(getPoint(entry.b), point_a);
@@ -138,15 +158,16 @@ function meshStructure(structure, { mesh_size }) {
   const union = (key_a, key_b) => {
     parents[find(key_a)] = find(key_b);
   };
-  const addVariable = (key, length) => {
+  const addVariable = (key, length, size) => {
     if (parents[key] === undefined) parents[key] = key;
-    required[key] = Math.max(required[key] || 1, Math.ceil(length / mesh_size - 1e-9));
+    required[key] = Math.max(required[key] || 1, Math.ceil(length / size - 1e-9));
   };
   plates.forEach((plate) => {
+    plate.size = getPlateSize(plate.id);
     plate.sides.forEach((side) =>
       side.forEach(({ key, a, b }) => {
         if (!segments[key]) segments[key] = { a: Math.min(a, b), b: Math.max(a, b) };
-        addVariable(key, norm(sub(getPoint(b), getPoint(a))));
+        addVariable(key, norm(sub(getPoint(b), getPoint(a))), plate.size);
         if (plate.kind === "unstructured") needs_even.add(key);
       })
     );
@@ -157,8 +178,8 @@ function meshStructure(structure, { mesh_size }) {
       const { xs, ys } = getCutLines(plate, breakpoints, getPoint);
       plate.xs = xs;
       plate.ys = ys;
-      xs.slice(0, -1).forEach((x, i) => addVariable(`plate${plate.id}-x${i}`, xs[i + 1] - x));
-      ys.slice(0, -1).forEach((y, j) => addVariable(`plate${plate.id}-y${j}`, ys[j + 1] - y));
+      xs.slice(0, -1).forEach((x, i) => addVariable(`plate${plate.id}-x${i}`, xs[i + 1] - x, plate.size));
+      ys.slice(0, -1).forEach((y, j) => addVariable(`plate${plate.id}-y${j}`, ys[j + 1] - y, plate.size));
       plate.sides.forEach((side) =>
         side.forEach(({ key, a, b }) => {
           const [start, end] = [a, b].map((node_id) => plate.to2D(getPoint(node_id)));
@@ -172,12 +193,17 @@ function meshStructure(structure, { mesh_size }) {
     }
   });
   const group_divisions = {};
+  const locked_groups = new Set();
   Object.keys(parents).forEach((key) => {
     const root = find(key);
     group_divisions[root] = Math.max(group_divisions[root] || 1, required[key]);
+    if (locked_keys.has(key)) locked_groups.add(root);
   });
+  // A group with an edge of an existing element keeps it whole (an unstructured plate there may then fail)
+  locked_groups.forEach((root) => (group_divisions[root] = 1));
   needs_even.forEach((key) => {
     const root = find(key);
+    if (locked_groups.has(root)) return;
     group_divisions[root] = Math.max(2, group_divisions[root] + (group_divisions[root] % 2));
   });
   const getDivisions = (key) => group_divisions[find(key)];
@@ -202,13 +228,13 @@ function meshStructure(structure, { mesh_size }) {
   };
 
   // 4. Mesh every plate
-  let next_element_id = 1;
+  let next_element_id = Math.max(0, ...Object.keys(existing_elements).map(Number).filter(Number.isFinite)) + 1;
   plates.forEach((plate) => {
     let quads = null;
     try {
       if (plate.kind === "grid") quads = meshGrid(plate, getDivisions, getSideNodes, getPoint, addNode);
       else if (plate.kind === "structured") quads = meshStructured(plate, getSideNodes, getPoint, addNode);
-      else quads = meshUnstructured(plate, mesh_size, getSideNodes, getPoint, addNode);
+      else quads = meshUnstructured(plate, plate.size, getSideNodes, getPoint, addNode);
     } catch (error) {
       console.error(`Plate ${plate.id} could not be meshed`, error);
     }
@@ -217,7 +243,9 @@ function meshStructure(structure, { mesh_size }) {
       meshed.plates[plate.id] = { ...structure.plates[plate.id], isMeshed: false };
       return;
     }
+    result.element_ids[plate.id] = [];
     quads.forEach((quad) => {
+      result.element_ids[plate.id].push(next_element_id);
       meshed.meshed_plates[next_element_id++] = {
         node_A: quad[0],
         node_B: quad[1],
@@ -233,7 +261,7 @@ function meshStructure(structure, { mesh_size }) {
   });
 
   // Segment nodes of plates that failed afterwards are left unused, drop them
-  const used_nodes = new Set(original_nodes.map(({ id }) => id));
+  const used_nodes = new Set(Object.keys(structure.nodes).map(Number));
   Object.values(meshed.meshed_plates).forEach(({ node_A, node_B, node_C, node_D }) =>
     [node_A, node_B, node_C, node_D].forEach((id) => used_nodes.add(id))
   );
@@ -455,6 +483,8 @@ function meshUnstructured(plate, mesh_size, getSideNodes, getPoint, addNode) {
   const boundary_midpoints = {};
   plate.sides.forEach((side) => {
     const side_nodes = getSideNodes(side);
+    // Sides cut whole by an existing mesh can have an odd number of divisions
+    if ((side_nodes.length - 1) % 2 !== 0) throw new Error("Odd number of divisions along a side");
     for (let i = 0; i < side_nodes.length - 1; i += 2) {
       boundary.push(side_nodes[i]);
       boundary_midpoints[edgeKey(side_nodes[i], side_nodes[i + 2])] = side_nodes[i + 1];
@@ -782,5 +812,61 @@ function getPlateSurfacePoints(points, rot_z = 0, divisions = 5) {
   return { axes: { x: axis_x, y: axis_y, z: normal }, centroid, points: surface_points, edge_points };
 }
 
-const mesher = { meshStructure, removeMesh, triangulatePolygon, getPlateSurfacePoints };
+/**
+ * Area of the plate each node of some elements takes: the integral of its shape function over the quads around it (2x2
+ * Gauss points, exact for parallelograms), the same weights as the consistent nodal loads of a uniform pressure. A quarter
+ * of each rectangle goes to each of its corners, so the nodes of a regular grid take a full cell inside the plate, half
+ * along its edges and a quarter at its corners.
+ * @param {Object<string, {x: number, y: number, z: number}>} nodes
+ * @param {{node_A: number, node_B: number, node_C: number, node_D: number}[]} elements Quads
+ * @returns {Object<string, number>} By node ID
+ */
+function getNodalAreas(nodes, elements) {
+  const areas = {};
+  const gauss = 1 / Math.sqrt(3);
+  const corners = [
+    [-1, -1],
+    [1, -1],
+    [1, 1],
+    [-1, 1],
+  ];
+  elements.forEach(({ node_A, node_B, node_C, node_D }) => {
+    const node_ids = [node_A, node_B, node_C, node_D];
+    const points = node_ids.map((node_id) => nodes[node_id]);
+    if (points.some((point) => !point)) return;
+    [-gauss, gauss].forEach((xi) =>
+      [-gauss, gauss].forEach((eta) => {
+        let d_xi = { x: 0, y: 0, z: 0 };
+        let d_eta = { x: 0, y: 0, z: 0 };
+        corners.forEach(([c_xi, c_eta], k) => {
+          d_xi = add(d_xi, scale(points[k], (c_xi * (1 + c_eta * eta)) / 4));
+          d_eta = add(d_eta, scale(points[k], (c_eta * (1 + c_xi * xi)) / 4));
+        });
+        // Gauss weights are 1
+        const jacobian = norm(cross(d_xi, d_eta));
+        corners.forEach(([c_xi, c_eta], k) => {
+          const shape = ((1 + c_xi * xi) * (1 + c_eta * eta)) / 4;
+          areas[node_ids[k]] = (areas[node_ids[k]] || 0) + shape * jacobian;
+        });
+      })
+    );
+  });
+  return areas;
+}
+
+/**
+ * Unit normal of a plate, by the order of its nodes (Newell's method)
+ * @param {{x: number, y: number, z: number}[]} points Corners of the plate, in order
+ * @returns {{x: number, y: number, z: number}|null}
+ */
+function getPlateNormal(points) {
+  let normal = { x: 0, y: 0, z: 0 };
+  points.forEach((a, i) => {
+    const b = points[(i + 1) % points.length];
+    normal = add(normal, { x: (a.y - b.y) * (a.z + b.z), y: (a.z - b.z) * (a.x + b.x), z: (a.x - b.x) * (a.y + b.y) });
+  });
+  return norm(normal) > 0 ? normalize(normal) : null;
+}
+
+const mesher = { meshStructure, removeMesh, triangulatePolygon, getPlateSurfacePoints, getNodalAreas, getPlateNormal };
 export default mesher;

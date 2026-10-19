@@ -73,14 +73,22 @@
         "tz": "resorte Z",
         "rx": "resorte rot. X",
         "ry": "resorte rot. Y",
-        "rz": "resorte rot. Z"
+        "rz": "resorte rot. Z",
+        "plates": "placas",
+        "mesh_size": "tamaño",
+        "mesh": "malla",
+        "node_list": "nodos",
+        "ks": "ks",
+        "supports": "apoyos",
+        "elements": "elementos"
     },
     "types": {
         "id": "ID",
         "ids": "IDs",
         "value": "valor",
         "name": "nombre",
-        "string": "texto"
+        "string": "texto",
+        "mesh": "Malla"
     },
     "nodes": {
         "inputNumber": "Número",
@@ -119,7 +127,9 @@
         "structuralMemberResult": "Resultado Elemento",
         "dataDisplay2DPlot": "Gráfico 2D",
         "structuralNodeResult": "Resultado Nodal",
-        "dataDisplayTable": "Tabla"
+        "dataDisplayTable": "Tabla",
+        "structuralMesh": "Malla",
+        "structuralSurfaceSupport": "Apoyo elástico de superficie"
     },
     "settings": {
         "mini_map": "Mostrar mapa",
@@ -375,7 +385,9 @@
         "pynite_unsupported_sections_title": "Secciones que PyNite no admite",
         "pynite_unsupported_sections_desc": "PyNite solo admite secciones rectangulares y circulares, y algunos elementos usan otras (secciones {sections}). Asígnales secciones rectangulares o circulares, o resuelve con SkyCiv.",
         "units_blocked_title": "Las unidades no se cambiaron",
-        "units_blocked_desc": "El modelo tiene {n} conexiones con errores de unidades (en rojo). Corrígelas primero, un número conectado a dos tipos de magnitudes no se puede convertir."
+        "units_blocked_desc": "El modelo tiene {n} conexiones con errores de unidades (en rojo). Corrígelas primero, un número conectado a dos tipos de magnitudes no se puede convertir.",
+        "surface_supports_not_exported_title": "Apoyos de superficie omitidos",
+        "surface_supports_not_exported_desc": "Los archivos de SAP2000 aún no llevan los apoyos elásticos de superficie, agregue resortes de área en SAP2000."
     },
     "navigator": {
         "model": "Modelo principal"
@@ -710,7 +722,8 @@
         "chip_label": "Unidad",
         "chip_pinned": "clic para cambiarla",
         "chip_inferred": "Unidad tomada de sus conexiones",
-        "chip_free": "Aún sin unidad: toma la de lo que se conecte. Clic para darle una"
+        "chip_free": "Aún sin unidad: toma la de lo que se conecte. Clic para darle una",
+        "subgrade_modulus": "Módulo de balasto"
     },
     "releases": {
         "version_label": "ParamEle {v}",
@@ -742,5 +755,18 @@
         "count_fix_one": "{n} corrección",
         "count_critical": "{n} críticas",
         "count_critical_one": "{n} crítica"
+    },
+    "handle_help": {
+        "subgrade_modulus": "Valores típicos, solo como guía (Bowles, Foundation Analysis and Design, 5.ª ed., tabla 9-1), kN/m³:\nArena suelta: 4 800 – 16 000\nArena medianamente densa: 9 600 – 80 000\nArena densa: 64 000 – 128 000\nArena arcillosa medianamente densa: 32 000 – 80 000\nArena limosa medianamente densa: 24 000 – 48 000\nSuelo arcilloso, qa ≤ 200 kPa: 12 000 – 24 000\nSuelo arcilloso, 200 < qa ≤ 800 kPa: 24 000 – 48 000\nSuelo arcilloso, qa > 800 kPa: > 48 000\nks depende también del tamaño del área cargada, use el valor del estudio geotécnico."
+    },
+    "box_errors": {
+        "mesh_no_plates": "Conecte una o más placas",
+        "mesh_size": "El tamaño debe ser mayor que 0",
+        "mesh_failed": "Sus placas no se pudieron mallar",
+        "surface_support_no_mesh": "Conecte una malla con nodos",
+        "surface_support_code": "El código lleva 6 letras F, R o S, con S en al menos una traslación y en ninguna rotación",
+        "surface_support_ks": "ks debe ser mayor que 0",
+        "surface_support_skewed": "Sus placas deben estar de frente a un eje global (X, Y o Z): los apoyos no tienen ejes locales",
+        "surface_support_not_facing": "Ninguna placa de la malla está de frente a una dirección con S"
     }
 }

@@ -40,14 +40,30 @@ function isAdaptiveHandle(node_type, handle_id) {
 }
 
 /**
- * Tooltip of a handle: its type, its unit and its value
+ * Tooltip of a handle: its type, its unit and its value, and some help when the box gives it
  * @param {string} type
  * @param {string} unit_label
  * @param {any} value
+ * @param {string} [help]
  */
-function getHandleTooltip(type, unit_label, value) {
+function getHandleTooltip(type, unit_label, value, help) {
   let type_copy = utils.getDisplayCopy("types", type);
-  return `${type_copy}${unit_label ? ` (${unit_label})` : ""} [${value}]`;
+  // A mesh is summed up by its size
+  if (type === "mesh" && value && typeof value === "object")
+    value = `${(value.plate_ids || []).length} ${utils.getDisplayCopy("tags", "plates")}, ${value.element_count ?? 0} ${utils.getDisplayCopy(
+      "tags",
+      "elements"
+    )}`;
+  let tooltip = `${type_copy}${unit_label ? ` (${unit_label})` : ""} [${value}]`;
+  if (!help) return tooltip;
+  return (
+    <Box>
+      <Text>{tooltip}</Text>
+      <Text whiteSpace="pre-line" mt={1} fontSize="xs">
+        {help}
+      </Text>
+    </Box>
+  );
 }
 
 /**
@@ -61,9 +77,21 @@ function getHandleTooltip(type, unit_label, value) {
  * @param {Object} props.plot_settings Settings for the plot inside the node
  * @param {Boolean} props.include_table Whether or not to include a table in the box body
  * @param {String} [props.node_type] Type of the node, used to offer adding its parameter to the favorites
+ * @param {Object<string, string>} [props.handle_help] Help shown in the tooltip of some target handles, by handle ID
  * @returns {React.DOMElement} div element representing the ReactFlow node
  */
-function GenericInOutNode({ data, id, node_label, target_ids = [], source_ids = [], editable_ids = [], plot_settings, include_table, node_type }) {
+function GenericInOutNode({
+  data,
+  id,
+  node_label,
+  target_ids = [],
+  source_ids = [],
+  editable_ids = [],
+  plot_settings,
+  include_table,
+  node_type,
+  handle_help = {},
+}) {
   const first_text_input = useRef(null);
   const app_mode = useContext(AppModeContext);
   useEffect(() => {
@@ -140,7 +168,11 @@ function GenericInOutNode({ data, id, node_label, target_ids = [], source_ids = 
     let unit_label = getHandleUnit(id, target_id).label;
     target_copies.push(unit_label ? `${display_copy} ${unit_label}` : display_copy);
     return (
-      <Tooltip label={getHandleTooltip(label_obj.type, unit_label, input_value)} key={target_id + "-tooltip"} placement={"right"}>
+      <Tooltip
+        label={getHandleTooltip(label_obj.type, unit_label, input_value, handle_help[target_id])}
+        key={target_id + "-tooltip"}
+        placement={"right"}
+      >
         <Tag size={"sm"} key={target_id + "-label"} style={target_label_style} variant={"target"}>
           {display_copy}
           {unit_label && <span className="handle-unit">{unit_label}</span>}
@@ -454,7 +486,11 @@ function GenericInOutNode({ data, id, node_label, target_ids = [], source_ids = 
     if (sum_length > max_length) max_length = sum_length;
   }
   let node_width = Math.max(max_length * 5 + 45, node_label.length * 8 + 20, 100, editable_ids.length > 0 ? 150 : 0, plot_width + 20, table_width);
-  let node_height = 20 * (Math.max(target_ids.length, source_ids.length) + 2) + 26 * editable_ids.length + plot_height + table_height;
+  // What the box could not do with its inputs (set by the logic runner from its Exec)
+  let box_error = data.box_error ? utils.getDisplayCopy("box_errors", data.box_error) : null;
+  // About 7.5 px per character of the monospace font
+  let error_height = box_error ? 18 * Math.ceil((box_error.length * 7.5) / Math.max(node_width - 16, 1)) + 12 : 0;
+  let node_height = 20 * (Math.max(target_ids.length, source_ids.length) + 2) + 26 * editable_ids.length + plot_height + table_height + error_height;
   return (
     <div className="reactflow-node" style={{ height: node_height, width: node_width }}>
       <EditableNodeHeader id={id} node_label={node_label} identifier_icon={data.iterating ? MdLoop : null} node_type={node_type}></EditableNodeHeader>
@@ -467,6 +503,11 @@ function GenericInOutNode({ data, id, node_label, target_ids = [], source_ids = 
           {plot_component}
           {table_component}
         </div>
+        {box_error && (
+          <Text className="node-box-error" position="absolute" bottom="4px" left="8px" right="8px" fontSize="xs" lineHeight="18px" color="red.500">
+            {box_error}
+          </Text>
+        )}
         {source_handles}
         {editable_handles}
       </div>

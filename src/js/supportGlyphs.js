@@ -5,8 +5,11 @@
 // - Without a vertical restraint, each restrained horizontal direction gets its own pyramid (or coil) against a wall.
 // - Released rotations are marks around their axis at the node: arches over it for Rx and Ry, a ring for Rz. Rotational springs
 //   are the same marks, wavy. A rotation without a mark is fixed.
+// Surface supports (a plate on soil) are drawn once for the whole plate: springs spread over it down to a hatched outline of
+// the plate, the ground, instead of a symbol on each of its mesh nodes.
 
 import units from "./units";
+import mesher from "./mesher";
 
 // Size of the symbols in meters, they keep it whatever the units of the model
 const SUPPORT_SIZE = 0.6;
@@ -16,6 +19,9 @@ const SOLID_COLOR = "#A0AEC0";
 const LINE_COLOR = "#2D3748";
 const ROTATION_COLOR = "#2B6CB0";
 const CIRCLE_SEGMENTS = 24;
+// Springs along the longest side of a plate on a surface support, and most hatches along each edge of its ground
+const SURFACE_SPRINGS = 6;
+const MAX_SURFACE_HATCHES = 60;
 const AXES = ["x", "y", "z"];
 // Frames of the restraint along each axis: w points from the node to the ground, u and v span the ground
 const FRAMES = {
@@ -326,6 +332,40 @@ function addSupport(builder, restraint_code, node) {
   return { x: handle[0], y: handle[1], z: handle[2] };
 }
 
+/**
+ * Adds the symbol of a surface support on a plate: springs over it, along the axis it faces, down to a hatched copy of
+ * its outline (the ground, on the negative side of the axis)
+ * @param {object} builder
+ * @param {{x: number, y: number, z: number}[]} plate_points Corners of the plate, in order
+ * @param {"x"|"y"|"z"} axis
+ * @returns {{x: number, y: number, z: number}|null} Point to click the support
+ */
+function addSurfaceSupport(builder, plate_points, axis) {
+  let frame = FRAMES[axis];
+  let size = builder.size;
+  let surface = mesher.getPlateSurfacePoints(plate_points, 0, SURFACE_SPRINGS);
+  if (!surface) return null;
+  let length = 0.5 * size;
+  surface.points.forEach((point) => addSpring(builder, [point.x, point.y, point.z], frame.w, frame.u, length));
+  let ground = plate_points.map((point) => offset([point.x, point.y, point.z], frame.w, length));
+  pushPolyline(builder.lines, [...ground, ground[0]]);
+  // Hatches along the ground outline, about a symbol apart, going away from the plate
+  let hatch_length = 0.18 * size;
+  ground.forEach((corner, index) => {
+    let next = ground[(index + 1) % ground.length];
+    let edge = add(next, scale(corner, -1));
+    let edge_length = Math.hypot(...edge);
+    let hatches = Math.min(MAX_SURFACE_HATCHES, Math.max(1, Math.round(edge_length / (0.4 * size))));
+    let along = edge_length > 0 ? scale(edge, 1 / edge_length) : frame.u;
+    for (let h = 0; h < hatches; h++) {
+      let start = add(corner, scale(edge, (h + 0.5) / hatches));
+      pushPolyline(builder.lines, [start, offset(start, frame.w, hatch_length, along, -hatch_length * 0.6)]);
+    }
+  });
+  let handle = offset([surface.centroid.x, surface.centroid.y, surface.centroid.z], frame.w, length / 2);
+  return { x: handle[0], y: handle[1], z: handle[2] };
+}
+
 /** Plotly traces of all the supports' symbols (empty traces are left out) */
 function getTraces(builder) {
   let traces = [];
@@ -346,5 +386,5 @@ function getTraces(builder) {
   return traces;
 }
 
-const supportGlyphs = { createBuilder, addSupport, getTraces, parseRestraintCode, getDepth };
+const supportGlyphs = { createBuilder, addSupport, addSurfaceSupport, getTraces, parseRestraintCode, getDepth };
 export default supportGlyphs;

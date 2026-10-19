@@ -73,14 +73,22 @@
         "tz": "Z spring",
         "rx": "X rot. spring",
         "ry": "Y rot. spring",
-        "rz": "Z rot. spring"
+        "rz": "Z rot. spring",
+        "plates": "plates",
+        "mesh_size": "size",
+        "mesh": "mesh",
+        "node_list": "nodes",
+        "ks": "ks",
+        "supports": "supports",
+        "elements": "elements"
     },
     "types": {
         "id": "ID",
         "ids": "IDs",
         "value": "value",
         "name": "name",
-        "string": "text"
+        "string": "text",
+        "mesh": "Mesh"
     },
     "nodes":{
         "inputNumber": "Number",
@@ -119,7 +127,9 @@
         "structuralMemberResult": "Element Result",
         "dataDisplay2DPlot": "2D Plot",
         "structuralNodeResult": "Nodal Result",
-        "dataDisplayTable": "Table"
+        "dataDisplayTable": "Table",
+        "structuralMesh": "Mesh",
+        "structuralSurfaceSupport": "Surface spring support"
     },
     "settings":{
         "mini_map": "Show map",
@@ -388,7 +398,9 @@
         "pynite_unsupported_sections_title": "Sections not supported by PyNite",
         "pynite_unsupported_sections_desc": "PyNite only takes rectangular and circular sections, and some members use others (sections {sections}). Give them rectangular or circular sections or solve with SkyCiv.",
         "units_blocked_title": "The units were not changed",
-        "units_blocked_desc": "The model has {n} links with unit errors (red). Fix them first, a number linked to two kinds of quantities cannot be converted."
+        "units_blocked_desc": "The model has {n} links with unit errors (red). Fix them first, a number linked to two kinds of quantities cannot be converted.",
+        "surface_supports_not_exported_title": "Surface supports left out",
+        "surface_supports_not_exported_desc": "SAP2000 files do not take the surface spring supports yet, add area springs in SAP2000."
     },
     "navigator":{
         "model": "Main model"
@@ -708,7 +720,8 @@
         "chip_label": "Unit",
         "chip_pinned": "click to change it",
         "chip_inferred": "Unit taken from its links",
-        "chip_free": "No unit yet: it takes the one of what it is linked to. Click to give it one"
+        "chip_free": "No unit yet: it takes the one of what it is linked to. Click to give it one",
+        "subgrade_modulus": "Modulus of subgrade reaction"
     },
     "releases": {
         "version_label": "ParamEle {v}",
@@ -740,5 +753,18 @@
         "count_fix_one": "{n} fixed",
         "count_critical": "{n} critical",
         "count_critical_one": "{n} critical"
+    },
+    "handle_help": {
+        "subgrade_modulus": "Typical values, as a guide only (Bowles, Foundation Analysis and Design, 5th ed., Table 9-1), kN/m³:\nLoose sand: 4 800 – 16 000\nMedium dense sand: 9 600 – 80 000\nDense sand: 64 000 – 128 000\nClayey medium dense sand: 32 000 – 80 000\nSilty medium dense sand: 24 000 – 48 000\nClayey soil, qa ≤ 200 kPa: 12 000 – 24 000\nClayey soil, 200 < qa ≤ 800 kPa: 24 000 – 48 000\nClayey soil, qa > 800 kPa: > 48 000\nks depends on the size of the loaded area too, use the value of the geotechnical study."
+    },
+    "box_errors": {
+        "mesh_no_plates": "Link one or more plates",
+        "mesh_size": "The size must be greater than 0",
+        "mesh_failed": "Its plates could not be meshed",
+        "surface_support_no_mesh": "Link a mesh with nodes",
+        "surface_support_code": "The code takes 6 letters F, R or S, with S in at least one translation and none in the rotations",
+        "surface_support_ks": "ks must be greater than 0",
+        "surface_support_skewed": "Its plates must face a global axis (X, Y or Z): supports have no local axes",
+        "surface_support_not_facing": "No plate of the mesh faces a direction with S"
     }
 }

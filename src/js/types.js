@@ -147,7 +147,7 @@
  */
 
 /**
- * @typedef {'inputNumber'|'variableRange'|'sumNumbers'|'multiplyNumbers'|'divideNumbers'|'roundNumber'|'powerNumber'|'rootNumber'|'sin'|'cos'|'tan'|'asin'|'acos'|'atan'|'deg2rad'|'structuralNode'|'structuralMember'|'structuralFixedSupport'|'structuralPinSupport'|'structuralGenericSupport'|'structuralSpringSupport'|'structuralPointLoad'|'structuralDistributedLoad'|'structuralPlate'|'structuralMoment'|'structuralPressure'|'structuralTrapezoidalPressure'|'structuralMaterial'|'structuralRectangleSection'|'structuralGenericSupport'|'nodesWrapper'|'structuralMemberResult'|'structuralNodeResult'|'dataDisplay2DPlot'} ParamEleNodesTypes
+ * @typedef {'inputNumber'|'variableRange'|'sumNumbers'|'multiplyNumbers'|'divideNumbers'|'roundNumber'|'powerNumber'|'rootNumber'|'sin'|'cos'|'tan'|'asin'|'acos'|'atan'|'deg2rad'|'structuralNode'|'structuralMember'|'structuralFixedSupport'|'structuralPinSupport'|'structuralGenericSupport'|'structuralSpringSupport'|'structuralMesh'|'structuralSurfaceSupport'|'structuralPointLoad'|'structuralDistributedLoad'|'structuralPlate'|'structuralMoment'|'structuralPressure'|'structuralTrapezoidalPressure'|'structuralMaterial'|'structuralRectangleSection'|'structuralGenericSupport'|'nodesWrapper'|'structuralMemberResult'|'structuralNodeResult'|'dataDisplay2DPlot'} ParamEleNodesTypes
  */
 
 /**
@@ -274,9 +274,10 @@ exports.unused = {};
  */
 
 /**
- * Mesh of the plates made in the last run of the logic (see globalLogicRunner.meshPlates)
+ * Mesh of the plates made in the last run of the logic, by the mesh boxes and by Structure > Mesh plates (see
+ * globalLogicRunner.meshPlates)
  * @typedef {Object} ParamEleStructureMesh
- * @property {number} mesh_size
+ * @property {number} mesh_size Of Structure > Mesh plates
  * @property {number[]} node_ids Nodes created by the mesher
  * @property {number} element_count Quads in meshed_plates
  * @property {number} plate_count Plates meshed
@@ -289,7 +290,29 @@ exports.unused = {};
  * @property {number[]} node_ids Nodes created by the mesher
  * @property {number} element_count
  * @property {string[]} meshed_plate_ids
+ * @property {Object<string, number[]>} element_ids IDs in meshed_plates of the elements of each plate meshed
  * @property {{plate_id: string, reason: string}[]} skipped
+ */
+
+/**
+ * Output of a mesh box (see surfaceSupports.describeMesh)
+ * @typedef {Object} ParamEleMesh
+ * @property {string[]} plate_ids Plates of the box that were meshed
+ * @property {number} mesh_size
+ * @property {number} element_count
+ * @property {number[]} node_ids Every node of its elements, corners and edges included
+ * @property {{x: Object<string, number>, y: Object<string, number>, z: Object<string, number>}} areas Area each node takes
+ *  of the plates that face each global axis, by node ID
+ * @property {string[]} skewed_plate_ids Plates that do not face a global axis
+ * @property {{plate_id: string, reason: string}[]} skipped Plates of the box that could not be meshed
+ */
+
+/**
+ * Supports made by a surface support box in the last run of the logic ("structure_surface_supports" global variable)
+ * @typedef {Object} ParamEleSurfaceSupport
+ * @property {string} node_id The box
+ * @property {string[]} plate_ids
+ * @property {number[]} support_ids
  */
 
 /**

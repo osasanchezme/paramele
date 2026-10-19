@@ -24,6 +24,8 @@ const ESTIMATED_HEIGHTS = {
   structuralPlate: 100,
   structuralGenericSupport: 130,
   structuralSpringSupport: 290,
+  structuralMesh: 100,
+  structuralSurfaceSupport: 120,
   structuralPointLoad: 150,
   structuralMoment: 150,
   structuralDistributedLoad: 330,
@@ -41,6 +43,8 @@ const DEPENDENT_TYPES = new Set([
   "structuralPinSupport",
   "structuralGenericSupport",
   "structuralSpringSupport",
+  "structuralMesh",
+  "structuralSurfaceSupport",
   "structuralPointLoad",
   "structuralMoment",
   "structuralDistributedLoad",
@@ -664,6 +668,8 @@ const ENTITY_FIELDS = {
     param_key: `k${key[0] === "r" ? "θ" : ""}${key[1]}`,
     element_key: key,
   })),
+  // The supports of a surface support have k = ks · A, the value shown is the one of its parameter
+  structuralSurfaceSupport: [{ key: "ks", label: "ks", handles: ["ks-value"], param_key: "ks", element_key: "ks" }],
 };
 const ENTITY_STRUCTURE_KEYS = {
   structuralNode: "nodes",
@@ -675,6 +681,7 @@ const ENTITY_STRUCTURE_KEYS = {
   structuralPlate: "plates",
   structuralGenericSupport: "supports",
   structuralSpringSupport: "supports",
+  structuralSurfaceSupport: "supports",
   structuralFixedSupport: "supports",
   structuralPinSupport: "supports",
   structuralMember: "members",

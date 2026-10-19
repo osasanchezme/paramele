@@ -1,5 +1,6 @@
 import utils from "../utils";
 import GenericInOutNode from "./generics/genericInOut";
+import surfaceSupports from "../js/surfaceSupports";
 
 function localGetCopy(node_name) {
   return utils.getDisplayCopy("nodes", node_name);
@@ -194,6 +195,55 @@ function StructuralSpringSupportExec(args) {
       type: "node",
     },
   };
+}
+
+// Mesh: its plates are meshed with its own size, whatever Structure > Mesh plates is. The logic runner meshes them once
+// the boxes that do not depend on a mesh have run (so the nodes they put on the plates are mesh nodes), and writes the
+// mesh (ParamEleMesh) and the list of its nodes into the outputs
+const mesh_target_ids = ["plates-ids", "mesh_size-value"];
+function StructuralMesh({ data, id }) {
+  return (
+    <GenericInOutNode
+      node_label={localGetCopy("structuralMesh")}
+      data={data}
+      id={id}
+      target_ids={mesh_target_ids}
+      source_ids={["mesh_out-mesh", "node_list_out-ids"]}
+    ></GenericInOutNode>
+  );
+}
+
+function StructuralMeshExec(args) {
+  let structural_args = utils.convertNodeToStructuralArgs(args, mesh_target_ids);
+  let plate_ids = surfaceSupports.getPlateIds(structural_args.plates);
+  let mesh_size = Number(structural_args.mesh_size);
+  let box_error = null;
+  if (plate_ids.length === 0) box_error = "mesh_no_plates";
+  else if (!(mesh_size > 0)) box_error = "mesh_size";
+  return { "mesh_out-mesh": { plate_ids: box_error ? [] : plate_ids, mesh_size }, box_error };
+}
+
+// Surface support (plate on soil, Winkler foundation): a spring support on every node of the mesh, k = ks · A along the
+// directions with an S in the restraint code (global axes, the plates must face them), see surfaceSupports.js. FFSRRR by
+// default, SkyCiv's vertical spring (FSFRRR with Y up): the soil also holds the plate in its plane
+const surface_support_target_ids = ["mesh-mesh", "ks-value", "restraint_code-string-FFSRRR"];
+function StructuralSurfaceSupport({ data, id }) {
+  return (
+    <GenericInOutNode
+      node_label={localGetCopy("structuralSurfaceSupport")}
+      data={data}
+      id={id}
+      target_ids={surface_support_target_ids}
+      source_ids={["supports_out-ids"]}
+      handle_help={{ "ks-value": utils.getDisplayCopy("handle_help", "subgrade_modulus") }}
+    ></GenericInOutNode>
+  );
+}
+
+function StructuralSurfaceSupportExec(args) {
+  let structural_args = utils.convertNodeToStructuralArgs(args, surface_support_target_ids);
+  let { supports, plate_ids, error } = surfaceSupports.getSurfaceSupports(structural_args.mesh, structural_args.ks, structural_args.restraint_code);
+  return { "supports_out-ids": { supports, plate_ids }, box_error: error };
 }
 
 // Point load
@@ -443,6 +493,12 @@ const BasicStructuralNodes = {
         "rz-value": "rotational_stiffness",
       },
     },
+  },
+  StructuralMeshNode: { Node: StructuralMesh, Exec: StructuralMeshExec, units: { handles: { "mesh_size-value": "length" } } },
+  StructuralSurfaceSupportNode: {
+    Node: StructuralSurfaceSupport,
+    Exec: StructuralSurfaceSupportExec,
+    units: { handles: { "ks-value": "subgrade_modulus" } },
   },
   StructuralPointLoadNode: {
     Node: StructuralPointLoad,

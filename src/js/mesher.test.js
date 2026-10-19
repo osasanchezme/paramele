@@ -411,3 +411,103 @@ test("pressures are drawn over the plate, with the plate's local axes", () => {
   const turned = mesher.getPlateSurfacePoints(points, 90);
   expect(turned.axes.x.z).toBeCloseTo(1);
 });
+
+// A slab on soil (plate 1) and the two walls on its long edges (plates 2 and 3)
+function slabWithWalls() {
+  return makeStructure(
+    [
+      [0, 0, 0],
+      [4, 0, 0],
+      [4, 2, 0],
+      [0, 2, 0],
+      [4, 0, 1.5],
+      [0, 0, 1.5],
+      [0, 2, 1.5],
+      [4, 2, 1.5],
+    ],
+    [
+      [1, 2, 3, 4],
+      [1, 2, 5, 6],
+      [4, 3, 8, 7],
+    ]
+  );
+}
+const SLAB_WALLS_OUTLINE = [
+  [2, 3],
+  [4, 1],
+  [2, 5],
+  [5, 6],
+  [6, 1],
+  [3, 8],
+  [8, 7],
+  [7, 4],
+];
+
+test("plates take their own mesh size, and a shared edge the finest of its plates", () => {
+  const result = mesher.meshStructure(slabWithWalls(), { mesh_size: 1, plate_sizes: { 1: 0.25 } });
+  expect(result.skipped).toEqual([]);
+  ["1", "2", "3"].forEach((plate_id) => expectValidMesh(result.structure, plate_id));
+  // 16 x 8 in the slab, the walls follow it along their bottom edge and take 2 rows of 0.75
+  expect(result.element_ids["1"].length).toBe(16 * 8);
+  expect(result.element_ids["2"].length).toBe(16 * 2);
+  expectConforming(result.structure, SLAB_WALLS_OUTLINE);
+});
+
+test("plates meshed next to an existing mesh take the nodes of its edges, and keep it", () => {
+  // The slab is meshed first (a mesh box), the walls later with a coarser size
+  const first = mesher.meshStructure(slabWithWalls(), { mesh_size: 0.25, plate_ids: ["1"] });
+  expect(first.meshed_plate_ids).toEqual(["1"]);
+  expect(first.structure.plates["2"].isMeshed).toBeFalsy();
+  const slab_elements = JSON.stringify(first.structure.meshed_plates);
+  const second = mesher.meshStructure(first.structure, { mesh_size: 1 });
+  expect(second.meshed_plate_ids.sort()).toEqual(["2", "3"]);
+  expect(second.skipped).toEqual([]);
+  // The slab keeps its elements and nodes
+  expect(
+    JSON.stringify(Object.fromEntries(Object.entries(second.structure.meshed_plates).filter(([, { parent_plate }]) => parent_plate === 1)))
+  ).toBe(slab_elements);
+  first.node_ids.forEach((node_id) => expect(second.structure.nodes[node_id]).toEqual(first.structure.nodes[node_id]));
+  expect(second.node_ids.some((node_id) => first.node_ids.includes(node_id))).toBe(false);
+  ["1", "2", "3"].forEach((plate_id) => expectValidMesh(second.structure, plate_id));
+  expectConforming(second.structure, SLAB_WALLS_OUTLINE);
+});
+
+test("only the given nodes are taken as nodes on the plates", () => {
+  const structure = slabWithWalls();
+  structure.nodes["9"] = { x: 2, y: 1, z: 0 };
+  const with_node = mesher.meshStructure(structure, { mesh_size: 3, plate_ids: ["1"] });
+  const without_node = mesher.meshStructure(structure, { mesh_size: 3, plate_ids: ["1"], node_ids: new Set(["1", "2", "3", "4"]) });
+  const uses = (result, node_id) => quadsOf(result.structure, "1").some((quad) => quad.includes(node_id));
+  expect(uses(with_node, 9)).toBe(true);
+  expect(uses(without_node, 9)).toBe(false);
+  // Nodes left out are kept in the structure
+  expect(without_node.structure.nodes["9"]).toBeDefined();
+});
+
+test("each node takes the area of the plate around it, adding up to the plate area", () => {
+  const result = mesher.meshStructure(slabWithWalls(), { mesh_size: 0.5, plate_ids: ["1"] });
+  const elements = result.element_ids["1"].map((element_id) => result.structure.meshed_plates[element_id]);
+  const areas = mesher.getNodalAreas(result.structure.nodes, elements);
+  const total = Object.values(areas).reduce((sum, area) => sum + area, 0);
+  expect(total).toBeCloseTo(8, 9);
+  // 0.5 x 0.5 cells: a corner takes a quarter of one, an edge node half of two, an inner node four quarters
+  expect(areas[1]).toBeCloseTo(0.0625, 9);
+  const nodeAt = (x, y) =>
+    Object.keys(areas).find((node_id) => Math.hypot(result.structure.nodes[node_id].x - x, result.structure.nodes[node_id].y - y) < 1e-9);
+  expect(areas[nodeAt(2, 0)]).toBeCloseTo(0.125, 9);
+  expect(areas[nodeAt(2, 1)]).toBeCloseTo(0.25, 9);
+});
+
+test("the nodal areas of a skewed quad are exact", () => {
+  // Parallelogram 2 x 1 skewed 1 along x: area 2, a quarter at each corner
+  const nodes = { 1: { x: 0, y: 0, z: 0 }, 2: { x: 2, y: 0, z: 0 }, 3: { x: 3, y: 1, z: 0 }, 4: { x: 1, y: 1, z: 0 } };
+  const areas = mesher.getNodalAreas(nodes, [{ node_A: 1, node_B: 2, node_C: 3, node_D: 4 }]);
+  [1, 2, 3, 4].forEach((node_id) => expect(areas[node_id]).toBeCloseTo(0.5, 12));
+  // Trapezoid: the nodes of the long side take more
+  const trapezoid = { 1: { x: 0, y: 0, z: 0 }, 2: { x: 3, y: 0, z: 0 }, 3: { x: 2, y: 1, z: 0 }, 4: { x: 1, y: 1, z: 0 } };
+  const trapezoid_areas = mesher.getNodalAreas(trapezoid, [{ node_A: 1, node_B: 2, node_C: 3, node_D: 4 }]);
+  expect(Object.values(trapezoid_areas).reduce((sum, area) => sum + area, 0)).toBeCloseTo(2, 12);
+  // ∫N dA with N bilinear: (2 b1 + b2) h / 6 for the long side's nodes, with b1 = 3, b2 = 1, h = 1, split between its two nodes
+  expect(trapezoid_areas[1]).toBeCloseTo(((2 * 3 + 1) * 1) / 6 / 2, 12);
+  expect(trapezoid_areas[4]).toBeCloseTo(((2 * 1 + 3) * 1) / 6 / 2, 12);
+});

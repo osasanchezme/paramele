@@ -44,6 +44,10 @@ describe("units", () => {
     expect(units.formatUnit(units.getQuantityUnit("translational_stiffness"), metric)).toBe("kN/m");
     expect(units.formatUnit(units.getQuantityUnit("rotational_stiffness"), metric)).toBe("kN·m/rad");
     expect(units.formatUnit(units.getQuantityUnit("rotational_stiffness"), imperial)).toBe("kip·ft/rad");
+    expect(units.formatUnit(units.getQuantityUnit("subgrade_modulus"), metric)).toBe("kN/m³");
+    expect(units.formatUnit(units.getQuantityUnit("subgrade_modulus"), imperial)).toBe("kip/ft³");
+    // 1 kip/ft³ = 4.4482216152605 kN / 0.3048³ m³
+    expect(units.convertQuantity(1, "subgrade_modulus", imperial, metric)).toBeCloseTo(4.4482216152605 / 0.3048 ** 3, 9);
     expect(units.formatUnit(units.multiplyUnits(units.getQuantityUnit("length"), units.getQuantityUnit("length")), metric)).toBe("m²");
     expect(units.formatUnit(units.getQuantityUnit("dimensionless"), metric)).toBe("");
   });

@@ -9,6 +9,7 @@ import resultsLayer from "./resultsLayer";
 import sectionsLibrary from "./sectionsLibrary";
 import solidsLayer from "./solidsLayer";
 import supportGlyphs from "./supportGlyphs";
+import surfaceSupports from "./surfaceSupports";
 import unitCatalog from "./units";
 
 const PLATE_COLOR = "#D2DDE8";
@@ -162,7 +163,24 @@ function getData(drawing_state, results_view) {
 
   // Supports
   const support_builder = supportGlyphs.createBuilder(model_units);
+  // The supports of a surface support are drawn once on each of its plates, they are one per mesh node
+  /** @type {import("./types").ParamEleSurfaceSupport[]} */
+  const surface_supports = state.getGlobalVariable("structure_surface_supports") || [];
+  const surface_support_ids = new Set();
+  surface_supports.forEach(({ plate_ids, support_ids }) => {
+    support_ids.forEach((support_id) => surface_support_ids.add(String(support_id)));
+    const codes = support_ids.map((support_id) => structure.supports[support_id]?.restraint_code || "");
+    plate_ids.forEach((plate_id) => {
+      const axis = surfaceSupports.getPlateAxis(structure, plate_id);
+      if (!axis || !codes.some((code) => code["xyz".indexOf(axis)] === "S")) return;
+      let plate_nodes = structure.plates[plate_id].nodes;
+      if (typeof plate_nodes === "string") plate_nodes = plate_nodes.split(",");
+      const handle = supportGlyphs.addSurfaceSupport(support_builder, plate_nodes.map((node_id) => structure.nodes[node_id]).filter(Boolean), axis);
+      if (handle) drawingLayer.pushHandle(handles, "supports", support_ids[0], handle);
+    });
+  });
   Object.entries(structure.supports).forEach(([support_id, support_data]) => {
+    if (surface_support_ids.has(support_id)) return;
     let node = structure.nodes[support_data.node];
     if (!node) return;
     let handle = supportGlyphs.addSupport(support_builder, support_data.restraint_code, node);

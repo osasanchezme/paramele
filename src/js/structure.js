@@ -288,8 +288,14 @@ const solveStructure = () => {
  */
 const downloadInputTextFile = (format) => {
   let file_str = "";
+  // The springs of the surface supports are on the mesh nodes, SAP2000 takes them as area springs (not exported yet)
+  let structure = getState("structure");
+  /** @type {import("./types").ParamEleSurfaceSupport[]} */
+  const surface_supports = state.getGlobalVariable("structure_surface_supports") || [];
+  surface_supports.forEach(({ support_ids }) => support_ids.forEach((support_id) => delete structure.supports[support_id]));
+  if (surface_supports.length > 0) notify("warning", "surface_supports_not_exported", undefined, true, 10000);
   // SAP2000 meshes the areas itself, the mesh nodes would be loose joints
-  let structure = repair.repairStructuralModel(mesher.removeMesh(getState("structure")).structure, "csi");
+  structure = repair.repairStructuralModel(mesher.removeMesh(structure).structure, "csi");
   try {
     switch (format) {
       case "SAP2000":

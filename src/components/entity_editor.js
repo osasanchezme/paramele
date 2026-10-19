@@ -16,6 +16,7 @@ const TYPE_COPIES = {
   structuralTrapezoidalPressure: "pressures",
   structuralGenericSupport: "supports",
   structuralSpringSupport: "supports",
+  structuralSurfaceSupport: "supports",
   structuralFixedSupport: "supports",
   structuralPinSupport: "supports",
 };

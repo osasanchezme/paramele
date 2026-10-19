@@ -125,6 +125,8 @@ const QUANTITIES = {
   // Stiffness of a spring by unit of translation, and by radian of rotation (a moment, written with /rad)
   translational_stiffness: { force: 1, length: -1 },
   rotational_stiffness: { force: 1, length: 1 },
+  // Modulus of subgrade reaction of a soil (Winkler): pressure by unit of settlement
+  subgrade_modulus: { force: 1, length: -3 },
   pressure: { pressure: 1 },
   material_strength: { material_strength: 1 },
   density: { density: 1 },
@@ -141,6 +143,7 @@ const PICKABLE_QUANTITIES = [
   "distributed_force",
   "translational_stiffness",
   "rotational_stiffness",
+  "subgrade_modulus",
   "pressure",
   "material_strength",
   "density",

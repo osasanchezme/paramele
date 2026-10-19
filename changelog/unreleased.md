@@ -141,4 +141,13 @@ entries:
     description:
       en: The new Spring support box takes a stiffness for each direction where its restraint code has an S (kN/m for translations, kN·m/rad for rotations).
       es: La nueva caja Apoyo elástico recibe una rigidez en cada dirección donde su código de restricción tiene una S (kN/m para traslaciones, kN·m/rad para rotaciones).
+  - id: mesh-box-surface-supports
+    type: feature
+    area: [modeling, analysis]
+    title:
+      en: Mesh box and surface spring supports for plates on soil
+      es: Caja de malla y apoyos elásticos de superficie para placas sobre el suelo
+    description:
+      en: The new Mesh box meshes its plates with its own size, whatever Structure > Mesh plates is, and gives the list of their mesh nodes. The new Surface spring support box puts a plate of that mesh on soil (a Winkler foundation) from its modulus of subgrade reaction ks (kN/m³), a spring k = ks · A on each mesh node along the directions with an S in its restraint code. Solved with Pynite and SkyCiv with the same results.
+      es: La nueva caja Malla malla sus placas con su propio tamaño, sin importar Estructura > Mallar placas, y entrega la lista de sus nodos. La nueva caja Apoyo elástico de superficie apoya una placa de esa malla sobre el suelo (fundación de Winkler) a partir de su módulo de balasto ks (kN/m³), con un resorte k = ks · A en cada nodo de la malla en las direcciones con S en su código de restricción. Se resuelve con Pynite y SkyCiv con los mismos resultados.
 ---

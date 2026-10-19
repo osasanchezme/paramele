@@ -7,6 +7,7 @@ import modelLinks from "./modelLinks";
 import units from "./units";
 import unitInference from "./unitInference";
 import supportGlyphs from "./supportGlyphs";
+import surfaceSupports from "./surfaceSupports";
 
 const STRUCTURAL_RESULT_TYPES = new Set([
   "node",
@@ -21,6 +22,10 @@ const STRUCTURAL_RESULT_TYPES = new Set([
   "material",
 ]);
 const ACCUMULATED_LIST_TYPES = new Set(["member_list", "node_list"]);
+// Outputs that add several elements to the structure at once, named after their structure key (e.g. supports_out-ids),
+// as {supports: [...elements], plate_ids}. They give the list of their IDs
+const STRUCTURAL_LIST_KEYS = new Set(["supports"]);
+const MESH_BOX_TYPE = "structuralMesh";
 // Gap between stacked possibilities, as a fraction of the larger of their two heights
 const COMBINATION_GAP_RATIO = 0.5;
 // Flat possibilities (beams, slabs) are given at least this fraction of their plan size as height, so they do not stack too close
@@ -154,6 +159,48 @@ function getDrawnZRange(structure, node_ids, min_z, max_z) {
   return { bottom, top };
 }
 
+/**
+ * Order the boxes run in: first the ones that do not depend on a mesh box, in the order of the links as always, then the
+ * mesh boxes (all of them meshed at once), then the boxes that depend on them, each after the boxes it takes inputs from.
+ * A mesh box needs every node that other boxes put on its plates (loads, columns, supports) to be there.
+ * @param {string[]} box_ids Connected boxes, in the order of the links
+ * @param {object[]} edges
+ * @param {Object<string, string>} nodes_type
+ * @returns {{before_mesh: string[], mesh_boxes: string[], after_mesh: string[]}}
+ */
+function getEvaluationOrder(box_ids, edges, nodes_type) {
+  const mesh_boxes = box_ids.filter((box_id) => nodes_type[box_id] === MESH_BOX_TYPE);
+  if (mesh_boxes.length === 0) return { before_mesh: box_ids, mesh_boxes, after_mesh: [] };
+  const targets = {};
+  edges.forEach(({ source, target }) => (targets[source] = targets[source] || []).push(target));
+  const downstream = new Set();
+  const pending = [...mesh_boxes];
+  while (pending.length > 0) {
+    (targets[pending.pop()] || []).forEach((target) => {
+      if (downstream.has(target)) return;
+      downstream.add(target);
+      pending.push(target);
+    });
+  }
+  const after = box_ids.filter((box_id) => downstream.has(box_id) && nodes_type[box_id] !== MESH_BOX_TYPE);
+  // Each one after its sources among them (stable topological order, a cycle keeps the order of the links)
+  const after_set = new Set(after);
+  const sources_left = {};
+  after.forEach((box_id) => (sources_left[box_id] = new Set()));
+  edges.forEach(({ source, target }) => {
+    if (after_set.has(source) && after_set.has(target) && source !== target) sources_left[target].add(source);
+  });
+  const after_mesh = [];
+  const placed = new Set();
+  while (after_mesh.length < after.length) {
+    const next = after.find((box_id) => !placed.has(box_id) && [...sources_left[box_id]].every((source) => placed.has(source)));
+    const box_id = next ?? after.find((box_id) => !placed.has(box_id));
+    placed.add(box_id);
+    after_mesh.push(box_id);
+  }
+  return { before_mesh: box_ids.filter((box_id) => !downstream.has(box_id) && nodes_type[box_id] !== MESH_BOX_TYPE), mesh_boxes, after_mesh };
+}
+
 function run(model) {
   if (model == undefined) {
     console.log("There are places not passing the model to the logic runner");
@@ -163,6 +210,9 @@ function run(model) {
   let empty_structure = utils.getEmptyStructuralModel();
   empty_structure.settings.units = units.toS3DUnits(getState("settings").units);
   state.setState(empty_structure, "structure");
+  // Filled by the mesh boxes and the surface supports while the model is calculated
+  state.setGlobalVariable("structure_box_meshes", []);
+  state.setGlobalVariable("structure_surface_supports", []);
   clearAccumulatedLists(model);
   let { nodes, origins, group_origins, combinations } = calculateModel(model, true);
   // Lets the drawing tools find the box behind an element clicked in the renderer
@@ -184,20 +234,30 @@ function run(model) {
 
 /**
  * Meshes the plates of the structure when meshing is on (Structure > Mesh plates), so the mesh follows every change
- * of the model. What was meshed is kept in the "structure_mesh" global variable.
+ * of the model. The plates of the mesh boxes keep the mesh they got while the model was calculated. What was meshed
+ * (by both) is kept in the "structure_mesh" global variable.
  */
 function meshPlates() {
   const global_settings = getState("settings")["global"];
-  if (!global_settings["mesh_plates"]) {
-    state.setGlobalVariable("structure_mesh", null);
-    return;
-  }
   const mesh_size = getMeshSize(global_settings);
-  const { structure, node_ids, element_count, meshed_plate_ids, skipped } = mesher.meshStructure(getState("structure"), { mesh_size });
-  state.setState(structure, "structure");
   /** @type {import("./types").ParamEleStructureMesh} */
-  const structure_mesh = { mesh_size, node_ids, element_count, plate_count: meshed_plate_ids.length, skipped };
-  state.setGlobalVariable("structure_mesh", structure_mesh);
+  const structure_mesh = { mesh_size, node_ids: [], element_count: 0, plate_count: 0, skipped: [] };
+  (state.getGlobalVariable("structure_box_meshes") || []).forEach((box_mesh) => {
+    structure_mesh.node_ids.push(...box_mesh.node_ids);
+    structure_mesh.element_count += box_mesh.element_count;
+    structure_mesh.plate_count += box_mesh.meshed_plate_ids.length;
+    structure_mesh.skipped.push(...box_mesh.skipped);
+  });
+  if (global_settings["mesh_plates"]) {
+    const { structure, node_ids, element_count, meshed_plate_ids, skipped } = mesher.meshStructure(getState("structure"), { mesh_size });
+    state.setState(structure, "structure");
+    structure_mesh.node_ids.push(...node_ids);
+    structure_mesh.element_count += element_count;
+    structure_mesh.plate_count += meshed_plate_ids.length;
+    structure_mesh.skipped.push(...skipped);
+  }
+  const has_mesh = global_settings["mesh_plates"] || structure_mesh.element_count > 0 || structure_mesh.skipped.length > 0;
+  state.setGlobalVariable("structure_mesh", has_mesh ? structure_mesh : null);
 }
 
 /**
@@ -330,6 +390,7 @@ function calculateModel(model, is_from_main_model) {
 
   // Top and height of the last possibility, to stack the next one above it
   let previous_combination_box = null;
+  const order = getEvaluationOrder(Object.keys(connected_nodes), edges, nodes_type);
   // Run all the combinations
   model_combinations.forEach((model_combination) => {
     let structure = getState("structure");
@@ -368,11 +429,10 @@ function calculateModel(model, is_from_main_model) {
       });
     }
     const previous_node_ids = new Set(Object.keys(structure["nodes"]));
-    // Run all the logic
-    Object.entries(connected_nodes).forEach(([node_id, node]) => {
-      let structure_changed = false;
-      // TODO - Make it an actual logic, gathering all the args first
-      // Get the arguments
+    const previous_plate_ids = new Set(Object.keys(structure["plates"]));
+
+    // Arguments of a box from the outputs of its sources
+    const gatherArgs = (node) => {
       Object.entries(node.sources).forEach(([arg_key, arg_data_array]) => {
         let processed_args;
         if (arg_data_array.length > 1) processed_args = [];
@@ -383,6 +443,53 @@ function calculateModel(model, is_from_main_model) {
         });
         node.args[arg_key] = processed_args;
       });
+    };
+
+    // The mesh boxes are meshed together, so the plates they share edges with match. When meshing is on, the other
+    // plates of this possibility are meshed with them (with the global size), the global meshing keeps them as they are
+    const runMeshBoxes = (mesh_box_ids) => {
+      const requests = mesh_box_ids.map((node_id) => {
+        const node = connected_nodes[node_id];
+        gatherArgs(node);
+        const result = library.execution[nodes_type[node_id]](node.args, nodes_data[node_id]);
+        nodes[nodes_i[node_id]]["data"]["box_error"] = result.box_error || null;
+        const request = result["mesh_out-mesh"];
+        request.plate_ids = request.plate_ids.filter((plate_id) => structure.plates[plate_id]);
+        if (!result.box_error && request.plate_ids.length === 0) nodes[nodes_i[node_id]]["data"]["box_error"] = "mesh_no_plates";
+        return { node_id, ...request };
+      });
+      const plate_sizes = {};
+      requests.forEach(({ plate_ids, mesh_size }) =>
+        plate_ids.forEach((plate_id) => (plate_sizes[plate_id] = Math.min(plate_sizes[plate_id] ?? Infinity, mesh_size)))
+      );
+      let plate_ids = Object.keys(plate_sizes);
+      if (global_settings["mesh_plates"]) plate_ids.push(...Object.keys(structure.plates).filter((plate_id) => !previous_plate_ids.has(plate_id)));
+      const node_ids = new Set(Object.keys(structure.nodes).filter((node_id) => !previous_node_ids.has(node_id)));
+      const meshing = mesher.meshStructure(structure, { mesh_size: getMeshSize(global_settings), plate_sizes, plate_ids, node_ids });
+      state.setState(meshing.structure, "structure");
+      syncStructure();
+      const box_meshes = state.getGlobalVariable("structure_box_meshes") || [];
+      box_meshes.push({
+        node_ids: meshing.node_ids,
+        element_count: meshing.element_count,
+        meshed_plate_ids: meshing.meshed_plate_ids,
+        skipped: meshing.skipped,
+      });
+      state.setGlobalVariable("structure_box_meshes", box_meshes);
+      requests.forEach(({ node_id, plate_ids, mesh_size }) => {
+        const mesh = surfaceSupports.describeMesh(structure, plate_ids, mesh_size, meshing.skipped);
+        const data = nodes[nodes_i[node_id]]["data"];
+        if (plate_ids.length > 0 && mesh.plate_ids.length === 0) data["box_error"] = "mesh_failed";
+        data["mesh_out-mesh"] = mesh;
+        data["node_list_out-ids"] = mesh.node_ids;
+        data["input"] = { plates: plate_ids, mesh_size };
+      });
+    };
+
+    const runBox = (node_id) => {
+      const node = connected_nodes[node_id];
+      let structure_changed = false;
+      gatherArgs(node);
       // Execute
       let is_group = nodes_type[node_id] === "nodesWrapper";
       let ids_before = is_from_main_model && is_group ? getStructureIds() : null;
@@ -391,11 +498,37 @@ function calculateModel(model, is_from_main_model) {
       if (ids_before) addGroupOrigins(group_origins, ids_before, node_id);
       let result_input = {};
       Object.entries(result).forEach(([res_id, res_val]) => {
+        // What the box could not do with its inputs, shown in it
+        if (res_id === "box_error") {
+          nodes[nodes_i[node_id]]["data"]["box_error"] = res_val || null;
+          return;
+        }
         let is_push = false;
         let actual_res_val = JSON.parse(JSON.stringify(res_val));
         // Process the structure
         let res_type = utils.splitArgName(res_id, "source").name;
-        if (STRUCTURAL_RESULT_TYPES.has(res_type)) {
+        if (STRUCTURAL_LIST_KEYS.has(res_type)) {
+          // Several elements at once (a surface support). Nodes that have a support already keep it
+          const supported = new Set(Object.values(structure.supports).map(({ node }) => String(node)));
+          actual_res_val = [];
+          res_val[res_type].forEach((element) => {
+            if (res_type === "supports" && supported.has(String(element.node))) return;
+            const element_id = getNextStructuralId(res_type);
+            structure[res_type][element_id] = element;
+            actual_res_val.push(element_id);
+            if (is_from_main_model) {
+              if (!origins[res_type]) origins[res_type] = {};
+              origins[res_type][element_id] = node_id;
+            }
+          });
+          if (actual_res_val.length > 0) {
+            const surface_supports = state.getGlobalVariable("structure_surface_supports") || [];
+            surface_supports.push({ node_id, plate_ids: res_val.plate_ids || [], support_ids: actual_res_val });
+            state.setGlobalVariable("structure_surface_supports", surface_supports);
+          }
+          structure_changed = true;
+          result_input = { plates: res_val.plate_ids, count: actual_res_val.length };
+        } else if (STRUCTURAL_RESULT_TYPES.has(res_type)) {
           // For structural nodes
           let structure_key = res_type + "s";
           actual_res_val = getNextStructuralId(structure_key);
@@ -444,7 +577,14 @@ function calculateModel(model, is_from_main_model) {
       // Set the input
       nodes[nodes_i[node_id]]["data"]["input"] = result_input;
       if (structure_changed) state.setState(structure, "structure");
-    });
+    };
+
+    // Run all the logic
+    order.before_mesh.forEach(runBox);
+    if (order.mesh_boxes.length > 0) {
+      runMeshBoxes(order.mesh_boxes);
+      order.after_mesh.forEach(runBox);
+    }
     if (iterate_sliders && model_combination !== null && max_range_node.data.iterating) {
       // Wrapper nodes add their own structural nodes, so the new IDs are read from the structure
       const node_ids = Object.keys(getState("structure")["nodes"]).filter((node_id) => !previous_node_ids.has(node_id));
@@ -465,6 +605,6 @@ function calculateModel(model, is_from_main_model) {
   return { nodes, origins, group_origins, combinations };
 }
 
-const logic_runner = { run, calculateModel };
+const logic_runner = { run, calculateModel, getEvaluationOrder };
 
 export default logic_runner;
