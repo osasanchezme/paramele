@@ -695,7 +695,6 @@
     },
     "global": {
       "sliders_mode": "sliders_single",
-      "spacing_between_combinations": 1,
       "solver_engine": "pynite_wasm"
     }
   }

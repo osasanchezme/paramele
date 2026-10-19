@@ -1,0 +1,3354 @@
+{
+  "model": {
+    "nodes": [
+      {
+        "id": "node-1",
+        "type": "inputNumber",
+        "position": {
+          "x": 0,
+          "y": 0
+        },
+        "data": {
+          "value-value": "0",
+          "custom_label": "Origen (0)",
+          "unit": "length"
+        }
+      },
+      {
+        "id": "node-2",
+        "type": "inputNumber",
+        "position": {
+          "x": 0,
+          "y": 85
+        },
+        "data": {
+          "value-value": "6",
+          "custom_label": "Largo a (x) [m]",
+          "unit": "length"
+        }
+      },
+      {
+        "id": "node-3",
+        "type": "inputNumber",
+        "position": {
+          "x": 0,
+          "y": 170
+        },
+        "data": {
+          "value-value": "4",
+          "custom_label": "Ancho b (y) [m]",
+          "unit": "length"
+        }
+      },
+      {
+        "id": "node-4",
+        "type": "inputNumber",
+        "position": {
+          "x": 0,
+          "y": 255
+        },
+        "data": {
+          "value-value": "200",
+          "custom_label": "Espesor t [mm]",
+          "unit": "section_length"
+        }
+      },
+      {
+        "id": "node-5",
+        "type": "inputNumber",
+        "position": {
+          "x": 0,
+          "y": 340
+        },
+        "data": {
+          "value-value": "-10",
+          "custom_label": "Presión q [kPa]",
+          "unit": "pressure"
+        }
+      },
+      {
+        "id": "node-6",
+        "type": "inputNumber",
+        "position": {
+          "x": 0,
+          "y": 425
+        },
+        "data": {
+          "value-value": "12",
+          "custom_label": "Divisiones en x",
+          "unit": "dimensionless"
+        }
+      },
+      {
+        "id": "node-7",
+        "type": "inputNumber",
+        "position": {
+          "x": 0,
+          "y": 510
+        },
+        "data": {
+          "value-value": "8",
+          "custom_label": "Divisiones en y",
+          "unit": "dimensionless"
+        }
+      },
+      {
+        "id": "node-8",
+        "type": "structuralMaterial",
+        "position": {
+          "x": 210,
+          "y": 0
+        },
+        "data": {
+          "custom_label": "Concreto"
+        }
+      },
+      {
+        "id": "node-9",
+        "type": "inputNumber",
+        "position": {
+          "x": 0,
+          "y": 595
+        },
+        "data": {
+          "value-value": "24870",
+          "custom_label": "E concreto [MPa]"
+        }
+      },
+      {
+        "id": "node-10",
+        "type": "inputNumber",
+        "position": {
+          "x": 0,
+          "y": 680
+        },
+        "data": {
+          "value-value": "2400",
+          "custom_label": "Densidad [kg/m³]"
+        }
+      },
+      {
+        "id": "node-11",
+        "type": "inputNumber",
+        "position": {
+          "x": 0,
+          "y": 765
+        },
+        "data": {
+          "value-value": "0.2",
+          "custom_label": "Poisson"
+        }
+      },
+      {
+        "id": "node-12",
+        "type": "inputString",
+        "position": {
+          "x": 0,
+          "y": 850
+        },
+        "data": {
+          "value-string": "FFFRRR",
+          "custom_label": "Código apoyo simple"
+        }
+      },
+      {
+        "id": "node-13",
+        "type": "divideNumbers",
+        "position": {
+          "x": 210,
+          "y": 120
+        },
+        "data": {
+          "custom_label": "dx = a / nx"
+        }
+      },
+      {
+        "id": "node-14",
+        "type": "divideNumbers",
+        "position": {
+          "x": 210,
+          "y": 240
+        },
+        "data": {
+          "custom_label": "dy = b / ny"
+        }
+      },
+      {
+        "id": "node-15",
+        "type": "inputNumber",
+        "position": {
+          "x": 420,
+          "y": 0
+        },
+        "data": {
+          "value-value": "1",
+          "custom_label": "i = 1",
+          "unit": "dimensionless"
+        }
+      },
+      {
+        "id": "node-16",
+        "type": "inputNumber",
+        "position": {
+          "x": 420,
+          "y": 85
+        },
+        "data": {
+          "value-value": "2",
+          "custom_label": "i = 2",
+          "unit": "dimensionless"
+        }
+      },
+      {
+        "id": "node-17",
+        "type": "inputNumber",
+        "position": {
+          "x": 420,
+          "y": 170
+        },
+        "data": {
+          "value-value": "3",
+          "custom_label": "i = 3",
+          "unit": "dimensionless"
+        }
+      },
+      {
+        "id": "node-18",
+        "type": "inputNumber",
+        "position": {
+          "x": 420,
+          "y": 255
+        },
+        "data": {
+          "value-value": "4",
+          "custom_label": "i = 4",
+          "unit": "dimensionless"
+        }
+      },
+      {
+        "id": "node-19",
+        "type": "inputNumber",
+        "position": {
+          "x": 420,
+          "y": 340
+        },
+        "data": {
+          "value-value": "5",
+          "custom_label": "i = 5",
+          "unit": "dimensionless"
+        }
+      },
+      {
+        "id": "node-20",
+        "type": "inputNumber",
+        "position": {
+          "x": 420,
+          "y": 425
+        },
+        "data": {
+          "value-value": "6",
+          "custom_label": "i = 6",
+          "unit": "dimensionless"
+        }
+      },
+      {
+        "id": "node-21",
+        "type": "inputNumber",
+        "position": {
+          "x": 420,
+          "y": 510
+        },
+        "data": {
+          "value-value": "7",
+          "custom_label": "i = 7",
+          "unit": "dimensionless"
+        }
+      },
+      {
+        "id": "node-22",
+        "type": "inputNumber",
+        "position": {
+          "x": 420,
+          "y": 595
+        },
+        "data": {
+          "value-value": "8",
+          "custom_label": "i = 8",
+          "unit": "dimensionless"
+        }
+      },
+      {
+        "id": "node-23",
+        "type": "inputNumber",
+        "position": {
+          "x": 420,
+          "y": 680
+        },
+        "data": {
+          "value-value": "9",
+          "custom_label": "i = 9",
+          "unit": "dimensionless"
+        }
+      },
+      {
+        "id": "node-24",
+        "type": "inputNumber",
+        "position": {
+          "x": 420,
+          "y": 765
+        },
+        "data": {
+          "value-value": "10",
+          "custom_label": "i = 10",
+          "unit": "dimensionless"
+        }
+      },
+      {
+        "id": "node-25",
+        "type": "inputNumber",
+        "position": {
+          "x": 420,
+          "y": 850
+        },
+        "data": {
+          "value-value": "11",
+          "custom_label": "i = 11",
+          "unit": "dimensionless"
+        }
+      },
+      {
+        "id": "node-26",
+        "type": "multiplyNumbers",
+        "position": {
+          "x": 630,
+          "y": 0
+        },
+        "data": {
+          "custom_label": "x = 1 dx"
+        }
+      },
+      {
+        "id": "node-27",
+        "type": "multiplyNumbers",
+        "position": {
+          "x": 630,
+          "y": 110
+        },
+        "data": {
+          "custom_label": "x = 2 dx"
+        }
+      },
+      {
+        "id": "node-28",
+        "type": "multiplyNumbers",
+        "position": {
+          "x": 630,
+          "y": 220
+        },
+        "data": {
+          "custom_label": "x = 3 dx"
+        }
+      },
+      {
+        "id": "node-29",
+        "type": "multiplyNumbers",
+        "position": {
+          "x": 630,
+          "y": 330
+        },
+        "data": {
+          "custom_label": "x = 4 dx"
+        }
+      },
+      {
+        "id": "node-30",
+        "type": "multiplyNumbers",
+        "position": {
+          "x": 630,
+          "y": 440
+        },
+        "data": {
+          "custom_label": "x = 5 dx"
+        }
+      },
+      {
+        "id": "node-31",
+        "type": "multiplyNumbers",
+        "position": {
+          "x": 630,
+          "y": 550
+        },
+        "data": {
+          "custom_label": "x = 6 dx"
+        }
+      },
+      {
+        "id": "node-32",
+        "type": "multiplyNumbers",
+        "position": {
+          "x": 630,
+          "y": 660
+        },
+        "data": {
+          "custom_label": "x = 7 dx"
+        }
+      },
+      {
+        "id": "node-33",
+        "type": "multiplyNumbers",
+        "position": {
+          "x": 630,
+          "y": 770
+        },
+        "data": {
+          "custom_label": "x = 8 dx"
+        }
+      },
+      {
+        "id": "node-34",
+        "type": "multiplyNumbers",
+        "position": {
+          "x": 630,
+          "y": 880
+        },
+        "data": {
+          "custom_label": "x = 9 dx"
+        }
+      },
+      {
+        "id": "node-35",
+        "type": "multiplyNumbers",
+        "position": {
+          "x": 630,
+          "y": 990
+        },
+        "data": {
+          "custom_label": "x = 10 dx"
+        }
+      },
+      {
+        "id": "node-36",
+        "type": "multiplyNumbers",
+        "position": {
+          "x": 630,
+          "y": 1100
+        },
+        "data": {
+          "custom_label": "x = 11 dx"
+        }
+      },
+      {
+        "id": "node-37",
+        "type": "multiplyNumbers",
+        "position": {
+          "x": 840,
+          "y": 0
+        },
+        "data": {
+          "custom_label": "y = 1 dy"
+        }
+      },
+      {
+        "id": "node-38",
+        "type": "multiplyNumbers",
+        "position": {
+          "x": 840,
+          "y": 110
+        },
+        "data": {
+          "custom_label": "y = 2 dy"
+        }
+      },
+      {
+        "id": "node-39",
+        "type": "multiplyNumbers",
+        "position": {
+          "x": 840,
+          "y": 220
+        },
+        "data": {
+          "custom_label": "y = 3 dy"
+        }
+      },
+      {
+        "id": "node-40",
+        "type": "multiplyNumbers",
+        "position": {
+          "x": 840,
+          "y": 330
+        },
+        "data": {
+          "custom_label": "y = 4 dy"
+        }
+      },
+      {
+        "id": "node-41",
+        "type": "multiplyNumbers",
+        "position": {
+          "x": 840,
+          "y": 440
+        },
+        "data": {
+          "custom_label": "y = 5 dy"
+        }
+      },
+      {
+        "id": "node-42",
+        "type": "multiplyNumbers",
+        "position": {
+          "x": 840,
+          "y": 550
+        },
+        "data": {
+          "custom_label": "y = 6 dy"
+        }
+      },
+      {
+        "id": "node-43",
+        "type": "multiplyNumbers",
+        "position": {
+          "x": 840,
+          "y": 660
+        },
+        "data": {
+          "custom_label": "y = 7 dy"
+        }
+      },
+      {
+        "id": "node-44",
+        "type": "structuralNode",
+        "position": {
+          "x": 1050,
+          "y": 0
+        },
+        "data": {
+          "custom_label": "Borde y = 0 1"
+        }
+      },
+      {
+        "id": "node-45",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 1260,
+          "y": 0
+        },
+        "data": {
+          "custom_label": "Apoyo Borde y = 0 1"
+        }
+      },
+      {
+        "id": "node-46",
+        "type": "structuralNode",
+        "position": {
+          "x": 1050,
+          "y": 120
+        },
+        "data": {
+          "custom_label": "Borde y = 0 2"
+        }
+      },
+      {
+        "id": "node-47",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 1260,
+          "y": 120
+        },
+        "data": {
+          "custom_label": "Apoyo Borde y = 0 2"
+        }
+      },
+      {
+        "id": "node-48",
+        "type": "structuralNode",
+        "position": {
+          "x": 1050,
+          "y": 240
+        },
+        "data": {
+          "custom_label": "Borde y = 0 3"
+        }
+      },
+      {
+        "id": "node-49",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 1260,
+          "y": 240
+        },
+        "data": {
+          "custom_label": "Apoyo Borde y = 0 3"
+        }
+      },
+      {
+        "id": "node-50",
+        "type": "structuralNode",
+        "position": {
+          "x": 1050,
+          "y": 360
+        },
+        "data": {
+          "custom_label": "Borde y = 0 4"
+        }
+      },
+      {
+        "id": "node-51",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 1260,
+          "y": 360
+        },
+        "data": {
+          "custom_label": "Apoyo Borde y = 0 4"
+        }
+      },
+      {
+        "id": "node-52",
+        "type": "structuralNode",
+        "position": {
+          "x": 1050,
+          "y": 480
+        },
+        "data": {
+          "custom_label": "Borde y = 0 5"
+        }
+      },
+      {
+        "id": "node-53",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 1260,
+          "y": 480
+        },
+        "data": {
+          "custom_label": "Apoyo Borde y = 0 5"
+        }
+      },
+      {
+        "id": "node-54",
+        "type": "structuralNode",
+        "position": {
+          "x": 1050,
+          "y": 600
+        },
+        "data": {
+          "custom_label": "Borde y = 0 6"
+        }
+      },
+      {
+        "id": "node-55",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 1260,
+          "y": 600
+        },
+        "data": {
+          "custom_label": "Apoyo Borde y = 0 6"
+        }
+      },
+      {
+        "id": "node-56",
+        "type": "structuralNode",
+        "position": {
+          "x": 1050,
+          "y": 720
+        },
+        "data": {
+          "custom_label": "Borde y = 0 7"
+        }
+      },
+      {
+        "id": "node-57",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 1260,
+          "y": 720
+        },
+        "data": {
+          "custom_label": "Apoyo Borde y = 0 7"
+        }
+      },
+      {
+        "id": "node-58",
+        "type": "structuralNode",
+        "position": {
+          "x": 1050,
+          "y": 840
+        },
+        "data": {
+          "custom_label": "Borde y = 0 8"
+        }
+      },
+      {
+        "id": "node-59",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 1260,
+          "y": 840
+        },
+        "data": {
+          "custom_label": "Apoyo Borde y = 0 8"
+        }
+      },
+      {
+        "id": "node-60",
+        "type": "structuralNode",
+        "position": {
+          "x": 1050,
+          "y": 960
+        },
+        "data": {
+          "custom_label": "Borde y = 0 9"
+        }
+      },
+      {
+        "id": "node-61",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 1260,
+          "y": 960
+        },
+        "data": {
+          "custom_label": "Apoyo Borde y = 0 9"
+        }
+      },
+      {
+        "id": "node-62",
+        "type": "structuralNode",
+        "position": {
+          "x": 1050,
+          "y": 1080
+        },
+        "data": {
+          "custom_label": "Borde y = 0 10"
+        }
+      },
+      {
+        "id": "node-63",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 1260,
+          "y": 1080
+        },
+        "data": {
+          "custom_label": "Apoyo Borde y = 0 10"
+        }
+      },
+      {
+        "id": "node-64",
+        "type": "structuralNode",
+        "position": {
+          "x": 1050,
+          "y": 1200
+        },
+        "data": {
+          "custom_label": "Borde y = 0 11"
+        }
+      },
+      {
+        "id": "node-65",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 1260,
+          "y": 1200
+        },
+        "data": {
+          "custom_label": "Apoyo Borde y = 0 11"
+        }
+      },
+      {
+        "id": "node-66",
+        "type": "structuralNode",
+        "position": {
+          "x": 1050,
+          "y": 1320
+        },
+        "data": {
+          "custom_label": "Borde y = 0 12"
+        }
+      },
+      {
+        "id": "node-67",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 1260,
+          "y": 1320
+        },
+        "data": {
+          "custom_label": "Apoyo Borde y = 0 12"
+        }
+      },
+      {
+        "id": "node-68",
+        "type": "structuralNode",
+        "position": {
+          "x": 1050,
+          "y": 1440
+        },
+        "data": {
+          "custom_label": "Borde y = 0 13"
+        }
+      },
+      {
+        "id": "node-69",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 1260,
+          "y": 1440
+        },
+        "data": {
+          "custom_label": "Apoyo Borde y = 0 13"
+        }
+      },
+      {
+        "id": "node-70",
+        "type": "structuralNode",
+        "position": {
+          "x": 1470,
+          "y": 0
+        },
+        "data": {
+          "custom_label": "Borde y = b 1"
+        }
+      },
+      {
+        "id": "node-71",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 1680,
+          "y": 0
+        },
+        "data": {
+          "custom_label": "Apoyo Borde y = b 1"
+        }
+      },
+      {
+        "id": "node-72",
+        "type": "structuralNode",
+        "position": {
+          "x": 1470,
+          "y": 120
+        },
+        "data": {
+          "custom_label": "Borde y = b 2"
+        }
+      },
+      {
+        "id": "node-73",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 1680,
+          "y": 120
+        },
+        "data": {
+          "custom_label": "Apoyo Borde y = b 2"
+        }
+      },
+      {
+        "id": "node-74",
+        "type": "structuralNode",
+        "position": {
+          "x": 1470,
+          "y": 240
+        },
+        "data": {
+          "custom_label": "Borde y = b 3"
+        }
+      },
+      {
+        "id": "node-75",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 1680,
+          "y": 240
+        },
+        "data": {
+          "custom_label": "Apoyo Borde y = b 3"
+        }
+      },
+      {
+        "id": "node-76",
+        "type": "structuralNode",
+        "position": {
+          "x": 1470,
+          "y": 360
+        },
+        "data": {
+          "custom_label": "Borde y = b 4"
+        }
+      },
+      {
+        "id": "node-77",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 1680,
+          "y": 360
+        },
+        "data": {
+          "custom_label": "Apoyo Borde y = b 4"
+        }
+      },
+      {
+        "id": "node-78",
+        "type": "structuralNode",
+        "position": {
+          "x": 1470,
+          "y": 480
+        },
+        "data": {
+          "custom_label": "Borde y = b 5"
+        }
+      },
+      {
+        "id": "node-79",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 1680,
+          "y": 480
+        },
+        "data": {
+          "custom_label": "Apoyo Borde y = b 5"
+        }
+      },
+      {
+        "id": "node-80",
+        "type": "structuralNode",
+        "position": {
+          "x": 1470,
+          "y": 600
+        },
+        "data": {
+          "custom_label": "Borde y = b 6"
+        }
+      },
+      {
+        "id": "node-81",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 1680,
+          "y": 600
+        },
+        "data": {
+          "custom_label": "Apoyo Borde y = b 6"
+        }
+      },
+      {
+        "id": "node-82",
+        "type": "structuralNode",
+        "position": {
+          "x": 1470,
+          "y": 720
+        },
+        "data": {
+          "custom_label": "Borde y = b 7"
+        }
+      },
+      {
+        "id": "node-83",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 1680,
+          "y": 720
+        },
+        "data": {
+          "custom_label": "Apoyo Borde y = b 7"
+        }
+      },
+      {
+        "id": "node-84",
+        "type": "structuralNode",
+        "position": {
+          "x": 1470,
+          "y": 840
+        },
+        "data": {
+          "custom_label": "Borde y = b 8"
+        }
+      },
+      {
+        "id": "node-85",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 1680,
+          "y": 840
+        },
+        "data": {
+          "custom_label": "Apoyo Borde y = b 8"
+        }
+      },
+      {
+        "id": "node-86",
+        "type": "structuralNode",
+        "position": {
+          "x": 1470,
+          "y": 960
+        },
+        "data": {
+          "custom_label": "Borde y = b 9"
+        }
+      },
+      {
+        "id": "node-87",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 1680,
+          "y": 960
+        },
+        "data": {
+          "custom_label": "Apoyo Borde y = b 9"
+        }
+      },
+      {
+        "id": "node-88",
+        "type": "structuralNode",
+        "position": {
+          "x": 1470,
+          "y": 1080
+        },
+        "data": {
+          "custom_label": "Borde y = b 10"
+        }
+      },
+      {
+        "id": "node-89",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 1680,
+          "y": 1080
+        },
+        "data": {
+          "custom_label": "Apoyo Borde y = b 10"
+        }
+      },
+      {
+        "id": "node-90",
+        "type": "structuralNode",
+        "position": {
+          "x": 1470,
+          "y": 1200
+        },
+        "data": {
+          "custom_label": "Borde y = b 11"
+        }
+      },
+      {
+        "id": "node-91",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 1680,
+          "y": 1200
+        },
+        "data": {
+          "custom_label": "Apoyo Borde y = b 11"
+        }
+      },
+      {
+        "id": "node-92",
+        "type": "structuralNode",
+        "position": {
+          "x": 1470,
+          "y": 1320
+        },
+        "data": {
+          "custom_label": "Borde y = b 12"
+        }
+      },
+      {
+        "id": "node-93",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 1680,
+          "y": 1320
+        },
+        "data": {
+          "custom_label": "Apoyo Borde y = b 12"
+        }
+      },
+      {
+        "id": "node-94",
+        "type": "structuralNode",
+        "position": {
+          "x": 1470,
+          "y": 1440
+        },
+        "data": {
+          "custom_label": "Borde y = b 13"
+        }
+      },
+      {
+        "id": "node-95",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 1680,
+          "y": 1440
+        },
+        "data": {
+          "custom_label": "Apoyo Borde y = b 13"
+        }
+      },
+      {
+        "id": "node-96",
+        "type": "structuralNode",
+        "position": {
+          "x": 1890,
+          "y": 0
+        },
+        "data": {
+          "custom_label": "Borde x = 0 1"
+        }
+      },
+      {
+        "id": "node-97",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 2100,
+          "y": 0
+        },
+        "data": {
+          "custom_label": "Apoyo Borde x = 0 1"
+        }
+      },
+      {
+        "id": "node-98",
+        "type": "structuralNode",
+        "position": {
+          "x": 1890,
+          "y": 120
+        },
+        "data": {
+          "custom_label": "Borde x = 0 2"
+        }
+      },
+      {
+        "id": "node-99",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 2100,
+          "y": 120
+        },
+        "data": {
+          "custom_label": "Apoyo Borde x = 0 2"
+        }
+      },
+      {
+        "id": "node-100",
+        "type": "structuralNode",
+        "position": {
+          "x": 1890,
+          "y": 240
+        },
+        "data": {
+          "custom_label": "Borde x = 0 3"
+        }
+      },
+      {
+        "id": "node-101",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 2100,
+          "y": 240
+        },
+        "data": {
+          "custom_label": "Apoyo Borde x = 0 3"
+        }
+      },
+      {
+        "id": "node-102",
+        "type": "structuralNode",
+        "position": {
+          "x": 1890,
+          "y": 360
+        },
+        "data": {
+          "custom_label": "Borde x = 0 4"
+        }
+      },
+      {
+        "id": "node-103",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 2100,
+          "y": 360
+        },
+        "data": {
+          "custom_label": "Apoyo Borde x = 0 4"
+        }
+      },
+      {
+        "id": "node-104",
+        "type": "structuralNode",
+        "position": {
+          "x": 1890,
+          "y": 480
+        },
+        "data": {
+          "custom_label": "Borde x = 0 5"
+        }
+      },
+      {
+        "id": "node-105",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 2100,
+          "y": 480
+        },
+        "data": {
+          "custom_label": "Apoyo Borde x = 0 5"
+        }
+      },
+      {
+        "id": "node-106",
+        "type": "structuralNode",
+        "position": {
+          "x": 1890,
+          "y": 600
+        },
+        "data": {
+          "custom_label": "Borde x = 0 6"
+        }
+      },
+      {
+        "id": "node-107",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 2100,
+          "y": 600
+        },
+        "data": {
+          "custom_label": "Apoyo Borde x = 0 6"
+        }
+      },
+      {
+        "id": "node-108",
+        "type": "structuralNode",
+        "position": {
+          "x": 1890,
+          "y": 720
+        },
+        "data": {
+          "custom_label": "Borde x = 0 7"
+        }
+      },
+      {
+        "id": "node-109",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 2100,
+          "y": 720
+        },
+        "data": {
+          "custom_label": "Apoyo Borde x = 0 7"
+        }
+      },
+      {
+        "id": "node-110",
+        "type": "structuralNode",
+        "position": {
+          "x": 2310,
+          "y": 0
+        },
+        "data": {
+          "custom_label": "Borde x = a 1"
+        }
+      },
+      {
+        "id": "node-111",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 2520,
+          "y": 0
+        },
+        "data": {
+          "custom_label": "Apoyo Borde x = a 1"
+        }
+      },
+      {
+        "id": "node-112",
+        "type": "structuralNode",
+        "position": {
+          "x": 2310,
+          "y": 120
+        },
+        "data": {
+          "custom_label": "Borde x = a 2"
+        }
+      },
+      {
+        "id": "node-113",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 2520,
+          "y": 120
+        },
+        "data": {
+          "custom_label": "Apoyo Borde x = a 2"
+        }
+      },
+      {
+        "id": "node-114",
+        "type": "structuralNode",
+        "position": {
+          "x": 2310,
+          "y": 240
+        },
+        "data": {
+          "custom_label": "Borde x = a 3"
+        }
+      },
+      {
+        "id": "node-115",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 2520,
+          "y": 240
+        },
+        "data": {
+          "custom_label": "Apoyo Borde x = a 3"
+        }
+      },
+      {
+        "id": "node-116",
+        "type": "structuralNode",
+        "position": {
+          "x": 2310,
+          "y": 360
+        },
+        "data": {
+          "custom_label": "Borde x = a 4"
+        }
+      },
+      {
+        "id": "node-117",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 2520,
+          "y": 360
+        },
+        "data": {
+          "custom_label": "Apoyo Borde x = a 4"
+        }
+      },
+      {
+        "id": "node-118",
+        "type": "structuralNode",
+        "position": {
+          "x": 2310,
+          "y": 480
+        },
+        "data": {
+          "custom_label": "Borde x = a 5"
+        }
+      },
+      {
+        "id": "node-119",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 2520,
+          "y": 480
+        },
+        "data": {
+          "custom_label": "Apoyo Borde x = a 5"
+        }
+      },
+      {
+        "id": "node-120",
+        "type": "structuralNode",
+        "position": {
+          "x": 2310,
+          "y": 600
+        },
+        "data": {
+          "custom_label": "Borde x = a 6"
+        }
+      },
+      {
+        "id": "node-121",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 2520,
+          "y": 600
+        },
+        "data": {
+          "custom_label": "Apoyo Borde x = a 6"
+        }
+      },
+      {
+        "id": "node-122",
+        "type": "structuralNode",
+        "position": {
+          "x": 2310,
+          "y": 720
+        },
+        "data": {
+          "custom_label": "Borde x = a 7"
+        }
+      },
+      {
+        "id": "node-123",
+        "type": "structuralGenericSupport",
+        "position": {
+          "x": 2520,
+          "y": 720
+        },
+        "data": {
+          "custom_label": "Apoyo Borde x = a 7"
+        }
+      },
+      {
+        "id": "node-124",
+        "type": "structuralPlate",
+        "position": {
+          "x": 2730,
+          "y": 0
+        },
+        "data": {
+          "custom_label": "Placa"
+        }
+      },
+      {
+        "id": "node-125",
+        "type": "structuralPressure",
+        "position": {
+          "x": 2730,
+          "y": 160
+        },
+        "data": {
+          "custom_label": "Presión uniforme"
+        }
+      },
+      {
+        "id": "node-126",
+        "type": "structuralNodeResult",
+        "position": {
+          "x": 2940,
+          "y": 0
+        },
+        "data": {
+          "custom_label": "Reacciones borde y = 0",
+          "result-value": "reaction",
+          "direction-value": "z"
+        }
+      },
+      {
+        "id": "node-127",
+        "type": "dataDisplay2DPlot",
+        "position": {
+          "x": 3200,
+          "y": 0
+        },
+        "data": {
+          "custom_label": "Reacciones borde y = 0"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-node-9-value-value-node-8-elasticity_modulus-value-20000",
+        "source": "node-9",
+        "sourceHandle": "value-value",
+        "target": "node-8",
+        "targetHandle": "elasticity_modulus-value-20000"
+      },
+      {
+        "id": "e-node-10-value-value-node-8-density-value",
+        "source": "node-10",
+        "sourceHandle": "value-value",
+        "target": "node-8",
+        "targetHandle": "density-value"
+      },
+      {
+        "id": "e-node-11-value-value-node-8-poissons_ratio-value-0.3",
+        "source": "node-11",
+        "sourceHandle": "value-value",
+        "target": "node-8",
+        "targetHandle": "poissons_ratio-value-0.3"
+      },
+      {
+        "id": "e-node-2-value-value-node-13-num-value",
+        "source": "node-2",
+        "sourceHandle": "value-value",
+        "target": "node-13",
+        "targetHandle": "num-value"
+      },
+      {
+        "id": "e-node-6-value-value-node-13-den-value",
+        "source": "node-6",
+        "sourceHandle": "value-value",
+        "target": "node-13",
+        "targetHandle": "den-value"
+      },
+      {
+        "id": "e-node-3-value-value-node-14-num-value",
+        "source": "node-3",
+        "sourceHandle": "value-value",
+        "target": "node-14",
+        "targetHandle": "num-value"
+      },
+      {
+        "id": "e-node-7-value-value-node-14-den-value",
+        "source": "node-7",
+        "sourceHandle": "value-value",
+        "target": "node-14",
+        "targetHandle": "den-value"
+      },
+      {
+        "id": "e-node-13-result_out-value-node-26-num_1-value",
+        "source": "node-13",
+        "sourceHandle": "result_out-value",
+        "target": "node-26",
+        "targetHandle": "num_1-value"
+      },
+      {
+        "id": "e-node-15-value-value-node-26-num_2-value",
+        "source": "node-15",
+        "sourceHandle": "value-value",
+        "target": "node-26",
+        "targetHandle": "num_2-value"
+      },
+      {
+        "id": "e-node-13-result_out-value-node-27-num_1-value",
+        "source": "node-13",
+        "sourceHandle": "result_out-value",
+        "target": "node-27",
+        "targetHandle": "num_1-value"
+      },
+      {
+        "id": "e-node-16-value-value-node-27-num_2-value",
+        "source": "node-16",
+        "sourceHandle": "value-value",
+        "target": "node-27",
+        "targetHandle": "num_2-value"
+      },
+      {
+        "id": "e-node-13-result_out-value-node-28-num_1-value",
+        "source": "node-13",
+        "sourceHandle": "result_out-value",
+        "target": "node-28",
+        "targetHandle": "num_1-value"
+      },
+      {
+        "id": "e-node-17-value-value-node-28-num_2-value",
+        "source": "node-17",
+        "sourceHandle": "value-value",
+        "target": "node-28",
+        "targetHandle": "num_2-value"
+      },
+      {
+        "id": "e-node-13-result_out-value-node-29-num_1-value",
+        "source": "node-13",
+        "sourceHandle": "result_out-value",
+        "target": "node-29",
+        "targetHandle": "num_1-value"
+      },
+      {
+        "id": "e-node-18-value-value-node-29-num_2-value",
+        "source": "node-18",
+        "sourceHandle": "value-value",
+        "target": "node-29",
+        "targetHandle": "num_2-value"
+      },
+      {
+        "id": "e-node-13-result_out-value-node-30-num_1-value",
+        "source": "node-13",
+        "sourceHandle": "result_out-value",
+        "target": "node-30",
+        "targetHandle": "num_1-value"
+      },
+      {
+        "id": "e-node-19-value-value-node-30-num_2-value",
+        "source": "node-19",
+        "sourceHandle": "value-value",
+        "target": "node-30",
+        "targetHandle": "num_2-value"
+      },
+      {
+        "id": "e-node-13-result_out-value-node-31-num_1-value",
+        "source": "node-13",
+        "sourceHandle": "result_out-value",
+        "target": "node-31",
+        "targetHandle": "num_1-value"
+      },
+      {
+        "id": "e-node-20-value-value-node-31-num_2-value",
+        "source": "node-20",
+        "sourceHandle": "value-value",
+        "target": "node-31",
+        "targetHandle": "num_2-value"
+      },
+      {
+        "id": "e-node-13-result_out-value-node-32-num_1-value",
+        "source": "node-13",
+        "sourceHandle": "result_out-value",
+        "target": "node-32",
+        "targetHandle": "num_1-value"
+      },
+      {
+        "id": "e-node-21-value-value-node-32-num_2-value",
+        "source": "node-21",
+        "sourceHandle": "value-value",
+        "target": "node-32",
+        "targetHandle": "num_2-value"
+      },
+      {
+        "id": "e-node-13-result_out-value-node-33-num_1-value",
+        "source": "node-13",
+        "sourceHandle": "result_out-value",
+        "target": "node-33",
+        "targetHandle": "num_1-value"
+      },
+      {
+        "id": "e-node-22-value-value-node-33-num_2-value",
+        "source": "node-22",
+        "sourceHandle": "value-value",
+        "target": "node-33",
+        "targetHandle": "num_2-value"
+      },
+      {
+        "id": "e-node-13-result_out-value-node-34-num_1-value",
+        "source": "node-13",
+        "sourceHandle": "result_out-value",
+        "target": "node-34",
+        "targetHandle": "num_1-value"
+      },
+      {
+        "id": "e-node-23-value-value-node-34-num_2-value",
+        "source": "node-23",
+        "sourceHandle": "value-value",
+        "target": "node-34",
+        "targetHandle": "num_2-value"
+      },
+      {
+        "id": "e-node-13-result_out-value-node-35-num_1-value",
+        "source": "node-13",
+        "sourceHandle": "result_out-value",
+        "target": "node-35",
+        "targetHandle": "num_1-value"
+      },
+      {
+        "id": "e-node-24-value-value-node-35-num_2-value",
+        "source": "node-24",
+        "sourceHandle": "value-value",
+        "target": "node-35",
+        "targetHandle": "num_2-value"
+      },
+      {
+        "id": "e-node-13-result_out-value-node-36-num_1-value",
+        "source": "node-13",
+        "sourceHandle": "result_out-value",
+        "target": "node-36",
+        "targetHandle": "num_1-value"
+      },
+      {
+        "id": "e-node-25-value-value-node-36-num_2-value",
+        "source": "node-25",
+        "sourceHandle": "value-value",
+        "target": "node-36",
+        "targetHandle": "num_2-value"
+      },
+      {
+        "id": "e-node-14-result_out-value-node-37-num_1-value",
+        "source": "node-14",
+        "sourceHandle": "result_out-value",
+        "target": "node-37",
+        "targetHandle": "num_1-value"
+      },
+      {
+        "id": "e-node-15-value-value-node-37-num_2-value",
+        "source": "node-15",
+        "sourceHandle": "value-value",
+        "target": "node-37",
+        "targetHandle": "num_2-value"
+      },
+      {
+        "id": "e-node-14-result_out-value-node-38-num_1-value",
+        "source": "node-14",
+        "sourceHandle": "result_out-value",
+        "target": "node-38",
+        "targetHandle": "num_1-value"
+      },
+      {
+        "id": "e-node-16-value-value-node-38-num_2-value",
+        "source": "node-16",
+        "sourceHandle": "value-value",
+        "target": "node-38",
+        "targetHandle": "num_2-value"
+      },
+      {
+        "id": "e-node-14-result_out-value-node-39-num_1-value",
+        "source": "node-14",
+        "sourceHandle": "result_out-value",
+        "target": "node-39",
+        "targetHandle": "num_1-value"
+      },
+      {
+        "id": "e-node-17-value-value-node-39-num_2-value",
+        "source": "node-17",
+        "sourceHandle": "value-value",
+        "target": "node-39",
+        "targetHandle": "num_2-value"
+      },
+      {
+        "id": "e-node-14-result_out-value-node-40-num_1-value",
+        "source": "node-14",
+        "sourceHandle": "result_out-value",
+        "target": "node-40",
+        "targetHandle": "num_1-value"
+      },
+      {
+        "id": "e-node-18-value-value-node-40-num_2-value",
+        "source": "node-18",
+        "sourceHandle": "value-value",
+        "target": "node-40",
+        "targetHandle": "num_2-value"
+      },
+      {
+        "id": "e-node-14-result_out-value-node-41-num_1-value",
+        "source": "node-14",
+        "sourceHandle": "result_out-value",
+        "target": "node-41",
+        "targetHandle": "num_1-value"
+      },
+      {
+        "id": "e-node-19-value-value-node-41-num_2-value",
+        "source": "node-19",
+        "sourceHandle": "value-value",
+        "target": "node-41",
+        "targetHandle": "num_2-value"
+      },
+      {
+        "id": "e-node-14-result_out-value-node-42-num_1-value",
+        "source": "node-14",
+        "sourceHandle": "result_out-value",
+        "target": "node-42",
+        "targetHandle": "num_1-value"
+      },
+      {
+        "id": "e-node-20-value-value-node-42-num_2-value",
+        "source": "node-20",
+        "sourceHandle": "value-value",
+        "target": "node-42",
+        "targetHandle": "num_2-value"
+      },
+      {
+        "id": "e-node-14-result_out-value-node-43-num_1-value",
+        "source": "node-14",
+        "sourceHandle": "result_out-value",
+        "target": "node-43",
+        "targetHandle": "num_1-value"
+      },
+      {
+        "id": "e-node-21-value-value-node-43-num_2-value",
+        "source": "node-21",
+        "sourceHandle": "value-value",
+        "target": "node-43",
+        "targetHandle": "num_2-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-44-x-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-44",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-44-y-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-44",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-44-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-44",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-44-node_out-id-node-45-node-id",
+        "source": "node-44",
+        "sourceHandle": "node_out-id",
+        "target": "node-45",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-45-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-45",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-26-result_out-value-node-46-x-value",
+        "source": "node-26",
+        "sourceHandle": "result_out-value",
+        "target": "node-46",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-46-y-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-46",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-46-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-46",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-46-node_out-id-node-47-node-id",
+        "source": "node-46",
+        "sourceHandle": "node_out-id",
+        "target": "node-47",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-47-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-47",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-27-result_out-value-node-48-x-value",
+        "source": "node-27",
+        "sourceHandle": "result_out-value",
+        "target": "node-48",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-48-y-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-48",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-48-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-48",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-48-node_out-id-node-49-node-id",
+        "source": "node-48",
+        "sourceHandle": "node_out-id",
+        "target": "node-49",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-49-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-49",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-28-result_out-value-node-50-x-value",
+        "source": "node-28",
+        "sourceHandle": "result_out-value",
+        "target": "node-50",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-50-y-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-50",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-50-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-50",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-50-node_out-id-node-51-node-id",
+        "source": "node-50",
+        "sourceHandle": "node_out-id",
+        "target": "node-51",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-51-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-51",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-29-result_out-value-node-52-x-value",
+        "source": "node-29",
+        "sourceHandle": "result_out-value",
+        "target": "node-52",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-52-y-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-52",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-52-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-52",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-52-node_out-id-node-53-node-id",
+        "source": "node-52",
+        "sourceHandle": "node_out-id",
+        "target": "node-53",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-53-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-53",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-30-result_out-value-node-54-x-value",
+        "source": "node-30",
+        "sourceHandle": "result_out-value",
+        "target": "node-54",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-54-y-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-54",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-54-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-54",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-54-node_out-id-node-55-node-id",
+        "source": "node-54",
+        "sourceHandle": "node_out-id",
+        "target": "node-55",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-55-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-55",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-31-result_out-value-node-56-x-value",
+        "source": "node-31",
+        "sourceHandle": "result_out-value",
+        "target": "node-56",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-56-y-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-56",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-56-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-56",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-56-node_out-id-node-57-node-id",
+        "source": "node-56",
+        "sourceHandle": "node_out-id",
+        "target": "node-57",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-57-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-57",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-32-result_out-value-node-58-x-value",
+        "source": "node-32",
+        "sourceHandle": "result_out-value",
+        "target": "node-58",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-58-y-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-58",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-58-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-58",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-58-node_out-id-node-59-node-id",
+        "source": "node-58",
+        "sourceHandle": "node_out-id",
+        "target": "node-59",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-59-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-59",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-33-result_out-value-node-60-x-value",
+        "source": "node-33",
+        "sourceHandle": "result_out-value",
+        "target": "node-60",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-60-y-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-60",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-60-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-60",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-60-node_out-id-node-61-node-id",
+        "source": "node-60",
+        "sourceHandle": "node_out-id",
+        "target": "node-61",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-61-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-61",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-34-result_out-value-node-62-x-value",
+        "source": "node-34",
+        "sourceHandle": "result_out-value",
+        "target": "node-62",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-62-y-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-62",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-62-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-62",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-62-node_out-id-node-63-node-id",
+        "source": "node-62",
+        "sourceHandle": "node_out-id",
+        "target": "node-63",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-63-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-63",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-35-result_out-value-node-64-x-value",
+        "source": "node-35",
+        "sourceHandle": "result_out-value",
+        "target": "node-64",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-64-y-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-64",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-64-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-64",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-64-node_out-id-node-65-node-id",
+        "source": "node-64",
+        "sourceHandle": "node_out-id",
+        "target": "node-65",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-65-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-65",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-36-result_out-value-node-66-x-value",
+        "source": "node-36",
+        "sourceHandle": "result_out-value",
+        "target": "node-66",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-66-y-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-66",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-66-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-66",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-66-node_out-id-node-67-node-id",
+        "source": "node-66",
+        "sourceHandle": "node_out-id",
+        "target": "node-67",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-67-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-67",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-2-value-value-node-68-x-value",
+        "source": "node-2",
+        "sourceHandle": "value-value",
+        "target": "node-68",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-68-y-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-68",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-68-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-68",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-68-node_out-id-node-69-node-id",
+        "source": "node-68",
+        "sourceHandle": "node_out-id",
+        "target": "node-69",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-69-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-69",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-1-value-value-node-70-x-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-70",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-3-value-value-node-70-y-value",
+        "source": "node-3",
+        "sourceHandle": "value-value",
+        "target": "node-70",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-70-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-70",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-70-node_out-id-node-71-node-id",
+        "source": "node-70",
+        "sourceHandle": "node_out-id",
+        "target": "node-71",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-71-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-71",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-26-result_out-value-node-72-x-value",
+        "source": "node-26",
+        "sourceHandle": "result_out-value",
+        "target": "node-72",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-3-value-value-node-72-y-value",
+        "source": "node-3",
+        "sourceHandle": "value-value",
+        "target": "node-72",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-72-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-72",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-72-node_out-id-node-73-node-id",
+        "source": "node-72",
+        "sourceHandle": "node_out-id",
+        "target": "node-73",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-73-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-73",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-27-result_out-value-node-74-x-value",
+        "source": "node-27",
+        "sourceHandle": "result_out-value",
+        "target": "node-74",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-3-value-value-node-74-y-value",
+        "source": "node-3",
+        "sourceHandle": "value-value",
+        "target": "node-74",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-74-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-74",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-74-node_out-id-node-75-node-id",
+        "source": "node-74",
+        "sourceHandle": "node_out-id",
+        "target": "node-75",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-75-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-75",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-28-result_out-value-node-76-x-value",
+        "source": "node-28",
+        "sourceHandle": "result_out-value",
+        "target": "node-76",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-3-value-value-node-76-y-value",
+        "source": "node-3",
+        "sourceHandle": "value-value",
+        "target": "node-76",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-76-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-76",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-76-node_out-id-node-77-node-id",
+        "source": "node-76",
+        "sourceHandle": "node_out-id",
+        "target": "node-77",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-77-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-77",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-29-result_out-value-node-78-x-value",
+        "source": "node-29",
+        "sourceHandle": "result_out-value",
+        "target": "node-78",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-3-value-value-node-78-y-value",
+        "source": "node-3",
+        "sourceHandle": "value-value",
+        "target": "node-78",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-78-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-78",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-78-node_out-id-node-79-node-id",
+        "source": "node-78",
+        "sourceHandle": "node_out-id",
+        "target": "node-79",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-79-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-79",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-30-result_out-value-node-80-x-value",
+        "source": "node-30",
+        "sourceHandle": "result_out-value",
+        "target": "node-80",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-3-value-value-node-80-y-value",
+        "source": "node-3",
+        "sourceHandle": "value-value",
+        "target": "node-80",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-80-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-80",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-80-node_out-id-node-81-node-id",
+        "source": "node-80",
+        "sourceHandle": "node_out-id",
+        "target": "node-81",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-81-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-81",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-31-result_out-value-node-82-x-value",
+        "source": "node-31",
+        "sourceHandle": "result_out-value",
+        "target": "node-82",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-3-value-value-node-82-y-value",
+        "source": "node-3",
+        "sourceHandle": "value-value",
+        "target": "node-82",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-82-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-82",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-82-node_out-id-node-83-node-id",
+        "source": "node-82",
+        "sourceHandle": "node_out-id",
+        "target": "node-83",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-83-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-83",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-32-result_out-value-node-84-x-value",
+        "source": "node-32",
+        "sourceHandle": "result_out-value",
+        "target": "node-84",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-3-value-value-node-84-y-value",
+        "source": "node-3",
+        "sourceHandle": "value-value",
+        "target": "node-84",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-84-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-84",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-84-node_out-id-node-85-node-id",
+        "source": "node-84",
+        "sourceHandle": "node_out-id",
+        "target": "node-85",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-85-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-85",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-33-result_out-value-node-86-x-value",
+        "source": "node-33",
+        "sourceHandle": "result_out-value",
+        "target": "node-86",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-3-value-value-node-86-y-value",
+        "source": "node-3",
+        "sourceHandle": "value-value",
+        "target": "node-86",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-86-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-86",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-86-node_out-id-node-87-node-id",
+        "source": "node-86",
+        "sourceHandle": "node_out-id",
+        "target": "node-87",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-87-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-87",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-34-result_out-value-node-88-x-value",
+        "source": "node-34",
+        "sourceHandle": "result_out-value",
+        "target": "node-88",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-3-value-value-node-88-y-value",
+        "source": "node-3",
+        "sourceHandle": "value-value",
+        "target": "node-88",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-88-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-88",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-88-node_out-id-node-89-node-id",
+        "source": "node-88",
+        "sourceHandle": "node_out-id",
+        "target": "node-89",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-89-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-89",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-35-result_out-value-node-90-x-value",
+        "source": "node-35",
+        "sourceHandle": "result_out-value",
+        "target": "node-90",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-3-value-value-node-90-y-value",
+        "source": "node-3",
+        "sourceHandle": "value-value",
+        "target": "node-90",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-90-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-90",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-90-node_out-id-node-91-node-id",
+        "source": "node-90",
+        "sourceHandle": "node_out-id",
+        "target": "node-91",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-91-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-91",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-36-result_out-value-node-92-x-value",
+        "source": "node-36",
+        "sourceHandle": "result_out-value",
+        "target": "node-92",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-3-value-value-node-92-y-value",
+        "source": "node-3",
+        "sourceHandle": "value-value",
+        "target": "node-92",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-92-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-92",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-92-node_out-id-node-93-node-id",
+        "source": "node-92",
+        "sourceHandle": "node_out-id",
+        "target": "node-93",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-93-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-93",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-2-value-value-node-94-x-value",
+        "source": "node-2",
+        "sourceHandle": "value-value",
+        "target": "node-94",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-3-value-value-node-94-y-value",
+        "source": "node-3",
+        "sourceHandle": "value-value",
+        "target": "node-94",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-94-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-94",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-94-node_out-id-node-95-node-id",
+        "source": "node-94",
+        "sourceHandle": "node_out-id",
+        "target": "node-95",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-95-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-95",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-1-value-value-node-96-x-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-96",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-37-result_out-value-node-96-y-value",
+        "source": "node-37",
+        "sourceHandle": "result_out-value",
+        "target": "node-96",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-96-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-96",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-96-node_out-id-node-97-node-id",
+        "source": "node-96",
+        "sourceHandle": "node_out-id",
+        "target": "node-97",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-97-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-97",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-1-value-value-node-98-x-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-98",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-38-result_out-value-node-98-y-value",
+        "source": "node-38",
+        "sourceHandle": "result_out-value",
+        "target": "node-98",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-98-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-98",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-98-node_out-id-node-99-node-id",
+        "source": "node-98",
+        "sourceHandle": "node_out-id",
+        "target": "node-99",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-99-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-99",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-1-value-value-node-100-x-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-100",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-39-result_out-value-node-100-y-value",
+        "source": "node-39",
+        "sourceHandle": "result_out-value",
+        "target": "node-100",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-100-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-100",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-100-node_out-id-node-101-node-id",
+        "source": "node-100",
+        "sourceHandle": "node_out-id",
+        "target": "node-101",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-101-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-101",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-1-value-value-node-102-x-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-102",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-40-result_out-value-node-102-y-value",
+        "source": "node-40",
+        "sourceHandle": "result_out-value",
+        "target": "node-102",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-102-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-102",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-102-node_out-id-node-103-node-id",
+        "source": "node-102",
+        "sourceHandle": "node_out-id",
+        "target": "node-103",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-103-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-103",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-1-value-value-node-104-x-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-104",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-41-result_out-value-node-104-y-value",
+        "source": "node-41",
+        "sourceHandle": "result_out-value",
+        "target": "node-104",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-104-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-104",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-104-node_out-id-node-105-node-id",
+        "source": "node-104",
+        "sourceHandle": "node_out-id",
+        "target": "node-105",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-105-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-105",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-1-value-value-node-106-x-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-106",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-42-result_out-value-node-106-y-value",
+        "source": "node-42",
+        "sourceHandle": "result_out-value",
+        "target": "node-106",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-106-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-106",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-106-node_out-id-node-107-node-id",
+        "source": "node-106",
+        "sourceHandle": "node_out-id",
+        "target": "node-107",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-107-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-107",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-1-value-value-node-108-x-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-108",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-43-result_out-value-node-108-y-value",
+        "source": "node-43",
+        "sourceHandle": "result_out-value",
+        "target": "node-108",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-108-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-108",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-108-node_out-id-node-109-node-id",
+        "source": "node-108",
+        "sourceHandle": "node_out-id",
+        "target": "node-109",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-109-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-109",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-2-value-value-node-110-x-value",
+        "source": "node-2",
+        "sourceHandle": "value-value",
+        "target": "node-110",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-37-result_out-value-node-110-y-value",
+        "source": "node-37",
+        "sourceHandle": "result_out-value",
+        "target": "node-110",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-110-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-110",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-110-node_out-id-node-111-node-id",
+        "source": "node-110",
+        "sourceHandle": "node_out-id",
+        "target": "node-111",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-111-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-111",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-2-value-value-node-112-x-value",
+        "source": "node-2",
+        "sourceHandle": "value-value",
+        "target": "node-112",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-38-result_out-value-node-112-y-value",
+        "source": "node-38",
+        "sourceHandle": "result_out-value",
+        "target": "node-112",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-112-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-112",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-112-node_out-id-node-113-node-id",
+        "source": "node-112",
+        "sourceHandle": "node_out-id",
+        "target": "node-113",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-113-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-113",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-2-value-value-node-114-x-value",
+        "source": "node-2",
+        "sourceHandle": "value-value",
+        "target": "node-114",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-39-result_out-value-node-114-y-value",
+        "source": "node-39",
+        "sourceHandle": "result_out-value",
+        "target": "node-114",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-114-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-114",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-114-node_out-id-node-115-node-id",
+        "source": "node-114",
+        "sourceHandle": "node_out-id",
+        "target": "node-115",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-115-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-115",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-2-value-value-node-116-x-value",
+        "source": "node-2",
+        "sourceHandle": "value-value",
+        "target": "node-116",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-40-result_out-value-node-116-y-value",
+        "source": "node-40",
+        "sourceHandle": "result_out-value",
+        "target": "node-116",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-116-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-116",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-116-node_out-id-node-117-node-id",
+        "source": "node-116",
+        "sourceHandle": "node_out-id",
+        "target": "node-117",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-117-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-117",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-2-value-value-node-118-x-value",
+        "source": "node-2",
+        "sourceHandle": "value-value",
+        "target": "node-118",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-41-result_out-value-node-118-y-value",
+        "source": "node-41",
+        "sourceHandle": "result_out-value",
+        "target": "node-118",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-118-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-118",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-118-node_out-id-node-119-node-id",
+        "source": "node-118",
+        "sourceHandle": "node_out-id",
+        "target": "node-119",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-119-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-119",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-2-value-value-node-120-x-value",
+        "source": "node-2",
+        "sourceHandle": "value-value",
+        "target": "node-120",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-42-result_out-value-node-120-y-value",
+        "source": "node-42",
+        "sourceHandle": "result_out-value",
+        "target": "node-120",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-120-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-120",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-120-node_out-id-node-121-node-id",
+        "source": "node-120",
+        "sourceHandle": "node_out-id",
+        "target": "node-121",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-121-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-121",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-2-value-value-node-122-x-value",
+        "source": "node-2",
+        "sourceHandle": "value-value",
+        "target": "node-122",
+        "targetHandle": "x-value"
+      },
+      {
+        "id": "e-node-43-result_out-value-node-122-y-value",
+        "source": "node-43",
+        "sourceHandle": "result_out-value",
+        "target": "node-122",
+        "targetHandle": "y-value"
+      },
+      {
+        "id": "e-node-1-value-value-node-122-z-value",
+        "source": "node-1",
+        "sourceHandle": "value-value",
+        "target": "node-122",
+        "targetHandle": "z-value"
+      },
+      {
+        "id": "e-node-122-node_out-id-node-123-node-id",
+        "source": "node-122",
+        "sourceHandle": "node_out-id",
+        "target": "node-123",
+        "targetHandle": "node-id"
+      },
+      {
+        "id": "e-node-12-value-string-node-123-restraint_code-string-FFFFFF",
+        "source": "node-12",
+        "sourceHandle": "value-string",
+        "target": "node-123",
+        "targetHandle": "restraint_code-string-FFFFFF"
+      },
+      {
+        "id": "e-node-44-node_out-id-node-124-nodes-ids",
+        "source": "node-44",
+        "sourceHandle": "node_out-id",
+        "target": "node-124",
+        "targetHandle": "nodes-ids"
+      },
+      {
+        "id": "e-node-68-node_out-id-node-124-nodes-ids",
+        "source": "node-68",
+        "sourceHandle": "node_out-id",
+        "target": "node-124",
+        "targetHandle": "nodes-ids"
+      },
+      {
+        "id": "e-node-94-node_out-id-node-124-nodes-ids",
+        "source": "node-94",
+        "sourceHandle": "node_out-id",
+        "target": "node-124",
+        "targetHandle": "nodes-ids"
+      },
+      {
+        "id": "e-node-70-node_out-id-node-124-nodes-ids",
+        "source": "node-70",
+        "sourceHandle": "node_out-id",
+        "target": "node-124",
+        "targetHandle": "nodes-ids"
+      },
+      {
+        "id": "e-node-4-value-value-node-124-thickness-value",
+        "source": "node-4",
+        "sourceHandle": "value-value",
+        "target": "node-124",
+        "targetHandle": "thickness-value"
+      },
+      {
+        "id": "e-node-8-material_out-id-node-124-material_id-id-1",
+        "source": "node-8",
+        "sourceHandle": "material_out-id",
+        "target": "node-124",
+        "targetHandle": "material_id-id-1"
+      },
+      {
+        "id": "e-node-124-plate_out-id-node-125-plate_id-id",
+        "source": "node-124",
+        "sourceHandle": "plate_out-id",
+        "target": "node-125",
+        "targetHandle": "plate_id-id"
+      },
+      {
+        "id": "e-node-5-value-value-node-125-z_mag-value",
+        "source": "node-5",
+        "sourceHandle": "value-value",
+        "target": "node-125",
+        "targetHandle": "z_mag-value"
+      },
+      {
+        "id": "e-node-44-node_out-id-node-126-nodes-ids",
+        "source": "node-44",
+        "sourceHandle": "node_out-id",
+        "target": "node-126",
+        "targetHandle": "nodes-ids"
+      },
+      {
+        "id": "e-node-46-node_out-id-node-126-nodes-ids",
+        "source": "node-46",
+        "sourceHandle": "node_out-id",
+        "target": "node-126",
+        "targetHandle": "nodes-ids"
+      },
+      {
+        "id": "e-node-48-node_out-id-node-126-nodes-ids",
+        "source": "node-48",
+        "sourceHandle": "node_out-id",
+        "target": "node-126",
+        "targetHandle": "nodes-ids"
+      },
+      {
+        "id": "e-node-50-node_out-id-node-126-nodes-ids",
+        "source": "node-50",
+        "sourceHandle": "node_out-id",
+        "target": "node-126",
+        "targetHandle": "nodes-ids"
+      },
+      {
+        "id": "e-node-52-node_out-id-node-126-nodes-ids",
+        "source": "node-52",
+        "sourceHandle": "node_out-id",
+        "target": "node-126",
+        "targetHandle": "nodes-ids"
+      },
+      {
+        "id": "e-node-54-node_out-id-node-126-nodes-ids",
+        "source": "node-54",
+        "sourceHandle": "node_out-id",
+        "target": "node-126",
+        "targetHandle": "nodes-ids"
+      },
+      {
+        "id": "e-node-56-node_out-id-node-126-nodes-ids",
+        "source": "node-56",
+        "sourceHandle": "node_out-id",
+        "target": "node-126",
+        "targetHandle": "nodes-ids"
+      },
+      {
+        "id": "e-node-58-node_out-id-node-126-nodes-ids",
+        "source": "node-58",
+        "sourceHandle": "node_out-id",
+        "target": "node-126",
+        "targetHandle": "nodes-ids"
+      },
+      {
+        "id": "e-node-60-node_out-id-node-126-nodes-ids",
+        "source": "node-60",
+        "sourceHandle": "node_out-id",
+        "target": "node-126",
+        "targetHandle": "nodes-ids"
+      },
+      {
+        "id": "e-node-62-node_out-id-node-126-nodes-ids",
+        "source": "node-62",
+        "sourceHandle": "node_out-id",
+        "target": "node-126",
+        "targetHandle": "nodes-ids"
+      },
+      {
+        "id": "e-node-64-node_out-id-node-126-nodes-ids",
+        "source": "node-64",
+        "sourceHandle": "node_out-id",
+        "target": "node-126",
+        "targetHandle": "nodes-ids"
+      },
+      {
+        "id": "e-node-66-node_out-id-node-126-nodes-ids",
+        "source": "node-66",
+        "sourceHandle": "node_out-id",
+        "target": "node-126",
+        "targetHandle": "nodes-ids"
+      },
+      {
+        "id": "e-node-68-node_out-id-node-126-nodes-ids",
+        "source": "node-68",
+        "sourceHandle": "node_out-id",
+        "target": "node-126",
+        "targetHandle": "nodes-ids"
+      },
+      {
+        "id": "e-node-126-plotable_out-plotly_data-node-127-plotable-plotly_data",
+        "source": "node-126",
+        "sourceHandle": "plotable_out-plotly_data",
+        "target": "node-127",
+        "targetHandle": "plotable-plotly_data"
+      }
+    ],
+    "favorites": [
+      {
+        "node_id": "node-2",
+        "data_key": "value-value",
+        "min": 3,
+        "max": 12,
+        "step": 0.5
+      },
+      {
+        "node_id": "node-3",
+        "data_key": "value-value",
+        "min": 2,
+        "max": 8,
+        "step": 0.5
+      },
+      {
+        "node_id": "node-4",
+        "data_key": "value-value",
+        "min": 100,
+        "max": 400,
+        "step": 10
+      },
+      {
+        "node_id": "node-5",
+        "data_key": "value-value",
+        "min": -50,
+        "max": 0,
+        "step": 1
+      }
+    ]
+  },
+  "settings": {
+    "general": {
+      "auto_update": true,
+      "mini_map": false,
+      "show_nodes": true,
+      "side_by_side": true,
+      "show_properties_panel": false,
+      "show_parameters_panel": true
+    },
+    "layout": {
+      "renderer_width": 45,
+      "editor_width": 55,
+      "panel_width": 0,
+      "renderer_right": 55
+    },
+    "global": {
+      "sliders_mode": "sliders_single",
+      "solver_engine": "pynite_wasm",
+      "mesh_plates": true,
+      "mesh_size": 1
+    }
+  }
+}

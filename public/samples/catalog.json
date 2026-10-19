@@ -80,6 +80,75 @@
         "es": "https://paramele.com/blog/viga-continua-de-tres-vanos",
         "en": "https://paramele.com/en/blog/three-span-continuous-beam"
       }
+    },
+    {
+      "id": "verification-simply-supported-beam",
+      "title": {
+        "es": "Verificación 1: viga simplemente apoyada",
+        "en": "Verification 1: simply supported beam"
+      },
+      "description": {
+        "es": "Modelo de verificación de la tesis: una luz con carga distribuida gravitacional, articulación y rodillo. Momento, cortante, deflexión y reacciones.",
+        "en": "Thesis verification model: one span with a gravity distributed load, a pin and a roller. Moment, shear, deflection and reactions."
+      },
+      "tags": {
+        "es": [
+          "Verificación",
+          "Viga"
+        ],
+        "en": [
+          "Verification",
+          "Beam"
+        ]
+      },
+      "boxes": 26,
+      "thumbnail": "verification-simply-supported-beam.webp"
+    },
+    {
+      "id": "verification-multi-span-frame",
+      "title": {
+        "es": "Verificación 3: pórtico plano de varias luces",
+        "en": "Verification 3: multi-span plane frame"
+      },
+      "description": {
+        "es": "Modelo de verificación de la tesis: pórtico de un nivel y tres luces con columnas empotradas, carga distribuida en las vigas y una carga lateral en la cabeza de cada columna.",
+        "en": "Thesis verification model: one storey, three-span frame with fixed columns, a distributed load on the beams and a lateral load at the top of each column."
+      },
+      "tags": {
+        "es": [
+          "Verificación",
+          "Pórtico"
+        ],
+        "en": [
+          "Verification",
+          "Frame"
+        ]
+      },
+      "boxes": 52,
+      "thumbnail": "verification-multi-span-frame.webp"
+    },
+    {
+      "id": "verification-rectangular-plate",
+      "title": {
+        "es": "Verificación 4: placa rectangular",
+        "en": "Verification 4: rectangular plate"
+      },
+      "description": {
+        "es": "Modelo de verificación de la tesis: placa plana con apoyos simples a lo largo de sus bordes y presión uniforme perpendicular a su plano. Compara la deflexión central con la solución de Navier.",
+        "en": "Thesis verification model: flat plate simply supported along its edges with a uniform pressure perpendicular to its plane. Check the central deflection against Navier's solution."
+      },
+      "tags": {
+        "es": [
+          "Verificación",
+          "Placa"
+        ],
+        "en": [
+          "Verification",
+          "Plate"
+        ]
+      },
+      "boxes": 127,
+      "thumbnail": "verification-rectangular-plate.webp"
     }
   ]
 }

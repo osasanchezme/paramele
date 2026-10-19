@@ -2,9 +2,18 @@
 # Release notes of the next version. Add an entry in every pull request that changes what users see or do,
 # then run `npm run release` (see changelog/README.md).
 summary:
-  en: Fixes for models in other units, generic sections in PyNite and a crash when opening some models
-  es: Correcciones para modelos en otras unidades, secciones genéricas en PyNite y un fallo al abrir algunos modelos
+  en: Thesis verification samples, and fixes for other units, generic sections in PyNite and a crash on opening
+  es: Ejemplos de verificación de la tesis y arreglos de unidades, secciones genéricas en PyNite y un fallo al abrir
 entries:
+  - id: verification-samples
+    type: feature
+    area: [samples]
+    title:
+      en: Three thesis verification models in the samples
+      es: Tres modelos de verificación de la tesis en los ejemplos
+    description:
+      en: A simply supported beam, a multi-span plane frame and a rectangular plate supported along its edges. They solve with Pynite and SkyCiv with the same results.
+      es: Una viga simplemente apoyada, un pórtico plano de varias luces y una placa rectangular apoyada en sus bordes. Se resuelven con Pynite y SkyCiv con los mismos resultados.
   - id: open-models-with-empty-fields
     type: fix
     severity: critical
