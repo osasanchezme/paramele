@@ -1,6 +1,98 @@
 ---
 # Release notes of the next version. Add an entry in every pull request that changes what users see or do,
 # then run `npm run release` (see changelog/README.md).
-# summary: { en: One line for the timeline card, es: Una línea para la tarjeta de la línea de tiempo }
-entries: []
+summary:
+  en: Fixes for models in other units, generic sections in PyNite and a crash when opening some models
+  es: Correcciones para modelos en otras unidades, secciones genéricas en PyNite y un fallo al abrir algunos modelos
+entries:
+  - id: open-models-with-empty-fields
+    type: fix
+    severity: critical
+    area: [files, ui]
+    title:
+      en: Models with empty fields open instead of leaving a blank page
+      es: Los modelos con campos vacíos se abren en vez de dejar la página en blanco
+    description:
+      en: Opening a model where a box had an empty field (such as the simple beam sample file) crashed the app. Open it again; nothing in the model was lost.
+      es: Abrir un modelo con un campo vacío en alguna caja (como el archivo de ejemplo de la viga simple) bloqueaba la app. Vuelve a abrirlo; no se perdió nada del modelo.
+  - id: support-symbols-model-units
+    type: fix
+    severity: normal
+    area: [units, ui]
+    title:
+      en: Supports and axes keep their size in models in mm, cm or imperial units
+      es: Los apoyos y los ejes mantienen su tamaño en modelos en mm, cm o imperiales
+    description:
+      en: They were drawn as if the model were in meters, so in mm they were a thousand times smaller and the variants could overlap.
+      es: Se dibujaban como si el modelo estuviera en metros, así que en mm eran mil veces más pequeños y las variantes podían superponerse.
+  - id: grid-follows-units
+    type: fix
+    severity: normal
+    area: [units, modeling]
+    title:
+      en: The drawing grid and the drawing tool values follow the model units
+      es: La grilla y los valores de las herramientas de dibujo siguen las unidades
+    description:
+      en: A grid of 1 m becomes 1000 mm when you switch to mm, and so do the plane offset, the plate thickness and the load magnitudes. Before, the grid stayed at 1, which is 1 mm in a model in mm.
+      es: Una grilla de 1 m pasa a 1000 mm al cambiar a mm, y lo mismo el desfase del plano, el espesor de las placas y las magnitudes de las cargas. Antes la grilla quedaba en 1, que es 1 mm en un modelo en mm.
+  - id: variant-labels-size
+    type: fix
+    severity: normal
+    area: [ui]
+    title:
+      en: Variant labels keep their size however long their value is
+      es: Las etiquetas de las variantes mantienen su tamaño aunque su valor sea largo
+    description:
+      en: Long labels, such as L = 12000 in a model in mm, were drawn at half the size of short ones.
+      es: Las etiquetas largas, como L = 12000 en un modelo en mm, se dibujaban a la mitad del tamaño de las cortas.
+  - id: import-converts-settings
+    type: fix
+    severity: normal
+    area: [import-export, units]
+    title:
+      en: Importing a file in other units keeps the mesh size and the load arrows
+      es: Importar un archivo en otras unidades mantiene la malla y las flechas de carga
+    description:
+      en: The settings that are lengths kept their number in the new units, so a mesh of 0.5 m became 0.5 ft.
+      es: Los ajustes que son longitudes mantenían su número en las nuevas unidades, así que una malla de 0,5 m pasaba a 0,5 ft.
+  - id: unit-round-trips
+    type: fix
+    severity: normal
+    area: [units]
+    title:
+      en: Switching units and back gives you the same numbers
+      es: Cambiar de unidades y volver te devuelve los mismos números
+    description:
+      en: Converted values are written short (1.640419948 ft for 0.5 m) and land exactly on the original value when you switch back, instead of drifting to 0.5000000002.
+      es: Los valores convertidos se escriben cortos (1,640419948 ft para 0,5 m) y vuelven exactamente al valor original al regresar, en vez de derivar a 0,5000000002.
+  - id: units-blocked-by-unit-errors
+    type: fix
+    severity: normal
+    area: [units]
+    title:
+      en: Units can't change while links have unit errors
+      es: Las unidades no cambian mientras haya conexiones con errores de unidades
+    description:
+      en: A link between different quantities (drawn red) made the conversion guess wrong. Settings now tells you how many there are, so you can fix them first.
+      es: Una conexión entre magnitudes distintas (en rojo) hacía que la conversión se equivocara. Ahora Ajustes te dice cuántas hay para que las corrijas primero.
+  - id: fixed-unit-labels
+    type: fix
+    severity: normal
+    area: [units, ui]
+    title:
+      en: Links to angle inputs read ° → rad
+      es: Las conexiones a entradas de ángulo muestran ° → rad
+    description:
+      en: Radians, degrees and percentages showed no unit, so a conversion from degrees to radians read as an empty label.
+      es: Los radianes, grados y porcentajes no mostraban unidad, así que una conversión de grados a radianes se veía como una etiqueta vacía.
+  - id: pynite-generic-sections
+    type: fix
+    severity: normal
+    area: [analysis]
+    title:
+      en: PyNite solves models with unused generic sections and reports the others
+      es: PyNite resuelve modelos con secciones genéricas sin usar y avisa de las demás
+    description:
+      en: PyNite only builds rectangular sections. A generic section in the model, even if no member used it, made the solve fail without a message. Now only members that use one stop the solve, with a notice that lists those sections.
+      es: PyNite solo construye secciones rectangulares. Una sección genérica en el modelo, aunque ninguna barra la usara, hacía fallar el cálculo sin mensaje. Ahora solo lo detienen las barras que usan una, con un aviso que lista esas secciones.
 ---
