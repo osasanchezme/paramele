@@ -246,13 +246,33 @@ function getNormalLineTraces({ plane, spacing, points }, structure) {
 }
 
 /**
+ * Extent of some traces and points (scatter3d or mesh3d, with null gaps)
+ * @param {object[]} traces
+ * @param {{x: number, y: number, z: number}[]} [points]
+ * @returns {Object.<string, number[]>|null} [min, max] per axis, null when there is nothing
+ */
+function getDrawnBounds(traces, points = []) {
+  let bounds = { x: [Infinity, -Infinity], y: [Infinity, -Infinity], z: [Infinity, -Infinity] };
+  const add = (axis, value) => {
+    if (value === null || value === undefined || !Number.isFinite(Number(value))) return;
+    bounds[axis][0] = Math.min(bounds[axis][0], Number(value));
+    bounds[axis][1] = Math.max(bounds[axis][1], Number(value));
+  };
+  traces.forEach((trace) => ["x", "y", "z"].forEach((axis) => (trace[axis] || []).forEach((value) => add(axis, value))));
+  points.forEach((point) => ["x", "y", "z"].forEach((axis) => add(axis, point[axis])));
+  return bounds.x[0] === Infinity ? null : bounds;
+}
+
+/**
  * Axis ranges that fit the structure and the work plane. They are fixed while drawing, so the view does not jump on every new element
  * @param {import("./types").ParamEleDrawingState} drawing_state
  * @param {object} structure
  * @param {Object.<string, number[]>|null} previous_ranges Ranges only grow from these
+ * @param {Object.<string, number[]>|null} [drawn_bounds] Extent of everything drawn (supports, loads, variant frames...), which
+ * the ranges also cover so nothing is cut off
  * @returns {Object.<string, number[]>}
  */
-function getSceneRanges(drawing_state, structure, previous_ranges) {
+function getSceneRanges(drawing_state, structure, previous_ranges, drawn_bounds = null) {
   let { plane, offset, spacing } = drawing_state;
   let { in_plane, normal } = getPlaneAxes(plane);
   let structural_nodes = Object.values(structure.nodes);
@@ -267,6 +287,9 @@ function getSceneRanges(drawing_state, structure, previous_ranges) {
     } else {
       range = [Math.min(0, offset, ...values) - spacing, Math.max(0, offset, ...values) + spacing];
     }
+    // With half a cell of margin, Plotly hides the labels right on the edge
+    if (drawn_bounds?.[axis])
+      range = [Math.min(range[0], drawn_bounds[axis][0] - spacing / 2), Math.max(range[1], drawn_bounds[axis][1] + spacing / 2)];
     if (previous_ranges?.[axis]) range = [Math.min(range[0], previous_ranges[axis][0]), Math.max(range[1], previous_ranges[axis][1])];
     ranges[axis] = range;
   });
@@ -449,6 +472,7 @@ const drawingLayer = {
   getOverlayTraces,
   getPickCandidates,
   getSceneRanges,
+  getDrawnBounds,
   getScreenProjector,
   pickCandidate,
 };

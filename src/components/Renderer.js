@@ -290,7 +290,12 @@ class Renderer extends React.Component {
     this.syncCamera();
     let is_drawing = this.drawing_state.tool !== "none";
     if (is_drawing || this.scene_ranges)
-      this.scene_ranges = drawingLayer.getSceneRanges(this.drawing_state, getState("structure"), this.scene_ranges);
+      this.scene_ranges = drawingLayer.getSceneRanges(
+        this.drawing_state,
+        getState("structure"),
+        this.scene_ranges,
+        drawingLayer.getDrawnBounds(this.base_data, renderer.getSceneAnnotations())
+      );
     let scene = { ...this.state.layout.scene };
     ["x", "y", "z"].forEach((axis) => {
       let axis_layout = { ...scene[`${axis}axis`] };
