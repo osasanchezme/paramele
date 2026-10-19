@@ -197,6 +197,31 @@
       },
       "boxes": 50,
       "thumbnail": "verification-retaining-wall-on-piles.webp"
+    },
+    {
+      "id": "verification-building",
+      "title": {
+        "es": "Verificación 7: edificio de 5 niveles",
+        "en": "Verification 7: 5 storey building"
+      },
+      "description": {
+        "es": "Modelo de verificación de la tesis: 5 niveles, 5 luces en X y 3 en Y, muros en los vanos extremos de las fachadas largas, núcleo de ascensores, cargas en las vigas y viento en las columnas.",
+        "en": "Thesis verification model: 5 levels, 5 spans along X and 3 along Y, walls in the end spans of the long faces, an elevator core, loads on the beams and wind on the columns."
+      },
+      "tags": {
+        "es": [
+          "Verificación",
+          "Edificio",
+          "Placa"
+        ],
+        "en": [
+          "Verification",
+          "Building",
+          "Plate"
+        ]
+      },
+      "boxes": 805,
+      "thumbnail": "verification-building.webp"
     }
   ]
 }

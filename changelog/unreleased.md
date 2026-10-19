@@ -12,8 +12,8 @@ entries:
       en: Thesis verification models in the samples
       es: Modelos de verificación de la tesis en los ejemplos
     description:
-      en: A simply supported beam, a cantilever column with a trapezoidal lateral load, a multi-span plane frame, a rectangular plate supported along its edges and a retaining wall on piles. They solve with Pynite and SkyCiv with the same results.
-      es: Una viga simplemente apoyada, una columna en voladizo con carga lateral trapezoidal, un pórtico plano de varias luces, una placa rectangular apoyada en sus bordes y un muro de contención sobre pilotes. Se resuelven con Pynite y SkyCiv con los mismos resultados.
+      en: A simply supported beam, a cantilever column with a trapezoidal lateral load, a multi-span plane frame, a rectangular plate supported along its edges, a retaining wall on piles and a 5 storey building with shear walls and an elevator core. They solve with Pynite and SkyCiv with the same results (in the building, the members along the walls differ by a few percent).
+      es: Una viga simplemente apoyada, una columna en voladizo con carga lateral trapezoidal, un pórtico plano de varias luces, una placa rectangular apoyada en sus bordes, un muro de contención sobre pilotes y un edificio de 5 niveles con muros y núcleo de ascensores. Se resuelven con Pynite y SkyCiv con los mismos resultados (en el edificio, los elementos en los bordes de los muros difieren unos pocos por ciento).
   - id: pynite-distributed-loads-any-direction
     type: feature
     area: [analysis]
