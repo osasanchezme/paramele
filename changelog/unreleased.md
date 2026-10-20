@@ -2,12 +2,13 @@
 # Release notes of the next version. Add an entry in every pull request that changes what users see or do,
 # then run `npm run release` (see changelog/README.md).
 summary:
-  en: Thesis verification samples, and fixes for other units, generic sections in PyNite and a crash on opening
-  es: Ejemplos de verificación de la tesis y arreglos de unidades, secciones genéricas en PyNite y un fallo al abrir
+  en: Spring and soil supports, more of Pynite, the thesis verification samples and fixes for models in other units
+  es: Apoyos elásticos (resortes) y sobre el suelo, mayor soporte de las capacidades de Pynite, los ejemplos de verificación de la tesis y arreglos en otras unidades
 entries:
   - id: verification-samples
     type: feature
     area: [samples]
+    highlight: true
     title:
       en: Thesis verification models in the samples
       es: Modelos de verificación de la tesis en los ejemplos
@@ -111,18 +112,18 @@ entries:
       en: Links to angle inputs read ° → rad
       es: Las conexiones a entradas de ángulo muestran ° → rad
     description:
-      en: Radians, degrees and percentages showed no unit, so a conversion from degrees to radians read as an empty label.
-      es: Los radianes, grados y porcentajes no mostraban unidad, así que una conversión de grados a radianes se veía como una etiqueta vacía.
+      en: Radians and percentages showed no unit, so a link from degrees to radians read as ° → with nothing after it.
+      es: Los radianes y los porcentajes no mostraban unidad, así que una conexión de grados a radianes se veía como ° → sin nada después.
   - id: pynite-generic-sections
     type: fix
     severity: normal
     area: [analysis]
     title:
-      en: PyNite solves models with unused generic sections and reports the others
-      es: PyNite resuelve modelos con secciones genéricas sin usar y avisa de las demás
+      en: Pynite solves models with unused generic sections and reports the others
+      es: Pynite resuelve modelos con secciones genéricas sin usar y avisa de las demás
     description:
-      en: PyNite builds its sections from their shape (rectangular or circular). A generic section in the model, even if no member used it, made the solve fail without a message. Now only members that use one stop the solve, with a notice that lists those sections.
-      es: PyNite construye sus secciones a partir de su forma (rectangular o circular). Una sección genérica en el modelo, aunque ninguna barra la usara, hacía fallar el cálculo sin mensaje. Ahora solo lo detienen las barras que usan una, con un aviso que lista esas secciones.
+      en: Pynite builds its sections from their shape (rectangular or circular). A generic section in the model, even if no member used it, made the solve fail without a message. Now only members that use one stop the solve, with a notice that lists those sections.
+      es: Pynite construye sus secciones a partir de su forma (rectangular o circular). Una sección genérica en el modelo, aunque ninguna barra la usara, hacía fallar el cálculo sin mensaje. Ahora solo lo detienen las barras que usan una, con un aviso que lista esas secciones.
   - id: pynite-circular-sections
     type: feature
     area: [analysis]
@@ -135,21 +136,23 @@ entries:
   - id: spring-supports
     type: feature
     area: [modeling, analysis]
+    highlight: true
     title:
       en: Spring supports, solved with Pynite and SkyCiv
       es: Apoyos elásticos, resueltos con Pynite y SkyCiv
     description:
-      en: The new Spring support box takes a stiffness for each direction where its restraint code has an S (kN/m for translations, kN·m/rad for rotations).
-      es: La nueva caja Apoyo elástico recibe una rigidez en cada dirección donde su código de restricción tiene una S (kN/m para traslaciones, kN·m/rad para rotaciones).
+      en: The new Spring support box takes a stiffness for each direction where its restraint code has an S in the model units (kN/m for translations and kN·m/rad for rotations in metric).
+      es: La nueva caja Apoyo elástico recibe una rigidez en cada dirección donde su código de restricción tiene una S en las unidades del modelo (kN/m para traslaciones y kN·m/rad para rotaciones en el sistema métrico).
   - id: mesh-box-surface-supports
     type: feature
     area: [modeling, analysis]
+    highlight: true
     title:
       en: Mesh box and surface spring supports for plates on soil
       es: Caja de malla y apoyos elásticos de superficie para placas sobre el suelo
     description:
-      en: The new Mesh box meshes its plates with its own size, whatever Structure > Mesh plates is, and gives the list of their mesh nodes. The new Surface spring support box puts a plate of that mesh on soil (a Winkler foundation) from its modulus of subgrade reaction ks (kN/m³), a spring k = ks · A on each mesh node along the directions with an S in its restraint code. Solved with Pynite and SkyCiv with the same results.
-      es: La nueva caja Malla malla sus placas con su propio tamaño, sin importar Estructura > Mallar placas, y entrega la lista de sus nodos. La nueva caja Apoyo elástico de superficie apoya una placa de esa malla sobre el suelo (fundación de Winkler) a partir de su módulo de balasto ks (kN/m³), con un resorte k = ks · A en cada nodo de la malla en las direcciones con S en su código de restricción. Se resuelve con Pynite y SkyCiv con los mismos resultados.
+      en: The new Mesh box meshes its plates with its own size, whatever Structure > Mesh plates is, and gives the list of their mesh nodes. The new Surface spring support box puts a plate of that mesh on soil (a Winkler foundation) from its modulus of subgrade reaction ks (kN/m³ in metric, with typical values in its help), a spring k = ks · A on each mesh node along the directions with an S in its restraint code. Solved with Pynite and SkyCiv with the same results; the SAP2000 export leaves them out with a notice.
+      es: La nueva caja Malla malla sus placas con su propio tamaño, sin importar Estructura > Mallar placas, y entrega la lista de sus nodos. La nueva caja Apoyo elástico de superficie apoya una placa de esa malla sobre el suelo (fundación de Winkler) a partir de su módulo de balasto ks (kN/m³ en el sistema métrico, con valores típicos en su ayuda), con un resorte k = ks · A en cada nodo de la malla en las direcciones con S en su código de restricción. Se resuelve con Pynite y SkyCiv con los mismos resultados; la exportación a SAP2000 los omite con un aviso.
   - id: skyciv-unsmoothed-plate-results
     type: fix
     severity: normal
