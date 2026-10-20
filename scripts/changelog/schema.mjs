@@ -67,7 +67,7 @@ export const entrySchema = z
 
 const releaseFields = {
   title: localized(40).optional(),
-  summary: localized(120),
+  summary: localized(160),
   milestone: z.boolean().default(false),
   entries: z.array(entrySchema).min(1),
 };
@@ -90,7 +90,7 @@ export const releaseSchema = z
 // changelog/unreleased.md: the next release, without version and date until release.mjs sets them. It may have no entries yet
 export const unreleasedSchema = z.strictObject({
   ...releaseFields,
-  summary: localized(120).optional(),
+  summary: localized(160).optional(),
   entries: z.array(entrySchema).default([]),
   // A breaking change to models, files or workflows: the next release is a MAJOR one
   breaking: z.boolean().default(false),
