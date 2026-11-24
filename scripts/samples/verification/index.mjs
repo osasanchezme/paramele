@@ -6,6 +6,7 @@ import rectangularPlate from "./04-rectangular-plate.mjs";
 import skewedBoxCulvert from "./05-skewed-box-culvert.mjs";
 import retainingWallOnPiles from "./06-retaining-wall-on-piles.mjs";
 import building from "./07-building.mjs";
+import thinAndThickPlates from "./08-thin-and-thick-plates.mjs";
 
 const VERIFICATION_SAMPLES = [
   simplySupportedBeam,
@@ -15,6 +16,7 @@ const VERIFICATION_SAMPLES = [
   skewedBoxCulvert,
   retainingWallOnPiles,
   building,
+  thinAndThickPlates,
 ];
 
 export default VERIFICATION_SAMPLES;

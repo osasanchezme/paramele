@@ -148,12 +148,12 @@ export function createModel() {
       model.wire(source, "plotable_out-plotly_data", id, "plotable-plotly_data");
       return id;
     },
-    // Concrete: E [MPa], density [kg/m³] and Poisson's ratio boxes in column 0 from row y, the material in column 1
-    concrete(y, material_y) {
+    // Concrete: E [MPa], density [kg/m³] and Poisson's ratio boxes in column 0 from row y, the material in column 1 (Poisson's ratio 0.2 unless told)
+    concrete(y, material_y, poissons_ratio = 0.2) {
       const material = model.box("structuralMaterial", 1, material_y, { custom_label: L.material });
       const E = model.number(0, y, L.E, 24870);
       const density = model.number(0, y + ROW, L.density, 2400);
-      const nu = model.number(0, y + 2 * ROW, L.nu, 0.2);
+      const nu = model.number(0, y + 2 * ROW, L.nu, poissons_ratio);
       model.wire(E, "value-value", material, "elasticity_modulus-value-20000");
       model.wire(density, "value-value", material, "density-value");
       model.wire(nu, "value-value", material, "poissons_ratio-value-0.3");
