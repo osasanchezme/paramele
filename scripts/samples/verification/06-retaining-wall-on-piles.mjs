@@ -88,6 +88,8 @@ export default {
     en: "Thesis verification model: a wall on a foundation beam and two circular piles fixed at their tips, with a trapezoidal earth pressure on its face.",
   },
   tags: { es: ["Verificación", "Muro", "Placa"], en: ["Verification", "Wall", "Plate"] },
+  // Its post in the Verification category of the paramele-site blog
+  tutorial: { es: "verificacion-muro-sobre-pilotes", en: "verification-retaining-wall-on-piles" },
   // SkyCiv lumps the linear pressure on the mesh nodes (PyNite integrates it), with 0.25 m both agree within 0.3%
   settings: { global: { mesh_plates: true, mesh_size: 0.25 } },
 };

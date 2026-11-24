@@ -186,5 +186,7 @@ export default {
     en: "Thesis verification model: 5 levels, 5 spans along X and 3 along Y, walls in the end spans of the long faces, an elevator core, loads on the beams and wind on the columns.",
   },
   tags: { es: ["Verificación", "Edificio", "Placa"], en: ["Verification", "Building", "Plate"] },
+  // Its post in the Verification category of the paramele-site blog
+  tutorial: { es: "verificacion-edificio-de-5-niveles", en: "verification-5-storey-building" },
   settings: { global: { mesh_plates: true, mesh_size: 1 } },
 };

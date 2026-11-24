@@ -49,4 +49,6 @@ export default {
     en: "Thesis verification model: column fixed at its base with a gravity point load and a trapezoidal lateral load.",
   },
   tags: { es: ["Verificación", "Columna"], en: ["Verification", "Column"] },
+  // Its post in the Verification category of the paramele-site blog
+  tutorial: { es: "verificacion-columna-en-voladizo", en: "verification-cantilever-column" },
 };

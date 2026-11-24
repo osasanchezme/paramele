@@ -76,6 +76,8 @@ export default {
     en: "Thesis verification model: a one-cell skewed culvert resting on soil (subgrade modulus, surface spring support under the bottom slab), with the fill and a traffic surcharge on the top slab.",
   },
   tags: { es: ["Verificación", "Placa", "Suelo"], en: ["Verification", "Plate", "Soil"] },
+  // Its post in the Verification category of the paramele-site blog
+  tutorial: { es: "verificacion-box-culvert-con-esviaje", en: "verification-skewed-box-culvert" },
   // The walls and the top slab take the global mesh size, the bottom slab the one of its mesh box
   settings: { global: { mesh_plates: true, mesh_size: 0.5 } },
 };

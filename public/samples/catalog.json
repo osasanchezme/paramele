@@ -102,7 +102,11 @@
         ]
       },
       "boxes": 26,
-      "thumbnail": "verification-simply-supported-beam.webp"
+      "thumbnail": "verification-simply-supported-beam.webp",
+      "tutorial": {
+        "es": "https://paramele.com/blog/verificacion-viga-simplemente-apoyada",
+        "en": "https://paramele.com/en/blog/verification-simply-supported-beam"
+      }
     },
     {
       "id": "verification-cantilever-column",
@@ -125,7 +129,11 @@
         ]
       },
       "boxes": 26,
-      "thumbnail": "verification-cantilever-column.webp"
+      "thumbnail": "verification-cantilever-column.webp",
+      "tutorial": {
+        "es": "https://paramele.com/blog/verificacion-columna-en-voladizo",
+        "en": "https://paramele.com/en/blog/verification-cantilever-column"
+      }
     },
     {
       "id": "verification-multi-span-frame",
@@ -148,7 +156,11 @@
         ]
       },
       "boxes": 52,
-      "thumbnail": "verification-multi-span-frame.webp"
+      "thumbnail": "verification-multi-span-frame.webp",
+      "tutorial": {
+        "es": "https://paramele.com/blog/verificacion-portico-de-varias-luces",
+        "en": "https://paramele.com/en/blog/verification-multi-span-frame"
+      }
     },
     {
       "id": "verification-rectangular-plate",
@@ -171,7 +183,11 @@
         ]
       },
       "boxes": 127,
-      "thumbnail": "verification-rectangular-plate.webp"
+      "thumbnail": "verification-rectangular-plate.webp",
+      "tutorial": {
+        "es": "https://paramele.com/blog/verificacion-placa-rectangular",
+        "en": "https://paramele.com/en/blog/verification-rectangular-plate"
+      }
     },
     {
       "id": "verification-skewed-box-culvert",
@@ -196,7 +212,11 @@
         ]
       },
       "boxes": 38,
-      "thumbnail": "verification-skewed-box-culvert.webp"
+      "thumbnail": "verification-skewed-box-culvert.webp",
+      "tutorial": {
+        "es": "https://paramele.com/blog/verificacion-box-culvert-con-esviaje",
+        "en": "https://paramele.com/en/blog/verification-skewed-box-culvert"
+      }
     },
     {
       "id": "verification-retaining-wall-on-piles",
@@ -221,7 +241,11 @@
         ]
       },
       "boxes": 50,
-      "thumbnail": "verification-retaining-wall-on-piles.webp"
+      "thumbnail": "verification-retaining-wall-on-piles.webp",
+      "tutorial": {
+        "es": "https://paramele.com/blog/verificacion-muro-sobre-pilotes",
+        "en": "https://paramele.com/en/blog/verification-retaining-wall-on-piles"
+      }
     },
     {
       "id": "verification-building",
@@ -246,7 +270,11 @@
         ]
       },
       "boxes": 805,
-      "thumbnail": "verification-building.webp"
+      "thumbnail": "verification-building.webp",
+      "tutorial": {
+        "es": "https://paramele.com/blog/verificacion-edificio-de-5-niveles",
+        "en": "https://paramele.com/en/blog/verification-5-storey-building"
+      }
     },
     {
       "id": "verification-thin-thick-plates",

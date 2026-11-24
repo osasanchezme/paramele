@@ -45,4 +45,6 @@ export default {
     en: "Thesis verification model: one span with a gravity distributed load, a pin and a roller. Moment, shear, deflection and reactions.",
   },
   tags: { es: ["Verificación", "Viga"], en: ["Verification", "Beam"] },
+  // Its post in the Verification category of the paramele-site blog
+  tutorial: { es: "verificacion-viga-simplemente-apoyada", en: "verification-simply-supported-beam" },
 };

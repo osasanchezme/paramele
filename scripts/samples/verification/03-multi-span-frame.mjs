@@ -63,4 +63,6 @@ export default {
     en: "Thesis verification model: one storey, three-span frame with fixed columns, a distributed load on the beams and a lateral load at the top of each column.",
   },
   tags: { es: ["Verificación", "Pórtico"], en: ["Verification", "Frame"] },
+  // Its post in the Verification category of the paramele-site blog
+  tutorial: { es: "verificacion-portico-de-varias-luces", en: "verification-multi-span-frame" },
 };

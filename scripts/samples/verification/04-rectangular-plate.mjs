@@ -64,6 +64,8 @@ export default {
     en: "Thesis verification model: flat plate simply supported along its edges with a uniform pressure perpendicular to its plane. Check the central deflection against Navier's solution.",
   },
   tags: { es: ["Verificación", "Placa"], en: ["Verification", "Plate"] },
+  // Its post in the Verification category of the paramele-site blog
+  tutorial: { es: "verificacion-placa-rectangular", en: "verification-rectangular-plate" },
   // The mesh follows the supported nodes of the edges (see above), mesh size larger than their spacing
   settings: { global: { mesh_plates: true, mesh_size: 1 } },
 };
