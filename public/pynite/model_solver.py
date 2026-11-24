@@ -7,6 +7,7 @@ can run inside Pyodide. No file IO here; section properties come from section_pr
 import re
 import numpy as np
 from Pynite import FEModel3D, Analysis
+from Pynite.PhysMember import PhysMember
 from section_properties import circleProperties, rectangleProperties
 
 SUPPORT_KEYS = ["support_DX", "support_DY", "support_DZ", "support_RX", "support_RY", "support_RZ"]
@@ -32,6 +33,34 @@ def checkNodalStability(model, K):
 
 
 Analysis._check_stability = checkNodalStability
+
+_descritize = PhysMember.descritize
+
+
+def descritizeLinearLoads(self):
+    """PhysMember.descritize, with the distributed loads of each sub-member taken from the load line itself. Pynite
+    (3.2.0, and still on its main branch) reassigns w1 to the value at the start of the sub-member before it evaluates
+    the value at its end with the same line, so a load that varies along the member came out wrong on every sub-member
+    that it covers past its start (e.g. wind on a column split by the mesh nodes of a wall)."""
+    _descritize(self)
+    origin = self.i_node
+
+    def position(node):
+        return ((node.X - origin.X) ** 2 + (node.Y - origin.Y) ** 2 + (node.Z - origin.Z) ** 2) ** 0.5
+
+    for sub_member in self.sub_members.values():
+        xi, xj = position(sub_member.i_node), position(sub_member.j_node)
+        loads = []
+        # Same selection and pieces as Pynite's, each end value from the original line
+        for direction, w1, w2, x1_load, x2_load, case, self_weight in self.DistLoads:
+            if x1_load <= xj and x2_load > xi:
+                w = lambda x: (w2 - w1) / (x2_load - x1_load) * (x - x1_load) + w1
+                start, end = max(x1_load, xi), min(x2_load, xj)
+                loads.append([direction, w(start), w(end), start - xi, end - xi, case, self_weight])
+        sub_member.DistLoads = loads
+
+
+PhysMember.descritize = descritizeLinearLoads
 
 
 def getIndex(pynite_id):
